@@ -363,21 +363,6 @@ namespace hashMIMC {
         {0x0000000000000001, 0x4000000000000001, 0x7ffffffffffffffe, 0x6000000000000001, 0x2aaaaaaaaaaaaaaa, 0x3fffffffffffffff, 0x5b6db6db6db6db6c, 0x4b6db6db6db6db6c, 0x3c86f21bc86f21bc, 0x63468d1a3468d1a2, 0x06a45f670d48bece, 0x3999999999999999, 0x064fb8ad0c9f715a, 0x65294a5294a5294b, 0x2ebaebaebaebaeba, 0x57fffffffffffffe, 0x43ea621f5310fa99, 0x723d647ac8f591ea, 0x34b4b4b4b4b4b4b4, 0x33a74e9d3a74e9d3, 0x650eca1d943b2877, 0x5c71c71c71c71c70, 0x0737d12b0e6fa256, 0x6555555555555554, 0x05763e690aec7cd2, 0x0},
     };
 
-    void HadesMIMCPermutation_63_25_12_34::toState(uint64_t* state, const uint8_t* buffer) {
-        // copy buffer to state, splitting up every 63 bits into state blocks
-        const uint64_t *buf_ptr = reinterpret_cast<const uint64_t *>(buffer);
-        uint64_t overflow = 0;
-        for (size_t i = 0; i < num_sboxes - 1; i++) {
-            state[i] = overflow | ((buf_ptr[i] & (0xffffffffffffffffULL >> (i + 1))) << i);
-            overflow = buf_ptr[i] >> (63 - i);
-        }
-    }
-    void HadesMIMCPermutation_63_25_12_34::fromState(uint8_t *buffer, const uint64_t* state) {
-        // copy state to buffer, reassembling the 63 bit blocks
-        uint64_t *buf_ptr = reinterpret_cast<uint64_t *>(buffer);
-        //TODO implement
-    }
-
     void print_hex(size_t round, uint64_t* state) {
         std::cout << "Round " << round << ":\n";
         for(int i = 0; i < 25; i++) {
@@ -416,48 +401,10 @@ namespace hashMIMC {
         }
     }
 
-    void HadesMIMCPermutation_63_25_12_34::SBOX2(uint64_t *state) {
-        __m128i tmp[num_sboxes];
-        for (size_t i = 0; i < (num_sboxes/2)*2; i+=2) {
-            __m128i state_part = _mm_load_si128((__m128i*)(state + i));
-            tmp[i+0] = _mm_clmulepi64_si128(state_part, state_part, 0x00);
-            tmp[i+0] = _mm_set1_epi64x(F_2_63::reduce(tmp[i+0]));
-            tmp[i+1] = _mm_clmulepi64_si128(state_part, state_part, 0x11);
-            tmp[i+1] = _mm_set1_epi64x(F_2_63::reduce(tmp[i+1]));
-            tmp[i+0] = _mm_clmulepi64_si128(state_part, tmp[i+0], 0x00);
-            state[i+0] = F_2_63::reduce(tmp[i+0]);
-            tmp[i+1] = _mm_clmulepi64_si128(state_part, tmp[i+1], 0x11);
-            state[i+1] = F_2_63::reduce(tmp[i+1]);
-        }
-
-        __m128i state_part = _mm_set1_epi64x(state[num_sboxes-1]);
-        tmp[num_sboxes-1] = _mm_clmulepi64_si128(state_part, state_part, 0x00);
-        tmp[num_sboxes-1] = _mm_set1_epi64x(F_2_63::reduce(tmp[num_sboxes-1]));
-        tmp[num_sboxes-1] = _mm_clmulepi64_si128(state_part, tmp[num_sboxes-1], 0x00);
-        state[num_sboxes-1] = F_2_63::reduce(tmp[num_sboxes-1]);
-    }
-
     void HadesMIMCPermutation_63_25_12_34::SBOX_PART(uint64_t *state) {
         uint64_t tmp = F_2_63::mulReduce(state[0], state[0]);
         state[0] = F_2_63::mulReduce(tmp, state[0]);
     }
-
-    //other version of SBOX for testing
-//    void HadesMIMCPermutation_63_25_12_34::SBOX3(uint64_t *state) {
-//        __m128i tmp[num_sboxes];
-//        for (size_t i = 0; i < num_sboxes; i+=2) {
-//            __m128i state_part = _mm_load_si128((__m128i*)(state + i));
-//            __m128i state_part2 = _mm_slli_epi64(state_part, 1);
-//            tmp[i+0] = _mm_clmulepi64_si128(state_part, state_part2, 0x00);
-//            tmp[i+0] = F_2_63::reduceOPT3(tmp[i+0]);
-//            tmp[i+1] = _mm_clmulepi64_si128(state_part, state_part2, 0x11);
-//            tmp[i+1] = F_2_63::reduceOPT3(tmp[i+1]);
-//            tmp[i+0] = _mm_clmulepi64_si128(state_part, tmp[i+0], 0x00);
-//            state[i+0] = F_2_63::reduce(tmp[i+0]);
-//            tmp[i+1] = _mm_clmulepi64_si128(state_part, tmp[i+1], 0x11);
-//            state[i+1] = F_2_63::reduce(tmp[i+1]);
-//        }
-//    }
 
     void HadesMIMCPermutation_63_25_12_34::LIN(uint64_t *state) {
         uint64_t tmp[num_sboxes] = {0, };
@@ -472,33 +419,6 @@ namespace hashMIMC {
         for (size_t i = 0; i < num_sboxes; i++) {
             // reduction mod X^63 + X + 1
             state[i] = tmp[i];
-        }
-
-    }
-    void HadesMIMCPermutation_63_25_12_34::LIN2(uint64_t *state) {
-        alignas(16) __m128i tmp[num_sboxes+1];
-        memset(tmp, 0, (num_sboxes+1)*sizeof(__m128i));
-
-        for (size_t i = 0; i < (num_sboxes/2)*2; i+=2) {
-            __m128i state_part = _mm_load_si128((__m128i*)(state + i));
-            for (size_t j = 0; j < num_sboxes; j+=2) {
-                __m128i matrix_part1 = _mm_load_si128((__m128i *) &(M25[i+0][j]));
-                __m128i matrix_part2 = _mm_load_si128((__m128i *) &(M25[i+1][j]));
-                tmp[i+0] = _mm_xor_si128(tmp[i+0], _mm_clmulepi64_si128(state_part, matrix_part1, 0x00));
-                tmp[i+0] = _mm_xor_si128(tmp[i+0], _mm_clmulepi64_si128(state_part, matrix_part1, 0x01));
-                tmp[i+1] = _mm_xor_si128(tmp[i+1], _mm_clmulepi64_si128(state_part, matrix_part2, 0x10));
-                tmp[i+1] = _mm_xor_si128(tmp[i+1], _mm_clmulepi64_si128(state_part, matrix_part2, 0x11));
-            }
-        }
-        __m128i state_part = _mm_set1_epi64x(state[num_sboxes-1]);
-        for (size_t j = 0; j < num_sboxes; j+=2) {
-            __m128i matrix_part1 = _mm_set1_epi64x(M25[num_sboxes-1][j]);
-            tmp[num_sboxes-1] = _mm_xor_si128(tmp[num_sboxes-1], _mm_clmulepi64_si128(state_part, matrix_part1, 0x00));
-            tmp[num_sboxes-1] = _mm_xor_si128(tmp[num_sboxes-1], _mm_clmulepi64_si128(state_part, matrix_part1, 0x01));
-        }
-        for (size_t i = 0; i < num_sboxes; i++) {
-            // reduction mod X^63 + X + 1
-            state[i] = F_2_63::reduce(tmp[i]);
         }
 
     }

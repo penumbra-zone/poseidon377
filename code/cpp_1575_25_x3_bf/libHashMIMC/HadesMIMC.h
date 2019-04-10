@@ -56,9 +56,7 @@ public:
 
     void SBOX (uint64_t* state) override;
     void SBOX_PART (uint64_t* state) override;
-    void SBOX2 (uint64_t* state);
     void LIN (uint64_t* state) override;
-    void LIN2 (uint64_t* state);
     void ARK (uint64_t* state, size_t round) override;
 private:
 };
