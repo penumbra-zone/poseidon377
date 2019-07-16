@@ -41,8 +41,8 @@ def sat_inequiv_cubic(N, t, R_F, R_P):
     n = ceil(float(N) / t)
     R_F_1 = 4 if ((t + 2) < (N + 2*n - M)) else 6 # Statistical
     R_F_2 = 0.63 * min(n, M) + log(t, 2) - R_P # Interpolation
-    R_F_3 = 2 + min(n, M) * 0.32 - R_P # Groebner 1
-    R_F_4 = M * 0.18 - t * R_P # Groebner 2
+    R_F_3 = 0.32 * min(n, M) - R_P # Groebner 1
+    R_F_4 = float(0.18 * min(n, M) - 1 - R_P) / (t - 1) # Groebner 2
     R_F_5 = (0.63 * min(n, M) + 2 + log(t, 2) - R_P) if (field_case == 0) else 0
     R_F_max = max(ceil(R_F_1), ceil(R_F_2), ceil(R_F_3), ceil(R_F_4), ceil(R_F_5))
     if R_F > R_F_max:
@@ -54,8 +54,8 @@ def sat_inequiv_fifth(N, t, R_F, R_P):
     n = ceil(float(N) / t)
     R_F_1 = 4 if ((2*t + 4) < (N + 2*n - M)) else 6 # Statistical
     R_F_2 = 0.43 * min(n, M) + log(t, 2) - R_P # Interpolation
-    R_F_3 = 2 + min(n, M) * 0.21 - R_P # Groebner 1
-    R_F_4 = M * 0.14 - t * R_P # Groebner 2
+    R_F_3 = 0.21 * min(n, M) - R_P # Groebner 1
+    R_F_4 = float(0.14 * min(n, M) - 1 - R_P) / (t - 1) # Groebner 2
     R_F_5 = (0.63 * min(n, M) + 2 + log(t, 2) - R_P) if (field_case == 0) else 0
     R_F_max = max(ceil(R_F_1), ceil(R_F_2), ceil(R_F_3), ceil(R_F_4), ceil(R_F_5))
     if R_F > R_F_max:
@@ -67,8 +67,8 @@ def sat_inequiv_inverse(N, t, R_F, R_P):
     n = ceil(float(N) / t)
     R_F_1 = 4 if ((2*t + 4) < (N + 2*n - M)) else 6 # Statistical
     R_P_1 = 2 + log(t, 2) + min(n, M) - log(t, 2) * R_F # Interpolation
-    R_F_2 = 2 + min(n, M) * 0.5 * log(t, 2) - R_P # Groebner 1
-    R_F_3 = M * 0.25 - t * R_P # Groebner 2
+    R_F_2 = float(log(t, 2) + 0.5 * min(n, M) - R_P) / log(t, 2) # Groebner 1
+    R_F_3 = float(0.25 * min(n, M) - 1 - R_P) / (t - 1) # Groebner 2
     R_F_4 = (0.63 * min(n, M) + 2 + log(t, 2) - R_P) if (field_case == 0) else 0
     R_F_max = max(ceil(R_F_1), ceil(R_F_2), ceil(R_F_3), ceil(R_F_4))
     R_P_max = ceil(R_P_1)
