@@ -39,40 +39,40 @@ elif sbox_case == 2:
 
 def sat_inequiv_cubic(N, t, R_F, R_P):
     n = ceil(float(N) / t)
-    R_F_1 = 4 if ((t + 2) < (N + 2*n - M)) else 6 # Statistical
+    R_F_1 = 6 if ((t + 1) <= (N + n - M)) else 10 # Statistical
     R_F_2 = 0.63 * min(n, M) + log(t, 2) - R_P # Interpolation
     R_F_3 = 0.32 * min(n, M) - R_P # Groebner 1
     R_F_4 = float(0.18 * min(n, M) - 1 - R_P) / (t - 1) # Groebner 2
     R_F_5 = (0.63 * min(n, M) + 2 + log(t, 2) - R_P) if (field_case == 0) else 0
     R_F_max = max(ceil(R_F_1), ceil(R_F_2), ceil(R_F_3), ceil(R_F_4), ceil(R_F_5))
-    if R_F > R_F_max:
+    if R_F >= R_F_max:
         return True
     else:
         return False
 
 def sat_inequiv_fifth(N, t, R_F, R_P):
     n = ceil(float(N) / t)
-    R_F_1 = 4 if ((2*t + 4) < (N + 2*n - M)) else 6 # Statistical
+    R_F_1 = 6 if ((2 * (t + 1)) <= (N + n - M)) else 10 # Statistical
     R_F_2 = 0.43 * min(n, M) + log(t, 2) - R_P # Interpolation
     R_F_3 = 0.21 * min(n, M) - R_P # Groebner 1
     R_F_4 = float(0.14 * min(n, M) - 1 - R_P) / (t - 1) # Groebner 2
     R_F_5 = (0.63 * min(n, M) + 2 + log(t, 2) - R_P) if (field_case == 0) else 0
     R_F_max = max(ceil(R_F_1), ceil(R_F_2), ceil(R_F_3), ceil(R_F_4), ceil(R_F_5))
-    if R_F > R_F_max:
+    if R_F >= R_F_max:
         return True
     else:
         return False
 
 def sat_inequiv_inverse(N, t, R_F, R_P):
     n = ceil(float(N) / t)
-    R_F_1 = 4 if ((2*t + 4) < (N + 2*n - M)) else 6 # Statistical
+    R_F_1 = 6 if ((2 * (t + 1)) <= (N + n - M)) else 10 # Statistical
     R_P_1 = 2 + log(t, 2) + min(n, M) - log(t, 2) * R_F # Interpolation
     R_F_2 = float(log(t, 2) + 0.5 * min(n, M) - R_P) / log(t, 2) # Groebner 1
     R_F_3 = float(0.25 * min(n, M) - 1 - R_P) / (t - 1) # Groebner 2
     R_F_4 = (0.63 * min(n, M) + 2 + log(t, 2) - R_P) if (field_case == 0) else 0
     R_F_max = max(ceil(R_F_1), ceil(R_F_2), ceil(R_F_3), ceil(R_F_4))
     R_P_max = ceil(R_P_1)
-    if R_F > R_F_max and R_P > R_P_max:
+    if R_F >= R_F_max and R_P >= R_P_max:
         return True
     else:
         return False
@@ -106,7 +106,7 @@ def find_FD_round_numbers(N, t, cost_function, security_margin):
                         R_F_t += 2
                         R_P_t = int(ceil(float(R_P_t) * 1.075))
                     cost = cost_function(R_F_t, R_P_t, N, t)
-                    if (cost < min_cost) or ((cost == min_cost) and (R_F_t > max_cost_rf)):
+                    if (cost < min_cost) or ((cost == min_cost) and (R_F_t < max_cost_rf)):
                         R_P = ceil(R_P_t)
                         R_F = ceil(R_F_t)
                         min_cost = cost
@@ -157,13 +157,78 @@ def print_latex_table_combinations(combinations, security_margin):
             sbox_string = "x^{-1}"
         print "$" + str(M) + "$ & $" + str(N_fixed) + "$ & $" + str(n) + "$ & $" + str(t_fixed) + "$ & $" + str(ret[0]) + "$ & $" + str(ret[1]) + "$ & $" + field_string + "$ & $" + str(ret[2]) + "$ & $" + str(ret[3]) + "$ \\\\"
 
-ret_fixed = calc_final_numbers_fixed(False)
+def print_pretty_combinations(combinations, security_margin):
+    global N_fixed
+    global t_fixed
+    global M
+    global field_case
+    global sbox_case
+    field_string = ""
+    sbox_string = ""
+    print "Format: [Security Level, Field Size, # Elements, Field, S-Box, R_F, R_P]"
+    for comb in combinations:
+        N_fixed = comb[0]
+        t_fixed = comb[1]
+        M = comb[2]
+        field_case = comb[3]
+        sbox_case = comb[4]
+        n = int(ceil(float(N_fixed) / t_fixed))
+        ret = calc_final_numbers_fixed(security_margin)
+        if field_case == 0:
+            field_string = "GF(2^n)"
+        elif field_case == 1:
+            field_string = "GF(p)"
+        if sbox_case == 0:
+            sbox_string = "x^3"
+        elif sbox_case == 1:
+            sbox_string = "x^5"
+        elif sbox_case == 2:
+            sbox_string = "x^{-1}"
+        print [str(M), str(n), str(t_fixed), field_string, sbox_string, str(ret[0]), str(ret[1])]
+
+ret_fixed = calc_final_numbers_fixed(True)
 print ret_fixed
 print "Recommendation for N=" + str(N_fixed) + ", t=" + str(t_fixed) + ":"
 print "R_F =", ret_fixed[0]
 print "R_P =", ret_fixed[1]
 print "S-box cost =", ret_fixed[2]
 print "Size cost =", ret_fixed[3]
+
+# Table for challenge
+# Format: [N, t, M, field, s_box]
+# --> [N, t, M, 0/1, 0] (binary/prime field and x^3)
+combinations_challenge = [
+    [3*45, 3, 45, 0, 0],
+    [3*45, 3, 45, 1, 0],
+    [3*90, 3, 45, 0, 0],
+    [3*90, 3, 45, 1, 0],
+    [4*80, 4, 80, 0, 0],
+    [4*80, 4, 80, 1, 0],
+    [3*160, 3, 80, 0, 0],
+    [3*160, 3, 80, 1, 0],
+    [11*160, 11, 80, 0, 0],
+    [11*160, 11, 80, 1, 0],
+    [4*128, 4, 128, 0, 0],
+    [4*128, 4, 128, 1, 0],
+    [3*256, 3, 128, 0, 0],
+    [3*256, 3, 128, 1, 0],
+    [12*128, 12, 128, 0, 0],
+    [12*128, 12, 128, 1, 0],
+    [11*256, 11, 128, 0, 0],
+    [11*256, 11, 128, 1, 0],
+    [8*128, 8, 256, 0, 0],
+    [8*128, 8, 256, 1, 0],
+    [3*512, 3, 256, 0, 0],
+    [3*512, 3, 256, 1, 0],
+    [14*128, 14, 256, 0, 0],
+    [14*128, 14, 256, 1, 0],
+    [11*512, 11, 256, 0, 0],
+    [11*512, 11, 256, 1, 0],
+]
+
+print "--- Round numbers (with security margin) ---"
+print_pretty_combinations(combinations_challenge, True)
+exit()
 
 # Build table
 # x^3

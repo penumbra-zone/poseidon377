@@ -1,12 +1,13 @@
 from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildIrred_list
 
-# GF(p), x^3, N = 1536, n = 64, t = 24: sage create_rcs_grain.sage 1 0 64 24 6 40 0xfffffffffffffeff
-# GF(p), x^(-1), N = 1518, n = 253, t = 6: sage create_rcs_grain.sage 1 0 253 6 6 119 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed
-# GF(2^n), x^3, N = 1512, n = 63, t = 24: sage create_rcs_grain.sage 0 0 63 24 6 42
+# GF(p), x^3, N = 1536, n = 64, t = 24: sage create_rcs_grain.sage 1 0 64 24 8 42 0xfffffffffffffeff
+# GF(p), x^(-1), N = 1518, n = 253, t = 6: sage create_rcs_grain.sage 1 2 253 6 8 127 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed
+# GF(2^n), x^3, N = 1512, n = 63, t = 24: sage create_rcs_grain.sage 0 0 63 24 8 45
 
 if len(sys.argv) < 7:
     print "Usage: <script> <field> <s_box> <field_size> <num_cells> <R_F> <R_P> (<prime_number_hex>)"
-    print "mode = 0 for GF(2^n), mode = 1 for GF(p)"
+    print "field = 0 for GF(2^n), field = 1 for GF(p)"
+    print "s_box = 0 for x^3, s_box = 1 for x^5, s_box = 2 for x^(-1)"
     exit()
 
 # Parameters
