@@ -1,5 +1,5 @@
 # Reference Implementations for Various Versions of Starkad and Poseidon
-This repository contains the source code of reference implementations for various versions of HadesHASH [1]. Source code is available in both Sage and C++. Moreover, scripts to calculate the round numbers, the round constants, and the MDS matrices are also included.
+This repository contains the source code of reference implementations for various versions of Starkad and Poseidon [1]. Source code is available in both Sage and C++. Moreover, scripts to calculate the round numbers, the round constants, and the MDS matrices are also included.
 
 ## *sage_1512_24_x3_bf*
 This is an implementation of the Starkad permutation with f(x) = x^3, n = 63, t = 24, N = 1512, and p(x) = x^63 + x + 1.
