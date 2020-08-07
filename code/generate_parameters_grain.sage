@@ -12,8 +12,8 @@ from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildIrred_list
 
 if len(sys.argv) < 7:
     print "Usage: <script> <field> <s_box> <field_size> <num_cells> <R_F> <R_P> (<prime_number_hex>)"
-    print "field = 0 for GF(2^n), field = 1 for GF(p)"
-    print "s_box = 0 for x^3, s_box = 1 for x^5, s_box = 2 for x^(-1)"
+    print "field = 1 for GF(p)"
+    print "s_box = 0 for x^alpha, s_box = 1 for x^(-1)"
     exit()
 
 # Parameters
