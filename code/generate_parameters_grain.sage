@@ -1,7 +1,7 @@
 # Remark: This script contains functionality for GF(2^n), but currently works only over GF(p)! A few small adaptations are needed for GF(2^n).
 from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildIrred_list
 
-# Note that R_P is increased to the closest multiple of t!
+# Note that R_P is increased to the closest multiple of t
 # GF(p), alpha=3, N = 1536, n = 64, t = 24, R_F = 8, R_P = 48: sage generate_parameters_grain.sage 1 0 64 24 8 48 0xfffffffffffffeff
 # GF(p), alpha=5, N = 1524, n = 254, t = 6, R_F = 8, R_P = 60: sage generate_parameters_grain.sage 1 0 254 6 8 60 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001
 # GF(p), x^(-1), N = 1518, n = 253, t = 6, R_F = 8, R_P = 60: sage generate_parameters_grain.sage 1 1 253 6 8 60 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed
