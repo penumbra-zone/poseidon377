@@ -259,9 +259,9 @@ print("Average time for unoptimized:", average_time)
 # print_words_to_hex(output_words)
 
 print("Input (concat):")
-print("0x" + hex(concat_words_to_large(input_words)))
+print(hex(concat_words_to_large(input_words)))
 print("Output (concat):")
-print("0x" + hex(concat_words_to_large(output_words)))
+print(hex(concat_words_to_large(output_words)))
 
 total_time_passed = 0
 for i in range(0, num_iterations):
@@ -277,6 +277,6 @@ print("Average time for optimized:", average_time)
 # print_words_to_hex(output_words)
 
 print("Input (concat):")
-print("0x" + hex(concat_words_to_large(input_words)))
+print(hex(concat_words_to_large(input_words)))
 print("Output (concat):")
-print("0x" + hex(concat_words_to_large(output_words)))
+print(hex(concat_words_to_large(output_words)))
