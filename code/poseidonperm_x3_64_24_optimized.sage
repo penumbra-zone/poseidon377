@@ -29,7 +29,7 @@ for i in range(0, (R_F + R_P) * t):
 
 def print_words_to_hex(words):
     hex_length = int(ceil(float(n) / 4)) + 2 # +2 for "0x"
-    print ["{0:#0{1}x}".format(int(entry), hex_length) for entry in words]
+    print(["{0:#0{1}x}".format(int(entry), hex_length) for entry in words])
 
 def concat_words_to_large(words):
     int_concat = 0
@@ -60,29 +60,29 @@ def calc_equivalent_matrices():
 
     w_hat_collection = []
     v_collection = []
-    v = MDS_matrix_field[[0], range(1,t)]
+    v = MDS_matrix_field[[0], list(range(1,t))]
     # print "M:", MDS_matrix_field
     # print "v:", v
     M_mul = MDS_matrix_field
     M_i = matrix(F, t, t)
     for i in range(R_P - 1, -1, -1):
-        M_hat = M_mul[range(1,t), range(1,t)]
-        w = M_mul[range(1,t), [0]]
-        v = M_mul[[0], range(1,t)]
+        M_hat = M_mul[list(range(1,t)), list(range(1,t))]
+        w = M_mul[list(range(1,t)), [0]]
+        v = M_mul[[0], list(range(1,t))]
         v_collection.append(v.list())
         w_hat = M_hat.inverse() * w
         w_hat_collection.append(w_hat.list())
 
         # Generate new M_i, and multiplication M * M_i for "previous" round
         M_i = matrix.identity(t)
-        M_i[range(1,t), range(1,t)] = M_hat
+        M_i[list(range(1,t)), list(range(1,t))] = M_hat
         #M_mul = MDS_matrix_field * M_i
 
         test_mat = matrix(F, t, t)
-        test_mat[[0], range(0, t)] = MDS_matrix_field[[0], range(0, t)]
-        test_mat[[0], range(1, t)] = v
-        test_mat[range(1, t), [0]] = w_hat
-        test_mat[range(1,t), range(1,t)] = matrix.identity(t-1)
+        test_mat[[0], list(range(0, t))] = MDS_matrix_field[[0], list(range(0, t))]
+        test_mat[[0], list(range(1, t))] = v
+        test_mat[list(range(1, t)), [0]] = w_hat
+        test_mat[list(range(1,t)), list(range(1,t))] = matrix.identity(t-1)
 
         # print M_mul == M_i * test_mat
         M_mul = MDS_matrix_field * M_i
@@ -251,17 +251,17 @@ for i in range(0, num_iterations):
     time_passed = timer_end - timer_start
     total_time_passed += time_passed
 average_time = total_time_passed / float(num_iterations)
-print "Average time for unoptimized:", average_time
+print("Average time for unoptimized:", average_time)
 
 # print "Input:"
 # print_words_to_hex(input_words)
 # print "Output:"
 # print_words_to_hex(output_words)
 
-print "Input (concat):"
-print "0x" + hex(concat_words_to_large(input_words))
-print "Output (concat):"
-print "0x" + hex(concat_words_to_large(output_words))
+print("Input (concat):")
+print("0x" + hex(concat_words_to_large(input_words)))
+print("Output (concat):")
+print("0x" + hex(concat_words_to_large(output_words)))
 
 total_time_passed = 0
 for i in range(0, num_iterations):
@@ -269,14 +269,14 @@ for i in range(0, num_iterations):
     time_passed = timer_end - timer_start
     total_time_passed += time_passed
 average_time = total_time_passed / float(num_iterations)
-print "Average time for optimized:", average_time
+print("Average time for optimized:", average_time)
 
 # print "Input:"
 # print_words_to_hex(input_words)
 # print "Output:"
 # print_words_to_hex(output_words)
 
-print "Input (concat):"
-print "0x" + hex(concat_words_to_large(input_words))
-print "Output (concat):"
-print "0x" + hex(concat_words_to_large(output_words))
+print("Input (concat):")
+print("0x" + hex(concat_words_to_large(input_words)))
+print("Output (concat):")
+print("0x" + hex(concat_words_to_large(output_words)))

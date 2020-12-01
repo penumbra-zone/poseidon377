@@ -12,9 +12,9 @@ from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildIrred_list
 # GF(p), alpha=5, N = 1270, n = 254, t = 5, R_F = 8, R_P = 60: sage generate_parameters_grain.sage 1 0 254 5 8 60 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001
 
 if len(sys.argv) < 7:
-    print "Usage: <script> <field> <s_box> <field_size> <num_cells> <R_F> <R_P> (<prime_number_hex>)"
-    print "field = 1 for GF(p)"
-    print "s_box = 0 for x^alpha, s_box = 1 for x^(-1)"
+    print("Usage: <script> <field> <s_box> <field_size> <num_cells> <R_F> <R_P> (<prime_number_hex>)")
+    print("field = 1 for GF(p)")
+    print("s_box = 0 for x^alpha, s_box = 1 for x^(-1)")
     exit()
 
 # Parameters
@@ -29,7 +29,7 @@ INIT_SEQUENCE = []
 
 PRIME_NUMBER = 0
 if FIELD == 1 and len(sys.argv) != 8:
-    print "Please specify a prime number (in hex format)!"
+    print("Please specify a prime number (in hex format)!")
     exit()
 elif FIELD == 1 and len(sys.argv) == 8:
     PRIME_NUMBER = int(sys.argv[7], 16) # e.g. 0xa7, 0xFFFFFFFFFFFFFEFF, 0xa1a42c3efd6dbfe08daa6041b36322ef
@@ -61,7 +61,7 @@ def grain_sr_generator():
 grain_gen = grain_sr_generator()
         
 def grain_random_bits(num_bits):
-    random_bits = [grain_gen.next() for i in range(0, num_bits)]
+    random_bits = [next(grain_gen) for i in range(0, num_bits)]
     # random_bits.reverse() ## Remove comment to start from least significant bit
     random_int = int("".join(str(i) for i in random_bits), 2)
     return random_int
@@ -91,20 +91,20 @@ def generate_constants(field, n, t, R_F, R_P, prime_number):
         for i in range(0, num_constants):
             random_int = grain_random_bits(n)
             while random_int >= prime_number:
-                # print "[Info] Round constant is not in prime field! Taking next one."
+                # print("[Info] Round constant is not in prime field! Taking next one.")
                 random_int = grain_random_bits(n)
             round_constants.append(random_int)
     return round_constants
 
 def print_round_constants(round_constants, n, field):
-    print "Number of round constants:", len(round_constants)
+    print("Number of round constants:", len(round_constants))
 
     if field == 0:
-        print "Round constants for GF(2^n):"
+        print("Round constants for GF(2^n):")
     elif field == 1:
-        print "Round constants for GF(p):"
+        print("Round constants for GF(p):")
     hex_length = int(ceil(float(n) / 4)) + 2 # +2 for "0x"
-    print ["{0:#0{1}x}".format(entry, hex_length) for entry in round_constants]
+    print(["{0:#0{1}x}".format(entry, hex_length) for entry in round_constants])
 
 def create_mds_p(n, t):
     M = matrix(F, t, t)
@@ -199,7 +199,7 @@ def algorithm_1(M, NUM_CELLS):
         for j in range(1, i+1):
             S_mat_mul = subspace_times_matrix(S, M^j, t)
             if S == S_mat_mul:
-                print "S.basis():\n", S.basis()
+                print("S.basis():\n", S.basis())
                 return [False, 3]
 
     return [True, 0]
@@ -286,7 +286,7 @@ def algorithm_3(M, NUM_CELLS):
 
 def generate_matrix(FIELD, FIELD_SIZE, NUM_CELLS):
     if FIELD == 0:
-        print "Matrix generation not implemented for GF(2^n)."
+        print("Matrix generation not implemented for GF(2^n).")
         exit(1)
     elif FIELD == 1:
         mds_matrix = create_mds_p(FIELD_SIZE, NUM_CELLS)
@@ -301,21 +301,21 @@ def generate_matrix(FIELD, FIELD_SIZE, NUM_CELLS):
         return mds_matrix
 
 def print_linear_layer(M, n, t):
-    print "n:", n
-    print "t:", t
-    print "N:", (n * t)
-    print "Result Algorithm 1:\n", algorithm_1(M, NUM_CELLS)
-    print "Result Algorithm 2:\n", algorithm_2(M, NUM_CELLS)
-    print "Result Algorithm 3:\n", algorithm_3(M, NUM_CELLS)
+    print("n:", n)
+    print("t:", t)
+    print("N:", (n * t))
+    print("Result Algorithm 1:\n", algorithm_1(M, NUM_CELLS))
+    print("Result Algorithm 2:\n", algorithm_2(M, NUM_CELLS))
+    print("Result Algorithm 3:\n", algorithm_3(M, NUM_CELLS))
     hex_length = int(ceil(float(n) / 4)) + 2 # +2 for "0x"
-    print "Prime number:", "0x" + hex(PRIME_NUMBER)
+    print("Prime number:", "0x" + hex(PRIME_NUMBER))
     matrix_string = "["
     for i in range(0, t):
         matrix_string += str(["{0:#0{1}x}".format(int(entry), hex_length) for entry in M[i]])
         if i < (t-1):
             matrix_string += ","
     matrix_string += "]"
-    print "MDS matrix:\n", matrix_string
+    print("MDS matrix:\n", matrix_string)
 
 # Init
 init_generator(FIELD, SBOX, FIELD_SIZE, NUM_CELLS, R_F_FIXED, R_P_FIXED)

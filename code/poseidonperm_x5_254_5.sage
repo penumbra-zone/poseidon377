@@ -21,7 +21,7 @@ for i in range(0, (R_F + R_P) * t):
 
 def print_words_to_hex(words):
     hex_length = int(ceil(float(n) / 4)) + 2 # +2 for "0x"
-    print ["{0:#0{1}x}".format(int(entry), hex_length) for entry in words]
+    print(["{0:#0{1}x}".format(int(entry), hex_length) for entry in words])
 
 def concat_words_to_large(words):
     int_concat = 0
@@ -45,7 +45,7 @@ def perm(input_words):
             round_constants_counter += 1
         for i in range(0, t):
             state_words[i] = (state_words[i])^5
-        state_words = list(vector(state_words) * MDS_matrix_field)
+        state_words = list(MDS_matrix_field * vector(state_words))
 
     # Middle partial rounds
     for r in range(0, R_P):
@@ -54,7 +54,7 @@ def perm(input_words):
             state_words[i] = state_words[i] + round_constants_field[round_constants_counter]
             round_constants_counter += 1
         state_words[0] = (state_words[0])^5
-        state_words = list(vector(state_words) * MDS_matrix_field)
+        state_words = list(MDS_matrix_field * vector(state_words))
 
     # Last-1 full rounds (no matrix multiplication at last round)
     for r in range(0, R_f - 1):
@@ -64,7 +64,7 @@ def perm(input_words):
             round_constants_counter += 1
         for i in range(0, t):
             state_words[i] = (state_words[i])^5
-        state_words = list(vector(state_words) * MDS_matrix_field)
+        state_words = list(MDS_matrix_field * vector(state_words))
 
     # Last round (no matrix multiplication)
     # Round constants, nonlinear layer
@@ -82,12 +82,12 @@ for i in range(0, t):
 
 output_words = perm(input_words)
 
-print "Input:"
+print("Input:")
 print_words_to_hex(input_words)
-print "Output:"
+print("Output:")
 print_words_to_hex(output_words)
 
-print "Input (concat):"
-print "0x" + hex(concat_words_to_large(input_words))
-print "Output (concat):"
-print "0x" + hex(concat_words_to_large(output_words))
+print("Input (concat):")
+print(hex(concat_words_to_large(input_words)))
+print("Output (concat):")
+print(hex(concat_words_to_large(output_words)))
