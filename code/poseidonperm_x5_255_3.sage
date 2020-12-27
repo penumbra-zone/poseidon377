@@ -19,6 +19,8 @@ round_constants_field = []
 for i in range(0, (R_F + R_P) * t):
     round_constants_field.append(F(int(round_constants[i], 16)))
 
+#MDS_matrix_field = MDS_matrix_field.transpose() # QUICK FIX TO CHANGE MATRIX MUL ORDER (BOTH M AND M^T ARE SECURE HERE!)
+
 def print_words_to_hex(words):
     hex_length = int(ceil(float(n) / 4)) + 2 # +2 for "0x"
     print(["{0:#0{1}x}".format(int(entry), hex_length) for entry in words])
@@ -45,7 +47,7 @@ def perm(input_words):
             round_constants_counter += 1
         for i in range(0, t):
             state_words[i] = (state_words[i])^5
-        state_words = list(MDS_matrix_field * vector(state_words))
+        state_words = list(vector(state_words) * MDS_matrix_field)
 
     # Middle partial rounds
     for r in range(0, R_P):
@@ -54,7 +56,7 @@ def perm(input_words):
             state_words[i] = state_words[i] + round_constants_field[round_constants_counter]
             round_constants_counter += 1
         state_words[0] = (state_words[0])^5
-        state_words = list(MDS_matrix_field * vector(state_words))
+        state_words = list(vector(state_words) * MDS_matrix_field)
 
     # Last-1 full rounds (no matrix multiplication at last round)
     for r in range(0, R_f - 1):
@@ -64,7 +66,7 @@ def perm(input_words):
             round_constants_counter += 1
         for i in range(0, t):
             state_words[i] = (state_words[i])^5
-        state_words = list(MDS_matrix_field * vector(state_words))
+        state_words = list(vector(state_words) * MDS_matrix_field)
 
     # Last round (no matrix multiplication)
     # Round constants, nonlinear layer

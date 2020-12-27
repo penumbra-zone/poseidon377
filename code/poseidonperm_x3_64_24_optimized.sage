@@ -28,7 +28,7 @@ round_constants_field = []
 for i in range(0, (R_F + R_P) * t):
     round_constants_field.append(F(int(round_constants[i], 16)))
 
-MDS_matrix_field = MDS_matrix_field.transpose() # QUICK FIX TO CHANGE MATRIX MUL ORDER
+#MDS_matrix_field = MDS_matrix_field.transpose() # QUICK FIX TO CHANGE MATRIX MUL ORDER (BOTH M AND M^T ARE SECURE HERE!)
 
 def print_words_to_hex(words):
     hex_length = int(ceil(float(n) / 4)) + 2 # +2 for "0x"
