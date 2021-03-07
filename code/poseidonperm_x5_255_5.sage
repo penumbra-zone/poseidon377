@@ -25,11 +25,11 @@ def print_words_to_hex(words):
     hex_length = int(ceil(float(n) / 4)) + 2 # +2 for "0x"
     print(["{0:#0{1}x}".format(int(entry), hex_length) for entry in words])
 
-def concat_words_to_large(words):
-    int_concat = 0
-    for i in range(0, t):
-        int_concat |= (int(words[i]) << (n * i))
-    return int_concat
+def print_concat_words_to_large(words):
+    hex_length = int(ceil(float(n) / 4))
+    nums = ["{0:0{1}x}".format(int(entry), hex_length) for entry in words]
+    final_string = "0x" + ''.join(nums)
+    print(final_string)
 
 def perm(input_words):
 
@@ -47,7 +47,7 @@ def perm(input_words):
             round_constants_counter += 1
         for i in range(0, t):
             state_words[i] = (state_words[i])^5
-        state_words = list(vector(state_words) * MDS_matrix_field)
+        state_words = list(MDS_matrix_field * vector(state_words))
 
     # Middle partial rounds
     for r in range(0, R_P):
@@ -56,25 +56,17 @@ def perm(input_words):
             state_words[i] = state_words[i] + round_constants_field[round_constants_counter]
             round_constants_counter += 1
         state_words[0] = (state_words[0])^5
-        state_words = list(vector(state_words) * MDS_matrix_field)
+        state_words = list(MDS_matrix_field * vector(state_words))
 
-    # Last-1 full rounds (no matrix multiplication at last round)
-    for r in range(0, R_f - 1):
+    # Last full rounds
+    for r in range(0, R_f):
         # Round constants, nonlinear layer, matrix multiplication
         for i in range(0, t):
             state_words[i] = state_words[i] + round_constants_field[round_constants_counter]
             round_constants_counter += 1
         for i in range(0, t):
             state_words[i] = (state_words[i])^5
-        state_words = list(vector(state_words) * MDS_matrix_field)
-
-    # Last round (no matrix multiplication)
-    # Round constants, nonlinear layer
-    for i in range(0, t):
-        state_words[i] = state_words[i] + round_constants_field[round_constants_counter]
-        round_constants_counter += 1
-    for i in range(0, t):
-        state_words[i] = (state_words[i])^5
+        state_words = list(MDS_matrix_field * vector(state_words))
     
     return state_words
 
@@ -90,6 +82,6 @@ print("Output:")
 print_words_to_hex(output_words)
 
 print("Input (concat):")
-print(hex(concat_words_to_large(input_words)))
+print_concat_words_to_large(input_words)
 print("Output (concat):")
-print(hex(concat_words_to_large(output_words)))
+print_concat_words_to_large(output_words)
