@@ -98,11 +98,10 @@ def print_latex_table_combinations(combinations, alpha, security_margin):
 # print calc_final_numbers_fixed(Crypto.Util.number.getPrime(64), 24, 3, 128, True)
 # print calc_final_numbers_fixed(Crypto.Util.number.getPrime(253), 6, -1, 128, True)
 print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(255), 3, 5, 128, True))
-print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(255), 5, 5, 128, True))
+print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(255), 6, 5, 128, True))
 print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(254), 3, 5, 128, True))
-print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(254), 5, 5, 128, True))
+print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(254), 6, 5, 128, True))
 print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(64), 24, 3, 128, True))
-exit()
 
 # x^5 (254-bit prime number)
 #prime = 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001

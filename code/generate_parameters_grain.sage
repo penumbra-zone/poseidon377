@@ -6,10 +6,10 @@ from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildIrred_list
 # GF(p), alpha=5, N = 1524, n = 254, t = 6, R_F = 8, R_P = 60: sage generate_parameters_grain.sage 1 0 254 6 8 60 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001
 # GF(p), x^(-1), N = 1518, n = 253, t = 6, R_F = 8, R_P = 60: sage generate_parameters_grain.sage 1 1 253 6 8 60 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed
 
-# GF(p), alpha=5, N = 765, n = 255, t = 3, R_F = 8, R_P = 56: sage generate_parameters_grain.sage 1 0 255 3 8 56 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
-# GF(p), alpha=5, N = 1275, n = 255, t = 5, R_F = 8, R_P = 56: sage generate_parameters_grain.sage 1 0 255 5 8 56 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
-# GF(p), alpha=5, N = 762, n = 254, t = 3, R_F = 8, R_P = 56: sage generate_parameters_grain.sage 1 0 254 3 8 56 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001
-# GF(p), alpha=5, N = 1270, n = 254, t = 5, R_F = 8, R_P = 56: sage generate_parameters_grain.sage 1 0 254 5 8 56 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001
+# GF(p), alpha=5, N = 765, n = 255, t = 3, R_F = 8, R_P = 57: sage generate_parameters_grain.sage 1 0 255 3 8 57 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
+# GF(p), alpha=5, N = 1275, n = 255, t = 5, R_F = 8, R_P = 60: sage generate_parameters_grain.sage 1 0 255 5 8 60 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
+# GF(p), alpha=5, N = 762, n = 254, t = 3, R_F = 8, R_P = 57: sage generate_parameters_grain.sage 1 0 254 3 8 57 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001
+# GF(p), alpha=5, N = 1270, n = 254, t = 5, R_F = 8, R_P = 60: sage generate_parameters_grain.sage 1 0 254 5 8 60 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001
 
 if len(sys.argv) < 7:
     print("Usage: <script> <field> <s_box> <field_size> <num_cells> <R_F> <R_P> (<prime_number_hex>)")
