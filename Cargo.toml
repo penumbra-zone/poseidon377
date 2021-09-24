@@ -1,0 +1,11 @@
+[package]
+name = "poseidon377"
+version = "0.1.0"
+edition = "2018"
+authors = ["Penumbra <crates@penumbra.zone>"]
+description = "An instantiation of the Poseidon hash for use with BLS12-377."
+license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
