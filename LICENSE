@@ -1,0 +1,4 @@
+SPDX: "MIT OR Apache-2.0"
+
+This does *not* apply to the supplementary files in `vendor/`, which have
+their own licensing.
