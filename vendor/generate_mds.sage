@@ -50,7 +50,7 @@ def sponge(permutation_func, inputs, params):
         'Number of field elements must be divisible by %s. Found: %s' % (
             params.r, len(inputs))
     state = vector([params.field(0)] * params.m)
-    for i in xrange(0, len(inputs), params.r):
+    for i in range(0, len(inputs), params.r):
         state[:params.r] += inputs[i:i+params.r]
         state = permutation_func(state, params)
     # We do not support more than r output elements, since this requires
@@ -66,7 +66,7 @@ def generate_round_constant(fn_name, field, idx):
     of sha256('MiMC0').
     """
     from hashlib import sha256
-    val = int(sha256('%s%d' % (fn_name, idx)).hexdigest(), 16)
+    val = int(sha256(('%s%d' % (fn_name, idx)).encode('utf8')).hexdigest(), 16)
     if field.is_prime_field():
         return field(val)
     else:
@@ -101,16 +101,16 @@ def generate_mds_matrix(name, field, m, optimize_mds=True):
     Given two disjoint sets of size m: {x_1, ..., x_m}, {y_1, ..., y_m} we set
     A_{ij} = 1 / (x_i - y_j).
     """
-    for attempt in xrange(100):
+    for attempt in range(100):
         x_values = [generate_round_constant(name + 'x', field, attempt * m + i)
-                    for i in xrange(m)]
+                    for i in range(m)]
         y_values = [generate_round_constant(name + 'y', field, attempt * m + i)
-                    for i in xrange(m)]
+                    for i in range(m)]
         # Make sure the values are distinct.
         assert len(set(x_values + y_values)) == 2 * m, \
             'The values of x_values and y_values are not distinct'
-        mds_proto = ([[1 / (x_values[i] - y_values[j]) for j in xrange(m)]
-                      for i in xrange(m)])
+        mds_proto = ([[1 / (x_values[i] - y_values[j]) for j in range(m)]
+                      for i in range(m)])
         if optimize_mds:
             # massive reduction in constraint complexity, and computation time
             # These are near-MDS matrices
@@ -132,11 +132,11 @@ def generate_mds_matrix(name, field, m, optimize_mds=True):
         if not optimize_mds:
             # Sanity check: check the determinant of the matrix.
             x_prod = product(
-                [x_values[i] - x_values[j] for i in xrange(m) for j in xrange(i)])
+                [x_values[i] - x_values[j] for i in range(m) for j in range(i)])
             y_prod = product(
-                [y_values[i] - y_values[j] for i in xrange(m) for j in xrange(i)])
+                [y_values[i] - y_values[j] for i in range(m) for j in range(i)])
             xy_prod = product(
-                [x_values[i] - y_values[j] for i in xrange(m) for j in xrange(m)])
+                [x_values[i] - y_values[j] for i in range(m) for j in range(m)])
             expected_det = (1 if m % 4 < 2 else -1) * x_prod * y_prod / xy_prod
             det = mds.determinant()
             assert det != 0
@@ -175,8 +175,8 @@ def generate_mds_rs(mds):
     print('\n'.join(s))
 def generate_ark(hash_name, field, state_size, num_rounds, optimize_ark=False, R_p=0, mds=None):
     ark = [vector(generate_round_constant('Hades', field, state_size * i + j)
-                           for j in xrange(state_size))
-                    for i in xrange(num_rounds)]
+                           for j in range(state_size))
+                    for i in range(num_rounds)]
     s = ["std::vector<std::vector<FieldT>> ark_matrix;"]
     # bigint<FieldT::num_limbs>("1234")
     for r in ark:
@@ -210,8 +210,8 @@ def generate_ark(hash_name, field, state_size, num_rounds, optimize_ark=False, R
         s = "std::vector<FieldT> rp_non-linear_ark_constants = std::vector<FieldT>({"
 def generate_ark_rs(hash_name, field, state_size, num_rounds, optimize_ark=False, R_p=0, mds=None):
     ark = [vector(generate_round_constant('Hades', field, state_size * i + j)
-                           for j in xrange(state_size))
-                    for i in xrange(num_rounds)]
+                           for j in range(state_size))
+                    for i in range(num_rounds)]
     s = ["let ark = vec!["]
     # bigint<FieldT::num_limbs>("1234")
     for r in ark:
@@ -281,6 +281,7 @@ def calculate_num_poseidon_rounds(field, sec, alpha, num_capacity_elems, state_s
     partial_rounds = int(ceil(partial_rounds*1.075))
     num_rounds = partial_rounds + 8
     return num_rounds
+
 poseidon_hash_name = "Hades"
 rescue_hash_name = "Rescue"
 # default = True
