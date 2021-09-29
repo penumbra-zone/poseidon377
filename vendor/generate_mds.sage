@@ -142,6 +142,7 @@ def generate_mds_matrix(name, field, m, optimize_mds=True):
             # massive reduction in constraint complexity, and computation time
             # These are near-MDS matrices
             if m == 3:
+                print('we are using m=3 optimization')
                 # [[1, 0, 1],
                 #  [1, 1, 0],
                 #  [0, 1, 1]]
@@ -359,25 +360,20 @@ def calculate_num_poseidon_rounds(field, sec, alpha, num_capacity_elems, state_s
     return num_rounds
 
 
-
-
 poseidon_hash_name = "Hades"
-rescue_hash_name = "Rescue"
-# default = True
-# if default:
-#     # alpha = 5
-#     generate_poseidon_param_code(poseidon_hash_name, AltBn, 17, 66, optimize_mds=False, lang=rust)
-# generate_rescue_param_code(rescue_hash_name, AltBn, 17, 10, False, rust)
-# Dev's recommended params for Fractal recursion / Marlin recursion
-alpha = 17
+# Penumbra
+alpha=17
 capacity_size = 1
 arity = 2
 sec = 128
 state_size = arity + capacity_size
-num_rounds = calculate_num_poseidon_rounds(bw6, sec, alpha, capacity_size, state_size)
+bls377 = GF(8444461749428370424248824938781546531375899335154063827935233455917409239041)
+num_rounds = calculate_num_poseidon_rounds(bls377, sec, alpha, capacity_size, state_size)
 # You can set optimize_mds to True if you want to take a heuristic on using near-MDS matrices
 # The paper authors were of the opinion that this worked (with an update to the differential analysis given)
 # which will be satisfied for any large field
+# Regenerate with: `sage generate_mds.sage > ../src/generated.rs`
+print("// Generated with `generate_mds.sage`. Do not edit manually.")
 generate_poseidon_param_code(
-    poseidon_hash_name, bw6, state_size, num_rounds, optimize_mds=False, lang=rust
+    poseidon_hash_name, bls377, state_size, num_rounds, optimize_mds=False, lang=rust
 )
