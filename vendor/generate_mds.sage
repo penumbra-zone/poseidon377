@@ -350,14 +350,21 @@ def generate_rescue_param_code(
 # We do a full calculation against all relevant equations in the CPP logic, this is just for sanity checks.
 # The dominating constraint is the defense against interpolation attack.
 # TODO: Include analysis not in the paper of capacity > 1 improving num rounds
-def calculate_num_poseidon_rounds(field, sec, alpha, num_capacity_elems, state_size):
+def calculate_num_poseidon_rounds(field, sec, alpha, num_capacity_elems, state_size, p):
     assert num_capacity_elems * len(bin(field.order())[2:]) > sec
-    max_num_rounds = log(2, alpha) * sec + log(state_size, 2)
-    partial_rounds = max_num_rounds - 6
-    # apply security margin of the paper, 7.5%
+
+    # From Eqn 3 section 5.5.2 on p.10, where M is the security level
+    min_num_rounds = ceil(log(2, alpha) * min(sec, log(p, state_size))) + ceil(log(state_size, 2))
+
+    full_rounds = 6
+    partial_rounds = min_num_rounds - full_rounds
+
+    # Section 5.4 of the paper mentions that in addition to the 7.5% security margin,
+    # two additional rounds with full S-box layers are also applied.
     partial_rounds = int(ceil(partial_rounds * 1.075))
-    num_rounds = partial_rounds + 8
-    return num_rounds
+    full_rounds += 2
+
+    return partial_rounds + full_rounds
 
 
 poseidon_hash_name = "Hades"
@@ -367,8 +374,9 @@ capacity_size = 1
 arity = 2
 sec = 128
 state_size = arity + capacity_size
-bls377 = GF(8444461749428370424248824938781546531375899335154063827935233455917409239041)
-num_rounds = calculate_num_poseidon_rounds(bls377, sec, alpha, capacity_size, state_size)
+p = 8444461749428370424248824938781546531375899335154063827935233455917409239041
+bls377 = GF(p)
+num_rounds = calculate_num_poseidon_rounds(bls377, sec, alpha, capacity_size, state_size, p)
 # You can set optimize_mds to True if you want to take a heuristic on using near-MDS matrices
 # The paper authors were of the opinion that this worked (with an update to the differential analysis given)
 # which will be satisfied for any large field

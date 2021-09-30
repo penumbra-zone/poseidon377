@@ -53,6 +53,7 @@ def find_FD_round_numbers(p, t, alpha, M, cost_function, security_margin):
         for R_F_t in range(4, 100):
             if R_F_t % 2 == 0:
                 if (sat_inequiv(p, t, R_F_t, R_P_t, alpha, M) == True):
+                    # From paper in section 5.4: arbitrarily add two full rounds and 7.5% more partial rounds.
                     if security_margin == True:
                         R_F_t += 2
                         R_P_t = int(ceil(float(R_P_t) * 1.075))
