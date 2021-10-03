@@ -27,6 +27,7 @@ def sat_inequiv_alpha(p, t, R_F, R_P, alpha, M):
         print("Invalid value for alpha!")
         exit(1)
 
+# Hypothesis: Multiplying the number of Sboxes by 5 (depth of addition chain) should yield number of constraints.
 def get_sbox_cost(R_F, R_P, N, t):
     return int(t * R_F + R_P)
 
@@ -52,6 +53,7 @@ def find_FD_round_numbers(p, t, alpha, M, cost_function, security_margin):
         for R_F_t in range(4, 100):
             if R_F_t % 2 == 0:
                 if (sat_inequiv(p, t, R_F_t, R_P_t, alpha, M) == True):
+                    # From paper in section 5.4: arbitrarily add two full rounds and 7.5% more partial rounds.
                     if security_margin == True:
                         R_F_t += 2
                         R_P_t = int(ceil(float(R_P_t) * 1.075))
@@ -143,3 +145,21 @@ print_latex_table_combinations(x_inv_combinations, -1, True)
 # Without security margin
 print("--- Table x^(-1) WITHOUT security margin ---")
 print_latex_table_combinations(x_inv_combinations, -1, False)
+
+bls377_prime = 8444461749428370424248824938781546531375899335154063827935233455917409239041
+
+M = 128  # Bits of security
+security_margin = True
+
+addition_chain_depth = 5
+alpha_vals = [11, 17]
+t_vals = [2, 3, 5]
+for alpha in alpha_vals:
+    for t in t_vals:
+        print(f'for alpha {alpha} and t {t}')
+        R_F, R_P, min_sbox_cost, min_size_cost = calc_final_numbers_fixed(bls377_prime, t, alpha, M, security_margin)
+        print(f'results: R_F {R_F}, R_P {R_P}, min_sbox_cost {min_sbox_cost}, min_size_cost {min_size_cost}')
+        num_constraints = min_sbox_cost * addition_chain_depth
+        print(f'num_constraints for Groth16: {num_constraints}')
+
+# We select alpha=17 as it has less partial rounds than 11. 
