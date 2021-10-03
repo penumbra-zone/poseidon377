@@ -2,6 +2,8 @@ use ark_ff::PrimeField;
 use ark_sponge::poseidon::PoseidonParameters;
 
 /// Parameters for the rate-2 instance of Poseidon over BLS12-377.
+///
+/// `F` must be the BLS12-377 scalar field.
 pub fn params<F: PrimeField>() -> PoseidonParameters<F> {
     // Can't embed directly because the sage script outputs
     // statements that can't be inserted in a function body via
@@ -727,5 +729,17 @@ pub fn params<F: PrimeField>() -> PoseidonParameters<F> {
         ],
     ];
 
-    PoseidonParameters::new(8, 31, 17, mds, ark)
+    // TODO: using a struct initializer here is much better than using ::new,
+    // because the fields are named, but it skips the consistency checks in
+    // ::new that check that the rate+capacity is the size, etc.  It would be
+    // useful for the parameters structure to include a validate() method.
+    PoseidonParameters {
+        full_rounds: 8,
+        partial_rounds: 31,
+        alpha: 17,
+        ark,
+        mds,
+        rate: 2,
+        capacity: 1,
+    }
 }

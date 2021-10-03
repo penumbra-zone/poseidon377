@@ -1,5 +1,6 @@
-mod rate_2;
 mod sponge;
+
+pub mod rate_2;
 
 #[cfg(test)]
 mod tests {
@@ -8,27 +9,23 @@ mod tests {
     #[test]
     fn it_works() {
         use ark_ed_on_bls12_377::Fq; // lazy import, fix
-        use ark_ff::One;
+        use ark_ff::{One, Zero};
         use ark_sponge::{
-            poseidon::PoseidonSponge, CryptographicSponge, FieldBasedCryptographicSponge, SpongeExt,
+            poseidon::PoseidonSponge, CryptographicSponge, DuplexSpongeMode,
+            FieldBasedCryptographicSponge,
         };
 
-        // how do we set rate + capacity? settable in PoseidonSpongeVar but not PoseidonSponge ?
-        // hardcoded here https://docs.rs/ark-sponge/0.3.0/src/ark_sponge/poseidon/mod.rs.html#239-240
-        let mut sponge = PoseidonSponge::<Fq>::new(&rate_2::params());
-
-        // How do we set the initial state ??
-        // Hmm.. seems like the `SpongeExt` trait does not let us directly set the state:
-        let state = vec![Fq::one()]; // Can't instantiate from this.
-        let poseidon_state = sponge.into_state();
-
-        // At this point one cannot directly modify the state... but can create a new sponge from this `PoseidonSpongeState` type:
-        let sponge_from_state = PoseidonSponge::from_state(poseidon_state, &rate_2::params());
-
-        let mut sponge = PoseidonSponge::<Fq>::new(&rate_2::params());
-
-        // comment suggests the impl hardcodes a different field ?
-        // https://docs.rs/ark-sponge/0.3.0/src/ark_sponge/poseidon/mod.rs.html#230
+        // Current API has a `new()` method as part of the `CryptographicSponge`
+        // trait, but this method doesn't allow setting the initial state
+        // manually.  Instead, the fields can be set manually.
+        // Slightly inconvenient that we have to initialize the mode.
+        let mut sponge = PoseidonSponge {
+            parameters: rate_2::params(),
+            state: vec![Fq::zero(); 3],
+            mode: DuplexSpongeMode::Absorbing {
+                next_absorb_index: 0,
+            },
+        };
 
         sponge.absorb(&Fq::one());
         sponge.absorb(&Fq::one());
