@@ -183,7 +183,7 @@ def generate_mds_matrix(name, field, m, optimize_mds=True):
         if len(mds.characteristic_polynomial().roots()) == 0:
             # There are no eigenvalues in the field.
             return mds
-        print(mds.characteristic_polynomial().roots())
+        #print(mds.characteristic_polynomial().roots())
     raise Exception("No good MDS found")
 
 
@@ -261,7 +261,7 @@ def generate_ark(
 
 
 def generate_ark_rs(
-    hash_name, field, state_size, num_rounds, optimize_ark=False, R_p=0, mds=None
+    hash_name, field, alpha, state_size, num_rounds, optimize_ark=False, R_p=0, mds=None
 ):
     ark = [
         vector(
@@ -315,35 +315,44 @@ def generate_mds_code(hash_name, field, state_size, optimize_mds, lang=cpp):
 def generate_poseidon_param_code(
     hash_name,
     field,
+    alpha,
     state_size,
     num_rounds,
     optimize_mds=True,
     optimize_ark=False,
-    lang=cpp,
 ):
-    mds = generate_mds_code(hash_name, field, state_size, optimize_mds, lang)
+    # Assume that the capacity is 1
+    rate = state_size - 1
     R_f = 8
     R_p = num_rounds - R_f
-    if lang == cpp:
-        generate_ark(hash_name, field, state_size, num_rounds, optimize_ark, R_p, mds)
-    else:
-        generate_ark_rs(
-            hash_name, field, state_size, num_rounds, optimize_ark, R_p, mds
-        )
 
+    opening = f"""
+/// Parameters for the rate-{rate} instance of Poseidon.
+///
+/// Note: `F` must be the BLS12-377 scalar field.
+pub fn rate_{rate}<F: PrimeField>() -> PoseidonParameters<F> {{
+"""
 
-def generate_rescue_param_code(
-    hash_name, field, state_size, num_rounds, optimize_mds=False, lang=cpp
-):
-    mds = generate_mds_code(hash_name, field, state_size, optimize_mds, lang)
-    num_steps = 2 * num_rounds
-    # Poseidon params that we don't need
-    optimize_ark = False
-    R_p = 0
-    if lang == cpp:
-        generate_ark(hash_name, field, state_size, num_steps, optimize_ark, R_p, mds)
-    else:
-        generate_ark_rs(hash_name, field, state_size, num_steps, optimize_ark, R_p, mds)
+    closing = f"""
+    PoseidonParameters {{
+        full_rounds: {num_rounds - R_p},
+        partial_rounds: {R_p},
+        alpha: {alpha},
+        ark,
+        mds,
+        rate: {rate},
+        capacity: 1,
+    }}
+}}
+"""
+   
+    print(opening)
+
+    mds = generate_mds_code(hash_name, field, state_size, optimize_mds, lang=rust)
+    generate_ark_rs(
+        hash_name, field, alpha, state_size, num_rounds, optimize_ark, R_p, mds
+    )
+    print(closing)
 
 
 # This just calculates the minimum number rounds per the dominating constraint
@@ -371,17 +380,43 @@ poseidon_hash_name = "Hades"
 # Penumbra
 alpha=17
 capacity_size = 1
-arity = 2
 sec = 128
-state_size = arity + capacity_size
 p = 8444461749428370424248824938781546531375899335154063827935233455917409239041
 bls377 = GF(p)
-num_rounds = calculate_num_poseidon_rounds(bls377, sec, alpha, capacity_size, state_size, p)
 # You can set optimize_mds to True if you want to take a heuristic on using near-MDS matrices
 # The paper authors were of the opinion that this worked (with an update to the differential analysis given)
 # which will be satisfied for any large field
-# Regenerate with: `sage generate_mds.sage > ../src/generated.rs`
-print("// Generated with `generate_mds.sage`. Do not edit manually.")
+
+print("""//! Parameters for various Poseidon instances over the BLS12-377 scalar field.
+//!
+//! All parameter instances have capacity 1, targeting the 128-bit security
+//! level.
+
+// Generated with `generate_mds.sage`. Do not edit manually.
+// Regenerate with: `sage vendor/generate_mds.sage > src/params.rs`
+
+use ark_ff::PrimeField;
+use ark_sponge::poseidon::PoseidonParameters;
+
+""")
+
+arity = 1
+state_size = arity + capacity_size
+num_rounds = calculate_num_poseidon_rounds(bls377, sec, alpha, capacity_size, state_size, p)
 generate_poseidon_param_code(
-    poseidon_hash_name, bls377, state_size, num_rounds, optimize_mds=False, lang=rust
+    poseidon_hash_name, bls377, alpha, state_size, num_rounds, optimize_mds=False,
+)
+
+arity = 2
+state_size = arity + capacity_size
+num_rounds = calculate_num_poseidon_rounds(bls377, sec, alpha, capacity_size, state_size, p)
+generate_poseidon_param_code(
+    poseidon_hash_name, bls377, alpha, state_size, num_rounds, optimize_mds=False
+)
+
+arity = 4
+state_size = arity + capacity_size
+num_rounds = calculate_num_poseidon_rounds(bls377, sec, alpha, capacity_size, state_size, p)
+generate_poseidon_param_code(
+    poseidon_hash_name, bls377, alpha, state_size, num_rounds, optimize_mds=False,
 )
