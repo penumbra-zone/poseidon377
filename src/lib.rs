@@ -2,6 +2,15 @@ mod sponge;
 
 pub mod params;
 
+// Since we depend on a git version of ark-sponge, re-exporting it here means
+// our deps can access it without having to keep git revisions in sync.
+//
+// Going forward, this re-export should be removed and the functionality our
+// deps need from direct use of ark-sponge should be folded into this crate.
+// However, it's faster to iterate on required functionality without imposing
+// hard compartmentalization boundaries from the start.
+pub use ark_sponge;
+
 #[cfg(test)]
 mod tests {
     use super::*;
