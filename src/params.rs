@@ -1,10 +1,15 @@
+//! Parameters for various Poseidon instances over the BLS12-377 scalar field.
+//!
+//! All parameter instances have capacity 1, targeting the 128-bit security
+//! level.
+
 use ark_ff::PrimeField;
 use ark_sponge::poseidon::PoseidonParameters;
 
-/// Parameters for the rate-2 instance of Poseidon over BLS12-377.
+/// Parameters for the rate-2 instance of Poseidon.
 ///
 /// `F` must be the BLS12-377 scalar field.
-pub fn params<F: PrimeField>() -> PoseidonParameters<F> {
+pub fn rate_2<F: PrimeField>() -> PoseidonParameters<F> {
     // Can't embed directly because the sage script outputs
     // statements that can't be inserted in a function body via
     // a macro.

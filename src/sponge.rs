@@ -2,7 +2,7 @@ use ark_ed_on_bls12_377::Fq;
 use ark_ff::One;
 use ark_sponge::{poseidon::PoseidonSponge, CryptographicSponge, FieldBasedCryptographicSponge};
 
-use crate::rate_2;
+use crate::params;
 
 // This struct will let us replace the implementation of the inner
 // PoseidonSponge if we later choose to do so.
@@ -13,7 +13,7 @@ struct Sponge {
 
 impl Sponge {
     fn new() -> Self {
-        let mut sponge = PoseidonSponge::<Fq>::new(&rate_2::params());
+        let mut sponge = PoseidonSponge::<Fq>::new(&params::rate_2());
         Sponge { inner: sponge }
     }
 

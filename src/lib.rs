@@ -1,6 +1,6 @@
 mod sponge;
 
-pub mod rate_2;
+pub mod params;
 
 #[cfg(test)]
 mod tests {
@@ -20,7 +20,7 @@ mod tests {
         // manually.  Instead, the fields can be set manually.
         // Slightly inconvenient that we have to initialize the mode.
         let mut sponge = PoseidonSponge {
-            parameters: rate_2::params(),
+            parameters: params::rate_2(),
             state: vec![Fq::zero(); 3],
             mode: DuplexSpongeMode::Absorbing {
                 next_absorb_index: 0,
