@@ -330,11 +330,11 @@ def generate_poseidon_param_code(
 /// Parameters for the rate-{rate} instance of Poseidon.
 ///
 /// Note: `F` must be the BLS12-377 scalar field.
-pub fn rate_{rate}<F: PrimeField>() -> PoseidonParameters<F> {{
+pub fn rate_{rate}<F: PrimeField>() -> Parameters<F> {{
 """
 
     closing = f"""
-    PoseidonParameters {{
+    Parameters {{
         full_rounds: {num_rounds - R_p},
         partial_rounds: {R_p},
         alpha: {alpha},
@@ -396,7 +396,7 @@ print("""//! Parameters for various Poseidon instances over the BLS12-377 scalar
 // Regenerate with: `sage vendor/generate_mds.sage > src/params.rs`
 
 use ark_ff::PrimeField;
-use ark_sponge::poseidon::PoseidonParameters;
+use crate::Parameters;
 
 """)
 

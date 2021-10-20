@@ -6,13 +6,13 @@
 // Generated with `generate_mds.sage`. Do not edit manually.
 // Regenerate with: `sage vendor/generate_mds.sage > src/params.rs`
 
+use crate::Parameters;
 use ark_ff::PrimeField;
-use ark_sponge::poseidon::PoseidonParameters;
 
 /// Parameters for the rate-1 instance of Poseidon.
 ///
 /// Note: `F` must be the BLS12-377 scalar field.
-pub fn rate_1<F: PrimeField>() -> PoseidonParameters<F> {
+pub fn rate_1<F: PrimeField>() -> Parameters<F> {
     let mds = vec![
         vec![
             F::from_str(
@@ -498,7 +498,7 @@ pub fn rate_1<F: PrimeField>() -> PoseidonParameters<F> {
         ],
     ];
 
-    PoseidonParameters {
+    Parameters {
         full_rounds: 8,
         partial_rounds: 30,
         alpha: 17,
@@ -512,7 +512,7 @@ pub fn rate_1<F: PrimeField>() -> PoseidonParameters<F> {
 /// Parameters for the rate-2 instance of Poseidon.
 ///
 /// Note: `F` must be the BLS12-377 scalar field.
-pub fn rate_2<F: PrimeField>() -> PoseidonParameters<F> {
+pub fn rate_2<F: PrimeField>() -> Parameters<F> {
     let mds = vec![
         vec![
             F::from_str(
@@ -1232,7 +1232,7 @@ pub fn rate_2<F: PrimeField>() -> PoseidonParameters<F> {
         ],
     ];
 
-    PoseidonParameters {
+    Parameters {
         full_rounds: 8,
         partial_rounds: 31,
         alpha: 17,
@@ -1246,7 +1246,7 @@ pub fn rate_2<F: PrimeField>() -> PoseidonParameters<F> {
 /// Parameters for the rate-4 instance of Poseidon.
 ///
 /// Note: `F` must be the BLS12-377 scalar field.
-pub fn rate_4<F: PrimeField>() -> PoseidonParameters<F> {
+pub fn rate_4<F: PrimeField>() -> Parameters<F> {
     let mds = vec![
         vec![
             F::from_str(
@@ -2305,7 +2305,7 @@ pub fn rate_4<F: PrimeField>() -> PoseidonParameters<F> {
         ],
     ];
 
-    PoseidonParameters {
+    Parameters {
         full_rounds: 8,
         partial_rounds: 26,
         alpha: 17,
@@ -2319,7 +2319,7 @@ pub fn rate_4<F: PrimeField>() -> PoseidonParameters<F> {
 /// Parameters for the rate-5 instance of Poseidon.
 ///
 /// Note: `F` must be the BLS12-377 scalar field.
-pub fn rate_5<F: PrimeField>() -> PoseidonParameters<F> {
+pub fn rate_5<F: PrimeField>() -> Parameters<F> {
     let mds = vec![
         vec![
             F::from_str(
@@ -3509,7 +3509,7 @@ pub fn rate_5<F: PrimeField>() -> PoseidonParameters<F> {
         ],
     ];
 
-    PoseidonParameters {
+    Parameters {
         full_rounds: 8,
         partial_rounds: 23,
         alpha: 17,
