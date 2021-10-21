@@ -414,6 +414,13 @@ generate_poseidon_param_code(
     poseidon_hash_name, bls377, alpha, state_size, num_rounds, optimize_mds=False
 )
 
+arity = 3
+state_size = arity + capacity_size
+num_rounds = calculate_num_poseidon_rounds(bls377, sec, alpha, capacity_size, state_size, p)
+generate_poseidon_param_code(
+    poseidon_hash_name, bls377, alpha, state_size, num_rounds, optimize_mds=False
+)
+
 arity = 4
 state_size = arity + capacity_size
 num_rounds = calculate_num_poseidon_rounds(bls377, sec, alpha, capacity_size, state_size, p)
