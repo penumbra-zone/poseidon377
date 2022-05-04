@@ -1,4 +1,7 @@
-use std::cmp::{max, Ordering, PartialOrd};
+#![allow(non_snake_case)]
+use std::cmp::{Ordering, PartialOrd};
+
+use ark_ff::BigInteger;
 
 use super::InputParameters;
 
@@ -10,7 +13,7 @@ pub(super) struct RoundNumbers {
 }
 
 impl RoundNumbers {
-    pub fn new(input: InputParameters) -> Self {
+    pub fn new<P: BigInteger>(input: InputParameters<P>) -> Self {
         let r_P = 1usize;
         let r_F = 1usize;
 
@@ -20,9 +23,11 @@ impl RoundNumbers {
         let r_F_interp = RoundNumbers::algebraic_attack_interpolation(input.clone()) - r_P;
         let r_F_grobner = RoundNumbers::algebraic_attack_grobner_basis(input) - r_P;
 
+        // TODO: r_P
+
         // TODO: Pick highest r_F, r_P to defend against all known attacks.
         let r_F_choices = [r_F_stat, r_F_interp, r_F_grobner];
-        //let r_F = max(r_F_choices);
+        let r_F = *(r_F_choices.iter().max().expect("is not None"));
 
         // Then, apply the suggested security margin.
         let mut rounds = Self { r_P, r_F };
@@ -41,7 +46,7 @@ impl RoundNumbers {
     ///
     /// These are the differential/linear distinguisher attacks described
     /// in Section 5.5.1 of the paper.
-    fn statistical_attack_full_rounds(input: InputParameters) -> usize {
+    fn statistical_attack_full_rounds<P: BigInteger>(input: InputParameters<P>) -> usize {
         let r_F = 0usize;
 
         // C is defined in Section 5.5.1, p.10.
@@ -74,7 +79,7 @@ impl RoundNumbers {
     /// for alpha > 1.
     ///
     /// For negative alpha, we use Appendix D (TODO).
-    fn algebraic_attack_interpolation(input: InputParameters) -> usize {
+    fn algebraic_attack_interpolation<P: BigInteger>(input: InputParameters<P>) -> usize {
         if input.alpha > 1 {
             let min_args = [input.M as f64, input.n as f64];
             (1f64
@@ -94,7 +99,7 @@ impl RoundNumbers {
     /// We use the first two conditions described in Section C.2.2,
     /// eliding the third since if the first condition is satisfied, then
     /// the third will be also.
-    fn algebraic_attack_grobner_basis(input: InputParameters) -> usize {
+    fn algebraic_attack_grobner_basis<P: BigInteger>(input: InputParameters<P>) -> usize {
         if input.alpha > 1 {
             // First Grobner constraint
             let grobner_1_min_args = [(input.M as f64 / 3.0), (input.n as f64 / 2.0)];
@@ -121,20 +126,18 @@ impl RoundNumbers {
         }
     }
 
-    pub fn total_rounds(&self) -> usize {
+    pub fn total(&self) -> usize {
         self.r_P + self.r_F
     }
 
-    pub fn partial_rounds(&self) -> usize {
+    pub fn partial(&self) -> usize {
         self.r_P
     }
 
-    pub fn full_rounds(&self) -> usize {
+    pub fn full(&self) -> usize {
         self.r_F
     }
 }
-
-// TODO: tests asserting Table 2 in paper
 
 fn cmp_f64(lhs: &&f64, rhs: &&f64) -> Ordering {
     lhs.partial_cmp(rhs).unwrap()
