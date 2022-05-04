@@ -2,6 +2,8 @@
 
 use once_cell::sync::Lazy;
 
+pub mod param_gen;
+
 mod hash;
 mod params;
 
