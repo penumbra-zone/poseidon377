@@ -4,8 +4,11 @@ mod mds;
 mod rounds;
 
 use ark_ff::BigInteger256;
+use num_bigint::BigUint;
 
 /// A set of Poseidon parameters for a given set of input parameters.
+///
+/// TODO: Modify this to be the ark-sponge Parameter struct.
 struct Instance {
     // Saved input parameters.
     input: InputParameters,
@@ -16,11 +19,14 @@ struct Instance {
 }
 
 /// Input parameters that are used to generate Poseidon parameters.
+#[derive(Clone)]
 struct InputParameters {
     alpha: i64,
     M: usize,
     t: usize,
     p: BigInteger256,
+    // The number of bits needed to represent p.
+    n: usize,
 }
 
 impl Instance {
@@ -36,8 +42,10 @@ impl Instance {
             panic!("invalid value for alpha: {}", alpha);
         }
 
-        let input = InputParameters { alpha, M, t, p };
-        let rounds = rounds::RoundNumbers::new(input);
+        let p_biguint: BigUint = p.into();
+        let n = p_biguint.bits() as usize;
+        let input = InputParameters { alpha, M, t, p, n };
+        let rounds = rounds::RoundNumbers::new(input.clone());
 
         // TODO: MDS matrix
 
