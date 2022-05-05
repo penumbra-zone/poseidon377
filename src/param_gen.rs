@@ -6,6 +6,12 @@ mod rounds;
 use ark_ff::BigInteger;
 use num_bigint::BigUint;
 
+#[derive(Clone)]
+pub enum Alpha {
+    Exponent(u32),
+    Inverse,
+}
+
 /// A set of Poseidon parameters for a given set of input parameters.
 ///
 /// TODO(later): Add an Into for converting this to be the ark-sponge Parameter struct.
@@ -21,7 +27,7 @@ struct PoseidonParameters<P: BigInteger> {
 /// Input parameters that are used to generate Poseidon parameters.
 #[derive(Clone)]
 struct InputParameters<P: BigInteger> {
-    alpha: i64, // TODO: Choose best alpha based on choice of p.
+    alpha: Alpha, // TODO: Choose best alpha based on choice of p.
     M: usize,
     t: usize,
     p: P,
@@ -41,13 +47,24 @@ where
     /// * p, the prime p,
     pub fn new(M: usize, alpha: i64, t: usize, p: P) -> Self {
         // Alpha must be a positive odd integer (p.10), or -1.
-        if alpha != -1 && alpha < 1 && alpha % 2 == 0 {
+        let alpha_var: Alpha;
+        if alpha == -1 {
+            alpha_var = Alpha::Inverse;
+        } else if alpha > 1 && alpha % 2 != 0 {
+            alpha_var = Alpha::Exponent(alpha as u32)
+        } else {
             panic!("invalid value for alpha: {}", alpha);
         }
 
         let p_biguint: BigUint = p.into();
         let n = p_biguint.bits() as usize;
-        let input = InputParameters { alpha, M, t, p, n };
+        let input = InputParameters {
+            alpha: alpha_var,
+            M,
+            t,
+            p,
+            n,
+        };
         let rounds = rounds::RoundNumbers::new(input.clone());
 
         // TODO: MDS matrix

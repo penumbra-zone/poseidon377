@@ -3,7 +3,7 @@ use std::cmp::{Ordering, PartialOrd};
 
 use ark_ff::BigInteger;
 
-use super::InputParameters;
+use super::{Alpha, InputParameters};
 
 pub(super) struct RoundNumbers {
     /// Number of partial rounds.
@@ -51,11 +51,10 @@ impl RoundNumbers {
 
         // C is defined in Section 5.5.1, p.10.
         let C: f64;
-        if input.alpha == -1 {
-            C = 2.0
-        } else {
-            C = (input.alpha as f64 - 1.0).log2();
-        }
+        match input.alpha {
+            Alpha::Inverse => C = 2.0,
+            Alpha::Exponent(exp) => C = (exp as f64 - 1.0).log2(),
+        };
 
         // Statistical attacks require at least 6 full rounds.
         // Differential/Linear Distinguishers.
@@ -80,16 +79,16 @@ impl RoundNumbers {
     ///
     /// For negative alpha, we use Appendix D (TODO).
     fn algebraic_attack_interpolation<P: BigInteger>(input: InputParameters<P>) -> usize {
-        if input.alpha > 1 {
-            let min_args = [input.M as f64, input.n as f64];
-            (1f64
-                + (2f64.log(input.alpha as f64)
-                    * min_args.iter().min_by(cmp_f64).expect("no NaNs"))
-                .ceil()
-                + (input.t as f64).log(input.alpha as f64)) as usize
-        } else {
-            todo!("havent done alpha=-1 case")
-        }
+        match input.alpha {
+            Alpha::Inverse => todo!("havent done alpha=-1 case"),
+            Alpha::Exponent(exp) => {
+                let min_args = [input.M as f64, input.n as f64];
+                return (1f64
+                    + (2f64.log(exp as f64) * min_args.iter().min_by(cmp_f64).expect("no NaNs"))
+                        .ceil()
+                    + (input.t as f64).log(exp as f64)) as usize;
+            }
+        };
     }
 
     /// Number of total rounds to defend against Grobner basis attacks.
@@ -100,30 +99,31 @@ impl RoundNumbers {
     /// eliding the third since if the first condition is satisfied, then
     /// the third will be also.
     fn algebraic_attack_grobner_basis<P: BigInteger>(input: InputParameters<P>) -> usize {
-        if input.alpha > 1 {
-            // First Grobner constraint
-            let grobner_1_min_args = [(input.M as f64 / 3.0), (input.n as f64 / 2.0)];
-            let grobner_1 = 2f64.log(input.alpha as f64)
-                * grobner_1_min_args.iter().min_by(cmp_f64).expect("no NaNs");
-            // Second Grobner constraint
-            let grobner_2_min_args = [
-                2f64.log(input.alpha as f64) * input.M as f64 / (input.t as f64 + 1.0),
-                2f64.log(input.alpha as f64) * input.n as f64 / 2.0,
-            ];
-            let grobner_2 =
-                (input.t - 1) as f64 + grobner_2_min_args.iter().min_by(cmp_f64).expect("no NaNs");
+        match input.alpha {
+            Alpha::Inverse => todo!("havent done alpha=-1 case"),
+            Alpha::Exponent(exp) => {
+                // First Grobner constraint
+                let grobner_1_min_args = [(input.M as f64 / 3.0), (input.n as f64 / 2.0)];
+                let grobner_1 = 2f64.log(exp as f64)
+                    * grobner_1_min_args.iter().min_by(cmp_f64).expect("no NaNs");
+                // Second Grobner constraint
+                let grobner_2_min_args = [
+                    2f64.log(exp as f64) * input.M as f64 / (input.t as f64 + 1.0),
+                    2f64.log(exp as f64) * input.n as f64 / 2.0,
+                ];
+                let grobner_2 = (input.t - 1) as f64
+                    + grobner_2_min_args.iter().min_by(cmp_f64).expect("no NaNs");
 
-            // Return the _most_ strict Grobner basis constraint.
-            // This is the total round requirement.
-            let grobner_values = [grobner_1, grobner_2];
-            return grobner_values
-                .iter()
-                .max_by(cmp_f64)
-                .expect("no NaNs")
-                .ceil() as usize;
-        } else {
-            todo!("havent done alpha=-1 case")
-        }
+                // Return the _most_ strict Grobner basis constraint.
+                // This is the total round requirement.
+                let grobner_values = [grobner_1, grobner_2];
+                return grobner_values
+                    .iter()
+                    .max_by(cmp_f64)
+                    .expect("no NaNs")
+                    .ceil() as usize;
+            }
+        };
     }
 
     pub fn total(&self) -> usize {
