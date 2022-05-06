@@ -31,8 +31,10 @@ struct InputParameters<P: BigInteger> {
     M: usize,
     t: usize,
     p: P,
-    // The number of bits needed to represent p.
-    n: usize,
+
+    // The below are derived values, stored for convenience.
+    /// floor(log_2(p))
+    floor_log_2_p: usize,
 }
 
 impl<P> PoseidonParameters<P>
@@ -56,14 +58,13 @@ where
             panic!("invalid value for alpha: {}", alpha);
         }
 
-        let p_biguint: BigUint = p.into();
-        let n = p_biguint.bits() as usize;
+        let floor_log_2_p = floor_log2(p);
         let input = InputParameters {
             alpha: alpha_var,
             M,
             t,
             p,
-            n,
+            floor_log_2_p,
         };
         let rounds = rounds::RoundNumbers::new(&input);
 
@@ -73,13 +74,35 @@ where
     }
 }
 
+/// Take the binary log of a `BigInteger`
+pub fn floor_log2<P>(x: P) -> usize
+where
+    P: BigInteger,
+{
+    let p_biguint: BigUint = x.into();
+    let n = p_biguint.bits() as usize;
+    n as usize - 1
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    use ark_ff::BigInteger256;
+
     //use ark_ed_on_bls12_377::Fq;
     use ark_ed_on_bls12_381::FqParameters as Fq381Parameters;
     use ark_ff::fields::FpParameters;
+
+    #[test]
+    fn floor_log2_bigint() {
+        let test_val: BigInteger256 = 4.into();
+        assert_eq!(floor_log2(test_val), 2);
+        let test_val: BigInteger256 = 257.into();
+        assert_eq!(floor_log2(test_val), 8);
+        let test_val: BigInteger256 = 65536.into();
+        assert_eq!(floor_log2(test_val), 16);
+    }
 
     #[test]
     fn poseidon_bls12_381_instance() {
