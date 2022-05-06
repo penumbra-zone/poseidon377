@@ -65,7 +65,7 @@ where
             p,
             n,
         };
-        let rounds = rounds::RoundNumbers::new(input.clone());
+        let rounds = rounds::RoundNumbers::new(&input);
 
         // TODO: MDS matrix
 
@@ -83,22 +83,23 @@ mod tests {
 
     #[test]
     fn poseidon_bls12_381_instance() {
-        // This test corresponds to the first two rows in Table 2 of the paper, which
-        // specify POSEIDON-128 over BLS12-381.
         let alpha = 5;
         let security_margin = 128;
 
         let params_rate_3 =
             PoseidonParameters::new(security_margin, alpha, 3, Fq381Parameters::MODULUS);
         dbg!(params_rate_3.rounds.total());
-        // assert_eq!(params_rate_3.rounds.full(), 8);
-        // assert_eq!(params_rate_3.rounds.partial(), 57);
+        dbg!(params_rate_3.rounds.full());
+        dbg!(params_rate_3.rounds.partial());
+        assert_eq!(params_rate_3.rounds.full(), 8);
+        assert_eq!(params_rate_3.rounds.partial(), 57);
 
         let params_rate_5 =
             PoseidonParameters::new(security_margin, alpha, 5, Fq381Parameters::MODULUS);
         dbg!(params_rate_5.rounds.total());
+        dbg!(params_rate_5.rounds.full());
         dbg!(params_rate_5.rounds.partial());
-        // assert_eq!(params_rate_5.rounds.full(), 8);
+        assert_eq!(params_rate_5.rounds.full(), 8);
         // assert_eq!(params_rate_5.rounds.partial(), 60);
     }
 

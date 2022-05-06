@@ -2,14 +2,17 @@ from math import *
 import sys
 import Crypto.Util.number
 
-def sat_inequiv_alpha(p, t, R_F, R_P, alpha, M):
+"""Returns whether or not the number of rounds is secure for given parameters"""
+def sat_inequiv_alpha(p, t, R_F, R_P, alpha, M) -> bool:
     n = ceil(log(p, 2))
     N = int(n * t)
     if alpha > 0:
         R_F_1 = 6 if M <= ((floor(log(p, 2) - ((alpha-1)/2.0))) * (t + 1)) else 10 # Statistical
         R_F_2 = 1 + ceil(log(2, alpha) * min(M, n)) + ceil(log(t, alpha)) - R_P # Interpolation
-        #R_F_3 = ceil(min(n, M) / float(3*log(alpha, 2))) - R_P # Groebner 1
-        #R_F_3 = ((log(2, alpha) / float(2)) * min(n, M)) - R_P # Groebner 1
+        #R_F_3 = ceil(min(n, M) / float(3*log(alpha, 2))) - R_P # Groebner 1 # 
+        #R_F_3 = ((log(2, alpha) / float(2)) * min(n, M)) - R_P # Groebner 1 # why commented
+        # Hypothesis: 1 added to ensure there is at least one round _beyond_ the constraint, since
+        # most constraints are written as "the number of rounds that can be attacked is..."
         R_F_3 = 1 + (log(2, alpha) * min(M/float(3), log(p, 2)/float(2))) - R_P # Groebner 1
         R_F_4 = t - 1 + min((log(2, alpha) * M) / float(t+1), ((log(2, alpha)*log(p, 2)) / float(2))) - R_P # Groebner 2
         #R_F_5 = ((1.0/(2*log((alpha**alpha)/float((alpha-1)**(alpha-1)), 2))) * min(n, M) + t - 2 - R_P) / float(t - 1) # Groebner 3
@@ -28,13 +31,22 @@ def sat_inequiv_alpha(p, t, R_F, R_P, alpha, M):
         exit(1)
 
 # Hypothesis: Multiplying the number of Sboxes by 5 (depth of addition chain) should yield number of constraints.
+
+"""Number of SBoxes"""
 def get_sbox_cost(R_F, R_P, N, t):
     return int(t * R_F + R_P)
 
+"""
+This is SBox cost scaled by a constant which is t. This is true because:
+
+t = width of hash function
+N = size of the permutation = n * t
+"""
 def get_size_cost(R_F, R_P, N, t):
     n = ceil(float(N) / t)
     return int((N * R_F) + (n * R_P))
 
+"""Total number of rounds"""
 def get_depth_cost(R_F, R_P, N, t):
     return int(R_F + R_P)
 
@@ -163,3 +175,33 @@ for alpha in alpha_vals:
         print(f'num_constraints for Groth16: {num_constraints}')
 
 # We select alpha=17 as it has less partial rounds than 11. 
+
+
+"""
+The below stanza is where the numbers for the test `poseidon_bls12_381_instance` come from in our
+Poseidon parameter generation code. Comparing the numbers here with what's expected from Table 2 in the paper:
+
+t = 3: 
+R_F = 8 in all cases
+R_P = 57 for Table 2
+R_P = 56 for below code
+R_P = 57 for (our) Rust code
+
+t = 5:
+R_F = 8 in all cases
+R_P = 60 for Table 2
+R_P = 56 for below code
+R_P = 57 for (our) Rust code
+"""
+
+bls381_prime = 52435875175126190479447740508185965837690552500527637822603658699938581184513
+
+addition_chain_depth = 3
+alpha_vals = [5]
+t_vals = [3, 5]
+for alpha in alpha_vals:
+    for t in t_vals:
+        print(f'for alpha {alpha} and t {t}')
+        R_F, R_P, min_sbox_cost, min_size_cost = calc_final_numbers_fixed(bls381_prime, t, alpha, M, security_margin)
+        print(f'results: R_F {R_F}, R_P {R_P}, min_sbox_cost {min_sbox_cost}, min_size_cost {min_size_cost}')
+

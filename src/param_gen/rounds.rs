@@ -13,26 +13,51 @@ pub(super) struct RoundNumbers {
 }
 
 impl RoundNumbers {
-    pub fn new<P: BigInteger>(input: InputParameters<P>) -> Self {
-        let r_P = 1usize;
-        let r_F = 1usize;
+    pub fn new<P: BigInteger>(input: &InputParameters<P>) -> Self {
+        let mut choice: Option<RoundNumbers> = None;
+        let mut cost = usize::MAX;
 
-        // We compute the round requirements based on the provided input parameters
-        // and all known attacks.
-        let r_F_stat = RoundNumbers::statistical_attack_full_rounds(input.clone());
-        let r_F_interp = RoundNumbers::algebraic_attack_interpolation(input.clone()) - r_P;
-        let r_F_grobner = RoundNumbers::algebraic_attack_grobner_basis(input) - r_P;
+        // Loop through choices of r_F, r_P
+        for r_P in 1..500 {
+            for r_F in 6..100 {
+                let mut candidate = RoundNumbers { r_F, r_P };
+                if !candidate.is_secure(input) {
+                    continue;
+                }
 
-        // TODO: r_P
+                candidate.apply_security_margin();
+                let candidate_cost = candidate.sbox_count(input.t);
+                if candidate_cost < cost {
+                    cost = candidate_cost;
+                    choice = Some(candidate);
+                }
+            }
+        }
 
-        // TODO: Pick highest r_F, r_P to defend against all known attacks.
-        let r_F_choices = [r_F_stat, r_F_interp, r_F_grobner];
-        let r_F = *(r_F_choices.iter().max().expect("is not None"));
+        choice.unwrap()
+    }
 
-        // Then, apply the suggested security margin.
-        let mut rounds = Self { r_P, r_F };
-        rounds.apply_security_margin();
-        rounds
+    /// Determine whether this `RoundNumbers` choice is secure given all known attacks.
+    fn is_secure<P: BigInteger>(&self, input: &InputParameters<P>) -> bool {
+        // Check if the number of full rounds are sufficient.
+        if RoundNumbers::statistical_attack_full_rounds(input) > self.r_F {
+            return false;
+        }
+
+        // Check the total number of rounds is sufficient.
+        if RoundNumbers::algebraic_attack_interpolation(input) >= self.total() {
+            return false;
+        }
+        if RoundNumbers::algebraic_attack_grobner_basis(input) >= self.total() {
+            return false;
+        }
+
+        true
+    }
+
+    /// Get the number of SBoxes for these `RoundNumbers` on a permutation of width `t`.
+    fn sbox_count(&self, t: usize) -> usize {
+        t * self.r_F + self.r_P
     }
 
     /// Add suggested security margin of +2 R_F and +7.5% R_P.
@@ -46,7 +71,7 @@ impl RoundNumbers {
     ///
     /// These are the differential/linear distinguisher attacks described
     /// in Section 5.5.1 of the paper.
-    fn statistical_attack_full_rounds<P: BigInteger>(input: InputParameters<P>) -> usize {
+    fn statistical_attack_full_rounds<P: BigInteger>(input: &InputParameters<P>) -> usize {
         let r_F = 0usize;
 
         // C is defined in Section 5.5.1, p.10.
@@ -72,13 +97,9 @@ impl RoundNumbers {
     /// Number of total rounds to defend against interpolation attacks.
     ///
     /// These attacks are described in Section 5.5.2 of the paper.
-    ///
-    /// For positive alpha, we use the equation in Appendix C (Section C.2.1)
-    /// which states that the constraint is on the number of total rounds
-    /// for alpha > 1.
-    ///
-    /// For negative alpha, we use Appendix D (TODO).
-    fn algebraic_attack_interpolation<P: BigInteger>(input: InputParameters<P>) -> usize {
+    /// For positive alpha, we use Eqn 3.
+    /// For negative alpha, we use Eqn 4.
+    fn algebraic_attack_interpolation<P: BigInteger>(input: &InputParameters<P>) -> usize {
         match input.alpha {
             Alpha::Inverse => todo!("havent done alpha=-1 case"),
             Alpha::Exponent(exp) => {
@@ -86,7 +107,8 @@ impl RoundNumbers {
                 return (1f64
                     + (2f64.log(exp as f64) * min_args.iter().min_by(cmp_f64).expect("no NaNs"))
                         .ceil()
-                    + (input.t as f64).log(exp as f64)) as usize;
+                    + (input.t as f64).log(exp as f64))
+                .ceil() as usize;
             }
         };
     }
@@ -98,7 +120,7 @@ impl RoundNumbers {
     /// We use the first two conditions described in Section C.2.2,
     /// eliding the third since if the first condition is satisfied, then
     /// the third will be also.
-    fn algebraic_attack_grobner_basis<P: BigInteger>(input: InputParameters<P>) -> usize {
+    fn algebraic_attack_grobner_basis<P: BigInteger>(input: &InputParameters<P>) -> usize {
         match input.alpha {
             Alpha::Inverse => todo!("havent done alpha=-1 case"),
             Alpha::Exponent(exp) => {
