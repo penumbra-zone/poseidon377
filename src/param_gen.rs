@@ -1,5 +1,8 @@
 //! Module for generating Poseidon parameters
-
+use std::convert::From;
+use std::convert::TryFrom;
+use std::convert::TryInto;
+mod addition_chains;
 mod mds;
 mod rounds;
 
@@ -33,8 +36,8 @@ struct InputParameters<P: BigInteger> {
     p: P,
 
     // The below are derived values, stored for convenience.
-    /// floor(log_2(p))
-    floor_log_2_p: usize,
+    /// log_2(p)
+    log_2_p: f64,
 }
 
 impl<P> PoseidonParameters<P>
@@ -58,13 +61,13 @@ where
             panic!("invalid value for alpha: {}", alpha);
         }
 
-        let floor_log_2_p = floor_log2(p);
+        let log_2_p = log2(p);
         let input = InputParameters {
             alpha: alpha_var,
             M,
             t,
             p,
-            floor_log_2_p,
+            log_2_p,
         };
         let rounds = rounds::RoundNumbers::new(&input);
 
@@ -75,13 +78,30 @@ where
 }
 
 /// Take the binary log of a `BigInteger`
-pub fn floor_log2<P>(x: P) -> usize
+pub fn log2<P>(x: P) -> f64
 where
     P: BigInteger,
 {
-    let p_biguint: BigUint = x.into();
-    let n = p_biguint.bits() as usize;
-    n as usize - 1
+    let mut p_biguint: BigUint = x.into();
+    let two_to_50: BigUint = 1125899906842624u64.into(); // 2**50
+    let mut log_bit_boundaries = 0;
+    while p_biguint > two_to_50 {
+        p_biguint >>= 48u64;
+        log_bit_boundaries += 48;
+    }
+    let mut p_le_bytes = p_biguint.to_bytes_le();
+    // `u64::from_le_bytes` takes `[u8; 8]` but `p_le_bytes` is a Vec<u8>
+    // so we must pad the vec to the proper size:
+    while p_le_bytes.len() < 8 {
+        p_le_bytes.push(0x00);
+    }
+
+    let x_u64: u64 = u64::from_le_bytes(
+        p_le_bytes
+            .try_into()
+            .expect("we have padded to the expected length"),
+    );
+    log_bit_boundaries as f64 + ((x_u64) as f64).log2()
 }
 
 #[cfg(test)]
@@ -95,35 +115,87 @@ mod tests {
     use ark_ff::fields::FpParameters;
 
     #[test]
-    fn floor_log2_bigint() {
+    fn log2_bigint() {
         let test_val: BigInteger256 = 4.into();
-        assert_eq!(floor_log2(test_val), 2);
+        assert_eq!(log2(test_val), 2.0);
+
         let test_val: BigInteger256 = 257.into();
-        assert_eq!(floor_log2(test_val), 8);
+        assert!(log2(test_val) > 8.005);
+        assert!(log2(test_val) < 8.006);
+
         let test_val: BigInteger256 = 65536.into();
-        assert_eq!(floor_log2(test_val), 16);
+        assert_eq!(log2(test_val), 16.0);
+
+        let test_val = Fq381Parameters::MODULUS;
+        assert!(log2(test_val) > 254.856);
+        assert!(log2(test_val) < 254.858);
+    }
+
+    /// Represents a row in Table 7-9 in Appendix G of the paper.
+    struct TableRow {
+        // Security margin
+        M: usize,
+        // Text size: N = n * t
+        N: usize,
+        // S-box size: n
+        n: usize,
+        // Number of S-boxes (t)
+        t: usize,
+        // Number of full rounds
+        r_F: usize,
+        // Number of partial rounds
+        r_P: usize,
+        // Cost
+        cost: usize,
     }
 
     #[test]
-    fn poseidon_bls12_381_instance() {
+    #[ignore]
+    fn table_7_concrete_instances_alpha_3() {
+        todo!()
+    }
+
+    #[test]
+    #[ignore]
+    fn table_8_concrete_instances_alpha_5() {
         let alpha = 5;
-        let security_margin = 128;
+        let N = 1536;
 
-        let params_rate_3 =
-            PoseidonParameters::new(security_margin, alpha, 3, Fq381Parameters::MODULUS);
-        dbg!(params_rate_3.rounds.total());
-        dbg!(params_rate_3.rounds.full());
-        dbg!(params_rate_3.rounds.partial());
-        assert_eq!(params_rate_3.rounds.full(), 8);
-        assert_eq!(params_rate_3.rounds.partial(), 57);
+        // Appendix G of the paper provides in Table 8 concrete instances of x^{5} Poseidon
+        let table_8 = [
+            [128, N, 768, 2, 8, 56, 72],
+            [128, N, 384, 4, 8, 56, 88],
+            [128, N, 256, 6, 8, 57, 105],
+            [128, N, 192, 8, 8, 57, 121],
+            [128, N, 96, 16, 8, 42, 170],
+            [256, N, 768, 2, 8, 116, 132],
+            [256, N, 384, 4, 8, 116, 148],
+            [256, N, 256, 6, 8, 117, 165],
+            [256, N, 192, 8, 8, 86, 150],
+            [256, N, 96, 16, 8, 42, 170],
+        ];
 
-        let params_rate_5 =
-            PoseidonParameters::new(security_margin, alpha, 5, Fq381Parameters::MODULUS);
-        dbg!(params_rate_5.rounds.total());
-        dbg!(params_rate_5.rounds.full());
-        dbg!(params_rate_5.rounds.partial());
-        assert_eq!(params_rate_5.rounds.full(), 8);
-        // assert_eq!(params_rate_5.rounds.partial(), 60);
+        for row in table_8 {
+            let table_row = TableRow {
+                M: row[0],
+                N: row[1],
+                n: row[2],
+                t: row[3],
+                r_F: row[4],
+                r_P: row[5],
+                cost: row[6],
+            };
+            let computed_instance =
+                PoseidonParameters::new(table_row.M, alpha, table_row.t, Fq381Parameters::MODULUS);
+            assert_eq!(computed_instance.rounds.full(), table_row.r_F);
+            assert_eq!(computed_instance.rounds.partial(), table_row.r_P);
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn table_9_concrete_instances_inverse_alpha() {
+        todo!()
     }
 
     #[test]

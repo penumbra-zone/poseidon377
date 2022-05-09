@@ -27,12 +27,16 @@ impl RoundNumbers {
 
                 candidate.apply_security_margin();
                 let candidate_cost = candidate.sbox_count(input.t);
-                if candidate_cost < cost {
+                if (candidate_cost < cost) {
                     cost = candidate_cost;
                     choice = Some(candidate);
                 }
             }
         }
+
+        dbg!(RoundNumbers::statistical_attack_full_rounds(&input));
+        dbg!(RoundNumbers::algebraic_attack_interpolation(&input));
+        dbg!(RoundNumbers::algebraic_attack_grobner_basis(&input));
 
         choice.unwrap()
     }
@@ -104,7 +108,7 @@ impl RoundNumbers {
         // Differential/Linear Distinguishers.
         // Ref: Section 5.5.1.
         let r_F: usize;
-        if input.M as f64 <= ((input.floor_log_2_p as f64 - C) * (input.t as f64 + 1.0)) {
+        if input.M as f64 <= ((input.log_2_p.floor() - C) * (input.t as f64 + 1.0)) {
             r_F = 6;
         } else {
             r_F = 10;
@@ -121,7 +125,7 @@ impl RoundNumbers {
     /// For positive alpha, we use Eqn 3.
     /// For negative alpha, we use Eqn 4.
     fn algebraic_attack_interpolation<P: BigInteger>(input: &InputParameters<P>) -> usize {
-        let min_args = [input.M as f64, input.floor_log_2_p as f64];
+        let min_args = [input.M as f64, input.log_2_p];
         match input.alpha {
             Alpha::Inverse => {
                 return (((input.t as f64).log(2.0)).ceil()
@@ -152,14 +156,14 @@ impl RoundNumbers {
         match input.alpha {
             Alpha::Inverse => {
                 // First Grobner constraint
-                let grobner_1_min_args = [input.M as f64, (input.floor_log_2_p as f64)];
+                let grobner_1_min_args = [input.M as f64, (input.log_2_p as f64)];
                 grobner_1 = (0.5f64 * grobner_1_min_args.iter().min_by(cmp_f64).expect("no NaNs"))
                     .ceil()
                     + ((input.t as f64).log2()).ceil();
                 // Second Grobner constraint
                 let grobner_2_min_args = [
                     (input.M as f64 / (input.t as f64 + 1.0)).ceil(),
-                    (0.5 * input.floor_log_2_p as f64).ceil(),
+                    (0.5 * input.log_2_p).ceil(),
                 ];
                 grobner_2 = (input.t - 1) as f64
                     + ((input.t as f64).log2()).ceil()
@@ -167,14 +171,13 @@ impl RoundNumbers {
             }
             Alpha::Exponent(exp) => {
                 // First Grobner constraint
-                let grobner_1_min_args =
-                    [(input.M as f64 / 3.0), (input.floor_log_2_p as f64 / 2.0)];
+                let grobner_1_min_args = [(input.M as f64 / 3.0), (input.log_2_p / 2.0)];
                 grobner_1 = 2f64.log(exp as f64)
                     * grobner_1_min_args.iter().min_by(cmp_f64).expect("no NaNs");
                 // Second Grobner constraint
                 let grobner_2_min_args = [
                     2f64.log(exp as f64) * input.M as f64 / (input.t as f64 + 1.0),
-                    2f64.log(exp as f64) * input.floor_log_2_p as f64 / 2.0,
+                    2f64.log(exp as f64) * input.log_2_p / 2.0,
                 ];
                 grobner_2 = (input.t - 1) as f64
                     + grobner_2_min_args.iter().min_by(cmp_f64).expect("no NaNs");
