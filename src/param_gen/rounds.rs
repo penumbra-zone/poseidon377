@@ -5,6 +5,7 @@ use ark_ff::BigInteger;
 
 use super::{Alpha, InputParameters};
 
+#[derive(Clone)]
 pub(super) struct RoundNumbers {
     /// Number of partial rounds.
     r_P: usize,
@@ -16,10 +17,11 @@ impl RoundNumbers {
     pub fn new<P: BigInteger>(input: &InputParameters<P>) -> Self {
         let mut choice: Option<RoundNumbers> = None;
         let mut cost = usize::MAX;
+        let mut cost_rf = usize::MAX;
 
         // Loop through choices of r_F, r_P
-        for r_P in 1..500 {
-            for r_F in 6..100 {
+        for r_P in 1..400 {
+            for r_F in 4..100 {
                 let mut candidate = RoundNumbers { r_F, r_P };
                 if !candidate.is_secure(input) {
                     continue;
@@ -27,16 +29,15 @@ impl RoundNumbers {
 
                 candidate.apply_security_margin();
                 let candidate_cost = candidate.sbox_count(input.t);
-                if (candidate_cost < cost) {
+                // Pick the minimum cost Candidate, and if the cost is tied with another
+                // candidate, we switch to the new candidate if the total number of full rounds is lower.
+                if (candidate_cost < cost) || ((candidate_cost == cost) && (r_F < cost_rf)) {
                     cost = candidate_cost;
+                    cost_rf = r_F;
                     choice = Some(candidate);
                 }
             }
         }
-
-        dbg!(RoundNumbers::statistical_attack_full_rounds(&input));
-        dbg!(RoundNumbers::algebraic_attack_interpolation(&input));
-        dbg!(RoundNumbers::algebraic_attack_grobner_basis(&input));
 
         choice.unwrap()
     }
@@ -44,7 +45,7 @@ impl RoundNumbers {
     /// Determine whether this `RoundNumbers` choice is secure given all known attacks.
     fn is_secure<P: BigInteger>(&self, input: &InputParameters<P>) -> bool {
         // Check if the number of full rounds are sufficient.
-        if RoundNumbers::statistical_attack_full_rounds(input) > self.r_F {
+        if self.r_F < RoundNumbers::statistical_attack_full_rounds(input) {
             return false;
         }
 
@@ -79,7 +80,7 @@ impl RoundNumbers {
     }
 
     /// Get the number of SBoxes for these `RoundNumbers` on a permutation of width `t`.
-    fn sbox_count(&self, t: usize) -> usize {
+    pub(crate) fn sbox_count(&self, t: usize) -> usize {
         t * self.r_F + self.r_P
     }
 
@@ -128,14 +129,13 @@ impl RoundNumbers {
         let min_args = [input.M as f64, input.log_2_p];
         match input.alpha {
             Alpha::Inverse => {
-                return (((input.t as f64).log(2.0)).ceil()
+                return (((input.t as f64).log2()).ceil()
                     + (0.5 * min_args.iter().min_by(cmp_f64).expect("no NaNs")).ceil())
                     as usize;
             }
             Alpha::Exponent(exp) => {
-                return (1f64
-                    + (2f64.log(exp as f64) * min_args.iter().min_by(cmp_f64).expect("no NaNs"))
-                        .ceil()
+                return ((2f64.log(exp as f64) * min_args.iter().min_by(cmp_f64).expect("no NaNs"))
+                    .ceil()
                     + (input.t as f64).log(exp as f64))
                 .ceil() as usize;
             }
