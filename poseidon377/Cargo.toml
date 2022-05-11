@@ -1,0 +1,19 @@
+[package]
+name = "poseidon377"
+version = "0.1.0"
+edition = "2018"
+authors = ["Penumbra <crates@penumbra.zone>"]
+description = "An instantiation of the Poseidon hash for use with BLS12-377."
+license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+once_cell = "1.8"
+ark-ff = "0.3"
+ark-sponge = { git = "https://github.com/penumbra-zone/sponge", branch = "split-sponge" }
+ark-ed-on-bls12-377 = "0.3"
+num-bigint = "0.4.3"
+
+[dev-dependencies]
+ark-ed-on-bls12-381 = "0.3"

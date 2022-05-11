@@ -6,7 +6,7 @@ use ark_ff::BigInteger;
 use super::{Alpha, InputParameters};
 
 #[derive(Clone)]
-pub(super) struct RoundNumbers {
+pub struct RoundNumbers {
     /// Number of partial rounds.
     r_P: usize,
     /// Number of full rounds.

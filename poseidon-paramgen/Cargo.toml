@@ -1,0 +1,17 @@
+[package]
+name = "poseidon-paramgen"
+version = "0.1.0"
+edition = "2018"
+authors = ["Penumbra <crates@penumbra.zone>"]
+description = "A crate for generating Poseidon parameters"
+license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ark-ff = "0.3"
+num-bigint = "0.4.3"
+
+[dev-dependencies]
+ark-ed-on-bls12-377 = "0.3"
+ark-ed-on-bls12-381 = "0.3"
