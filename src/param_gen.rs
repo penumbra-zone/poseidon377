@@ -2,6 +2,7 @@
 use std::convert::TryInto;
 
 mod addition_chains;
+mod matrix;
 mod mds;
 mod rounds;
 
@@ -15,6 +16,12 @@ pub enum Alpha {
 }
 
 /// A set of Poseidon parameters for a given set of input parameters.
+///
+/// This is based on the attacks described in the original Poseidon paper [1].
+///
+/// References:
+/// * Original Poseidon paper: https://eprint.iacr.org/2019/458.pdf
+/// * MDS Matrices https://eprint.iacr.org/2020/500/20200702:141143
 ///
 /// TODO(later): Add an Into for converting this to be the ark-sponge Parameter struct.
 struct PoseidonParameters<P: BigInteger> {
