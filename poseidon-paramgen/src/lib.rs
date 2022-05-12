@@ -5,9 +5,10 @@ mod mds;
 mod rounds;
 mod utils;
 
-use matrix::Matrix;
+pub use matrix::{Matrix, SquareMatrix};
 
 use ark_ff::BigInteger;
+use ark_ff::PrimeField;
 
 use crate::utils::log2;
 
@@ -32,7 +33,7 @@ pub struct PoseidonParameters<P: BigInteger> {
 
     // Generated parameters.
     pub rounds: rounds::RoundNumbers,
-    //mds: mds::MdsMatrix,
+    //pub mds: mds::MdsMatrix<F>,
 }
 
 /// Input parameters that are used to generate Poseidon parameters.
@@ -78,8 +79,7 @@ where
             log_2_p,
         };
         let rounds = rounds::RoundNumbers::new(&input);
-
-        // TODO: MDS matrix
+        //let mds = mds::MdsMatrix::new(&input);
 
         Self { input, rounds }
     }

@@ -1,13 +1,15 @@
+use std::collections::HashSet;
+
 use ark_ff::BigInteger;
 use ark_ff::PrimeField;
 
-use crate::{InputParameters, Matrix};
+use crate::{InputParameters, SquareMatrix};
 
 /// The number of attempts to find a secure MDS matrix.
 const NUM_ATTEMPTS: usize = 100;
 
 /// Represents an MDS (maximum distance separable) matrix.
-pub(super) struct MdsMatrix<F: PrimeField>(Matrix<F>);
+pub struct MdsMatrix<F: PrimeField>(pub SquareMatrix<F>);
 
 impl<F> MdsMatrix<F>
 where
@@ -16,7 +18,7 @@ where
     pub fn new<P: BigInteger>(input: &InputParameters<P>) -> Self {
         // A t x t MDS matrix only exists if: 2t + 1 <= p
         let two_times_t_bigint: P = (2 * input.t as u64).into();
-        if two_times_t_bigint < input.p {
+        if two_times_t_bigint > input.p {
             panic!("no MDS matrix exists");
         }
 
@@ -38,15 +40,69 @@ where
         todo!()
     }
 
-    /// Generate a `t x t` Cauchy matrix
+    /// Attempt to generate a `t x t` Cauchy matrix
+    ///
+    /// For random x_i, y_i in Fp where `i=[0,t)`, the entries are
+    /// `1 / (x_i + y_i)`.
+    ///
+    /// The entries of {x_i}_{0<=i<t} and {y_i}_{0<=i<t}
+    /// are pairwise distinct and
+    /// where i = {0,...,t-1} and j = {0,...,t-1}.
     fn cauchy_matrix(t: usize) -> Self {
-        /// For x_i, y_i in Fp where i=[1,t], the entries are
-        /// 1 / (x_i + y_i)
+        'attempt_loop: for _ in 0..NUM_ATTEMPTS {
+            let mut xs = Vec::with_capacity(t);
+            let mut ys = Vec::with_capacity(t);
+            for n in 0..t {
+                // TODO: randomly generate
+                let x_i = F::one();
+                let y_j = F::one();
+                xs.push(x_i);
+                ys.push(y_j);
+            }
 
-        /// The entries of {x_i}_{1<=i<=t} and {y_i}_{1<=i<=t}
-        /// are pairwise distinct and x_i + y_i != 0
-        /// where i = {1,...,t} and j = {1,...,t}
-        ///
-        todo!()
+            let mut elements = Vec::<Vec<F>>::with_capacity(t);
+            for i in 0..t {
+                let mut row = Vec::<F>::with_capacity(t);
+                for j in 0..t {
+                    // Check x_i + y_j != 0
+                    if xs[i] + ys[j] == F::zero() {
+                        continue 'attempt_loop;
+                    }
+
+                    row.push(F::one() / (xs[i] + ys[j]))
+                }
+                elements.push(row);
+            }
+
+            // Check if pairwise distinct.
+            let xi_plus_xj: HashSet<F> = xs.into_iter().chain(ys.into_iter()).collect();
+            if xi_plus_xj.len() != 2 * t {
+                continue 'attempt_loop;
+            }
+
+            // TODO: Check Cauchy determinant is nonzero
+
+            return Self(SquareMatrix::new(elements));
+        }
+
+        panic!("could not find a valid MDS matrix in Cauchy form")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::PoseidonParameters;
+
+    use ark_ed_on_bls12_381::FqParameters as Fq381Parameters;
+    use ark_ff::fields::FpParameters;
+
+    #[test]
+    fn cauchy_method_mds() {
+        // let M = 128;
+        // let alpha = 5;
+        // let t = 3;
+        // let params_rate_3 = PoseidonParameters::new(M, alpha, t, Fq381Parameters::MODULUS);
+        // params_rate_3.mds
     }
 }
