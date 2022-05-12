@@ -10,7 +10,9 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 ark-ff = "0.3"
+merlin = "3.0"
 num-bigint = "0.4.3"
+rand_core = { version = "0.6.3", features = ["getrandom"] }
 
 [dev-dependencies]
 ark-ed-on-bls12-377 = "0.3"

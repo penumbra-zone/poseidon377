@@ -3,6 +3,7 @@ mod addition_chains;
 mod matrix;
 mod mds;
 mod rounds;
+mod transcript;
 mod utils;
 
 pub use matrix::{Matrix, SquareMatrix};

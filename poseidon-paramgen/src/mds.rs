@@ -2,6 +2,8 @@ use std::collections::HashSet;
 
 use ark_ff::BigInteger;
 use ark_ff::PrimeField;
+use merlin::Transcript;
+use rand_core::OsRng;
 
 use crate::{InputParameters, SquareMatrix};
 
