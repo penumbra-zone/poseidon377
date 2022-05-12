@@ -1,4 +1,3 @@
-#![allow(non_snake_case)]
 use std::cmp::{Ordering, PartialOrd};
 
 use ark_ff::BigInteger;
@@ -14,7 +13,7 @@ pub struct RoundNumbers {
 }
 
 impl RoundNumbers {
-    pub fn new<P: BigInteger>(input: &InputParameters<P>) -> Self {
+    pub fn new<T: BigInteger>(input: &InputParameters<T>) -> Self {
         let mut choice: Option<RoundNumbers> = None;
         let mut cost = usize::MAX;
         let mut cost_rf = usize::MAX;
@@ -43,7 +42,7 @@ impl RoundNumbers {
     }
 
     /// Determine whether this `RoundNumbers` choice is secure given all known attacks.
-    fn is_secure<P: BigInteger>(&self, input: &InputParameters<P>) -> bool {
+    fn is_secure<T: BigInteger>(&self, input: &InputParameters<T>) -> bool {
         // Check if the number of full rounds are sufficient.
         if self.r_F < RoundNumbers::statistical_attack_full_rounds(input) {
             return false;
@@ -95,7 +94,7 @@ impl RoundNumbers {
     ///
     /// These are the differential/linear distinguisher attacks described
     /// in Section 5.5.1 of the paper.
-    fn statistical_attack_full_rounds<P: BigInteger>(input: &InputParameters<P>) -> usize {
+    fn statistical_attack_full_rounds<T: BigInteger>(input: &InputParameters<T>) -> usize {
         let r_F = 0usize;
 
         // C is defined in Section 5.5.1, p.10.
@@ -125,7 +124,7 @@ impl RoundNumbers {
     /// These attacks are described in Section 5.5.2 of the paper.
     /// For positive alpha, we use Eqn 3.
     /// For negative alpha, we use Eqn 4.
-    fn algebraic_attack_interpolation<P: BigInteger>(input: &InputParameters<P>) -> usize {
+    fn algebraic_attack_interpolation<T: BigInteger>(input: &InputParameters<T>) -> usize {
         let min_args = [input.M as f64, input.log_2_p];
         match input.alpha {
             Alpha::Inverse => {
@@ -149,7 +148,7 @@ impl RoundNumbers {
     /// We use the first two conditions described in Section C.2.2,
     /// eliding the third since if the first condition is satisfied, then
     /// the third will be also.
-    fn algebraic_attack_grobner_basis<P: BigInteger>(input: &InputParameters<P>) -> usize {
+    fn algebraic_attack_grobner_basis<T: BigInteger>(input: &InputParameters<T>) -> usize {
         let grobner_1: f64;
         let grobner_2: f64;
 

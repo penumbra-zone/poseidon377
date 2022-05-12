@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod tests {
-    use poseidon_paramgen::PoseidonParameters;
+    use poseidon_paramgen::{log2, Alpha, InputParameters, RoundNumbers};
     use std::convert::TryFrom;
 
-    use ark_ff::BigInteger768;
+    use ark_ff::field_new;
+    use ark_ff::{fields::FpParameters, BigInteger768, Fp768, Fp768Parameters, PrimeField};
 
     use ark_ed_on_bls12_377::FqParameters as Fq377Parameters;
     use ark_ed_on_bls12_381::FqParameters as Fq381Parameters;
-    use ark_ff::fields::FpParameters;
     use num_bigint::BigUint;
 
     /// Represents a row in Table 7-9 in Appendix G of the paper.
@@ -32,7 +32,7 @@ mod tests {
 
     #[test]
     fn table_7_concrete_instances_alpha_3() {
-        let alpha = 3;
+        let alpha = Alpha::Exponent(3);
         let N = 1536;
 
         // Appendix G of the paper provides in Table 7 concrete instances of x^{3} Poseidon
@@ -79,16 +79,22 @@ mod tests {
                 r_P: row[5],
                 cost: row[6],
             };
-            let computed_instance =
-                PoseidonParameters::new(table_row.M, alpha, table_row.t, table_row.p);
-            assert_eq!(computed_instance.rounds.full(), table_row.r_F);
-            assert_eq!(computed_instance.rounds.partial(), table_row.r_P);
+            let input = InputParameters {
+                alpha,
+                M: table_row.M,
+                t: table_row.t,
+                p: table_row.p,
+                log_2_p: log2(table_row.p),
+            };
+            let rounds = RoundNumbers::new(&input);
+            assert_eq!(rounds.full(), table_row.r_F);
+            assert_eq!(rounds.partial(), table_row.r_P);
         }
     }
 
     #[test]
     fn table_8_concrete_instances_alpha_5() {
-        let alpha = 5;
+        let alpha = Alpha::Exponent(5);
         let N = 1536;
 
         // Appendix G of the paper provides in Table 8 concrete instances of x^{5} Poseidon
@@ -130,16 +136,23 @@ mod tests {
                 r_P: row[5],
                 cost: row[6],
             };
-            let computed_instance =
-                PoseidonParameters::new(table_row.M, alpha, table_row.t, table_row.p);
-            assert_eq!(computed_instance.rounds.full(), table_row.r_F);
-            assert_eq!(computed_instance.rounds.partial(), table_row.r_P);
+
+            let input = InputParameters {
+                alpha,
+                M: table_row.M,
+                t: table_row.t,
+                p: table_row.p,
+                log_2_p: log2(table_row.p),
+            };
+            let rounds = RoundNumbers::new(&input);
+            assert_eq!(rounds.full(), table_row.r_F);
+            assert_eq!(rounds.partial(), table_row.r_P);
         }
     }
 
     #[test]
     fn table_9_concrete_instances_inverse_alpha() {
-        let alpha = -1;
+        let alpha = Alpha::Inverse;
         let N = 1536;
 
         // Appendix G of the paper provides in Table 9 concrete instances of x^{-1} Poseidon
@@ -181,33 +194,67 @@ mod tests {
                 r_P: row[5],
                 cost: row[6],
             };
-            let computed_instance =
-                PoseidonParameters::new(table_row.M, alpha, table_row.t, table_row.p);
-            assert_eq!(computed_instance.rounds.full(), table_row.r_F);
-            assert_eq!(computed_instance.rounds.partial(), table_row.r_P);
+            let input = InputParameters {
+                alpha,
+                M: table_row.M,
+                t: table_row.t,
+                p: table_row.p,
+                log_2_p: log2(table_row.p),
+            };
+            let rounds = RoundNumbers::new(&input);
+            assert_eq!(rounds.full(), table_row.r_F);
+            assert_eq!(rounds.partial(), table_row.r_P);
         }
     }
 
     #[test]
     fn poseidon_bls12_377_instance() {
         // $t=3$ corresponds to a 2:1 hash
-        let params_hash_2 = PoseidonParameters::new(128, 17, 3, Fq377Parameters::MODULUS);
-        assert_eq!(params_hash_2.rounds.full(), 8);
-        assert_eq!(params_hash_2.rounds.partial(), 31);
+        let input = InputParameters {
+            alpha: Alpha::Exponent(17),
+            M: 128,
+            t: 3,
+            p: Fq377Parameters::MODULUS,
+            log_2_p: log2(Fq377Parameters::MODULUS),
+        };
+        let rounds = RoundNumbers::new(&input);
+        assert_eq!(rounds.full(), 8);
+        assert_eq!(rounds.partial(), 31);
 
         // $t=4$ corresponds to a 3:1 hash
-        let params_hash_3 = PoseidonParameters::new(128, 17, 4, Fq377Parameters::MODULUS);
-        assert_eq!(params_hash_3.rounds.full(), 8);
-        assert_eq!(params_hash_3.rounds.partial(), 31);
+        let input = InputParameters {
+            alpha: Alpha::Exponent(17),
+            M: 128,
+            t: 4,
+            p: Fq377Parameters::MODULUS,
+            log_2_p: log2(Fq377Parameters::MODULUS),
+        };
+        let rounds = RoundNumbers::new(&input);
+        assert_eq!(rounds.full(), 8);
+        assert_eq!(rounds.partial(), 31);
 
         // $t=5$ corresponds to a 4:1 hash
-        let params_hash_4 = PoseidonParameters::new(128, 17, 5, Fq377Parameters::MODULUS);
-        assert_eq!(params_hash_4.rounds.full(), 8);
-        assert_eq!(params_hash_4.rounds.partial(), 31);
+        let input = InputParameters {
+            alpha: Alpha::Exponent(17),
+            M: 128,
+            t: 5,
+            p: Fq377Parameters::MODULUS,
+            log_2_p: log2(Fq377Parameters::MODULUS),
+        };
+        let rounds = RoundNumbers::new(&input);
+        assert_eq!(rounds.full(), 8);
+        assert_eq!(rounds.partial(), 31);
 
         // $t=6$ corresponds to a 5:1 hash
-        let params_hash_5 = PoseidonParameters::new(128, 17, 6, Fq377Parameters::MODULUS);
-        assert_eq!(params_hash_5.rounds.full(), 8);
-        assert_eq!(params_hash_5.rounds.partial(), 31);
+        let input = InputParameters {
+            alpha: Alpha::Exponent(17),
+            M: 128,
+            t: 6,
+            p: Fq377Parameters::MODULUS,
+            log_2_p: log2(Fq377Parameters::MODULUS),
+        };
+        let rounds = RoundNumbers::new(&input);
+        assert_eq!(rounds.full(), 8);
+        assert_eq!(rounds.partial(), 31);
     }
 }

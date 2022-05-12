@@ -1,4 +1,7 @@
 //! Module for generating Poseidon parameters
+
+#![allow(non_snake_case)]
+
 mod addition_chains;
 mod matrix;
 mod mds;
@@ -7,13 +10,12 @@ mod transcript;
 mod utils;
 
 pub use matrix::{Matrix, SquareMatrix};
+pub use rounds::RoundNumbers;
+pub use utils::log2;
 
-use ark_ff::BigInteger;
-use ark_ff::PrimeField;
+use ark_ff::{BigInteger, PrimeField};
 
-use crate::utils::log2;
-
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub enum Alpha {
     Exponent(u32),
     Inverse,
@@ -28,39 +30,42 @@ pub enum Alpha {
 /// * MDS Matrices https://eprint.iacr.org/2020/500/20200702:141143
 ///
 /// TODO(later): Add an Into for converting this to be the ark-sponge Parameter struct.
-pub struct PoseidonParameters<P: BigInteger> {
+pub struct PoseidonParameters<F: PrimeField> {
     // Saved input parameters.
-    input: InputParameters<P>,
+    input: InputParameters<F::BigInt>,
 
     // Generated parameters.
     pub rounds: rounds::RoundNumbers,
-    //pub mds: mds::MdsMatrix<F>,
+    pub mds: mds::MdsMatrix<F>,
 }
 
 /// Input parameters that are used to generate Poseidon parameters.
 #[derive(Clone)]
-pub struct InputParameters<P: BigInteger> {
-    alpha: Alpha, // TODO: Choose best alpha based on choice of p.
-    M: usize,
-    t: usize,
-    p: P,
+pub struct InputParameters<T: BigInteger> {
+    pub alpha: Alpha, // TODO: Choose best alpha based on choice of p.
+
+    /// Security level in bits.
+    pub M: usize,
+
+    /// Width of desired hash function, e.g. $t=3$ corresponds to 2-to-1 hash.
+    pub t: usize,
+
+    /// Modulus of the prime field.
+    pub p: T, // let modulus = <F as PrimeField>::Params::MODULUS;
 
     // The below are derived values, stored for convenience.
     /// log_2(p)
-    log_2_p: f64,
+    pub log_2_p: f64,
 }
 
-impl<P> PoseidonParameters<P>
-where
-    P: BigInteger,
-{
+impl<F: PrimeField> PoseidonParameters<F> {
     /// Generate a Poseidon instance mapped over Fp given a choice of:
     ///
     /// * $\alpha$,
     /// * M, a desired security level (in bits),
     /// * t, the width of the desired hash function, e.g. $t=3$ corresponds to 2-to-1 hash.
-    /// * p, the prime p,
-    pub fn new(M: usize, alpha: i64, t: usize, p: P) -> Self {
+    /// * p, the prime modulus,
+    pub fn new(M: usize, alpha: i64, t: usize, p: F::BigInt) -> Self {
         // Alpha must be a positive odd integer (p.10), or -1.
         let alpha_var: Alpha;
         if alpha == -1 {
@@ -80,8 +85,8 @@ where
             log_2_p,
         };
         let rounds = rounds::RoundNumbers::new(&input);
-        //let mds = mds::MdsMatrix::new(&input);
+        let mds = mds::MdsMatrix::new(&input);
 
-        Self { input, rounds }
+        Self { input, rounds, mds }
     }
 }

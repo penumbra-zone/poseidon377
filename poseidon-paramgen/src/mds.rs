@@ -1,9 +1,6 @@
 use std::collections::HashSet;
 
-use ark_ff::BigInteger;
 use ark_ff::PrimeField;
-use merlin::Transcript;
-use rand_core::OsRng;
 
 use crate::{InputParameters, SquareMatrix};
 
@@ -17,9 +14,9 @@ impl<F> MdsMatrix<F>
 where
     F: PrimeField,
 {
-    pub fn new<P: BigInteger>(input: &InputParameters<P>) -> Self {
+    pub fn new(input: &InputParameters<F::BigInt>) -> Self {
         // A t x t MDS matrix only exists if: 2t + 1 <= p
-        let two_times_t_bigint: P = (2 * input.t as u64).into();
+        let two_times_t_bigint: F::BigInt = (2 * input.t as u64).into();
         if two_times_t_bigint > input.p {
             panic!("no MDS matrix exists");
         }
