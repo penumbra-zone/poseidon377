@@ -178,6 +178,7 @@ security_margin = True
 addition_chain_depth = 5
 alpha_vals = [11, 17]
 t_vals = [2, 3, 5]
+print("bls12-377")
 for alpha in alpha_vals:
     for t in t_vals:
         print(f'for alpha {alpha} and t {t}')
@@ -193,6 +194,7 @@ bls381_prime = 52435875175126190479447740508185965837690552500527637822603658699
 addition_chain_depth = 3
 alpha_vals = [5]
 t_vals = [3, 5]
+print("bls12-381")
 for alpha in alpha_vals:
     for t in t_vals:
         print(f'for alpha {alpha} and t {t}')

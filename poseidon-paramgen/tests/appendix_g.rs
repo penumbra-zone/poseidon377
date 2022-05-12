@@ -5,6 +5,7 @@ mod tests {
 
     use ark_ff::BigInteger768;
 
+    use ark_ed_on_bls12_377::FqParameters as Fq377Parameters;
     use ark_ed_on_bls12_381::FqParameters as Fq381Parameters;
     use ark_ff::fields::FpParameters;
     use num_bigint::BigUint;
@@ -189,6 +190,24 @@ mod tests {
 
     #[test]
     fn poseidon_bls12_377_instance() {
-        //let params_rate_3 = PoseidonParameters::new(128, 17, 3, Fq::MODULUS);
+        // $t=3$ corresponds to a 2:1 hash
+        let params_hash_2 = PoseidonParameters::new(128, 17, 3, Fq377Parameters::MODULUS);
+        assert_eq!(params_hash_2.rounds.full(), 8);
+        assert_eq!(params_hash_2.rounds.partial(), 31);
+
+        // $t=4$ corresponds to a 3:1 hash
+        let params_hash_3 = PoseidonParameters::new(128, 17, 4, Fq377Parameters::MODULUS);
+        assert_eq!(params_hash_3.rounds.full(), 8);
+        assert_eq!(params_hash_3.rounds.partial(), 31);
+
+        // $t=5$ corresponds to a 4:1 hash
+        let params_hash_4 = PoseidonParameters::new(128, 17, 5, Fq377Parameters::MODULUS);
+        assert_eq!(params_hash_4.rounds.full(), 8);
+        assert_eq!(params_hash_4.rounds.partial(), 31);
+
+        // $t=6$ corresponds to a 5:1 hash
+        let params_hash_5 = PoseidonParameters::new(128, 17, 6, Fq377Parameters::MODULUS);
+        assert_eq!(params_hash_5.rounds.full(), 8);
+        assert_eq!(params_hash_5.rounds.partial(), 31);
     }
 }
