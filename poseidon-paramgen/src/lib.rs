@@ -21,6 +21,15 @@ pub enum Alpha {
     Inverse,
 }
 
+impl Alpha {
+    pub fn to_bytes_le(&self) -> [u8; 4] {
+        match self {
+            Alpha::Exponent(exp) => exp.to_le_bytes(),
+            Alpha::Inverse => (-1i32).to_le_bytes(),
+        }
+    }
+}
+
 /// A set of Poseidon parameters for a given set of input parameters.
 ///
 /// This is based on the attacks described in the original Poseidon paper [1].

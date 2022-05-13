@@ -1,17 +1,21 @@
-use ark_ff::PrimeField;
-
+use ark_ff::{BigInteger, PrimeField};
 use merlin::Transcript;
 
+use crate::InputParameters;
+
 trait TranscriptProtocol {
-    fn domain_sep(&mut self);
+    fn domain_sep<F: PrimeField>(&mut self, input: InputParameters<F::BigInt>);
     fn cauchy_coefficient<F: PrimeField>(&mut self) -> F;
 }
 
 impl TranscriptProtocol for Transcript {
-    // todo: take inputParameters
-    fn domain_sep(&mut self) {
+    fn domain_sep<F: PrimeField>(&mut self, input: InputParameters<F::BigInt>) {
         self.append_message(b"dom-sep", b"poseidon-paramgen");
-        //self.append_message(b"prime", xxxx);
+        // Bind transcript to input parameter choices
+        self.append_message(b"t", &input.t.to_le_bytes());
+        self.append_message(b"M", &input.M.to_le_bytes());
+        self.append_message(b"p", &input.p.to_bytes_le());
+        self.append_message(b"alpha", &input.alpha.to_bytes_le());
     }
 
     fn cauchy_coefficient<F: PrimeField>(&mut self) -> F {
