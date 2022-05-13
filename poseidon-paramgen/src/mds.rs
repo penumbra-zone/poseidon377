@@ -1,8 +1,9 @@
 use std::collections::HashSet;
 
 use ark_ff::PrimeField;
+use merlin::Transcript;
 
-use crate::{InputParameters, SquareMatrix};
+use crate::{transcript::TranscriptProtocol, InputParameters, SquareMatrix};
 
 /// The number of attempts to find a secure MDS matrix.
 const NUM_ATTEMPTS: usize = 100;
@@ -22,7 +23,7 @@ where
         }
 
         for _ in 0..NUM_ATTEMPTS {
-            let candidate = MdsMatrix::cauchy_matrix(input.t);
+            let candidate = MdsMatrix::cauchy_matrix(&input);
             if !candidate.is_secure() {
                 continue;
             } else {
@@ -47,22 +48,23 @@ where
     /// The entries of {x_i}_{0<=i<t} and {y_i}_{0<=i<t}
     /// are pairwise distinct and
     /// where i = {0,...,t-1} and j = {0,...,t-1}.
-    fn cauchy_matrix(t: usize) -> Self {
+    fn cauchy_matrix(input: &InputParameters<F::BigInt>) -> Self {
         'attempt_loop: for _ in 0..NUM_ATTEMPTS {
-            let mut xs = Vec::with_capacity(t);
-            let mut ys = Vec::with_capacity(t);
-            for n in 0..t {
-                // TODO: randomly generate
-                let x_i = F::one();
-                let y_j = F::one();
+            let mut transcript = Transcript::new(b"cauchy-matrix");
+            transcript.domain_sep::<F>(input);
+            let mut xs = Vec::with_capacity(input.t);
+            let mut ys = Vec::with_capacity(input.t);
+            for n in 0..input.t {
+                let x_i = transcript.cauchy_coefficient();
+                let y_j = transcript.cauchy_coefficient();
                 xs.push(x_i);
                 ys.push(y_j);
             }
 
-            let mut elements = Vec::<Vec<F>>::with_capacity(t);
-            for i in 0..t {
-                let mut row = Vec::<F>::with_capacity(t);
-                for j in 0..t {
+            let mut elements = Vec::<Vec<F>>::with_capacity(input.t);
+            for i in 0..input.t {
+                let mut row = Vec::<F>::with_capacity(input.t);
+                for j in 0..input.t {
                     // Check x_i + y_j != 0
                     if xs[i] + ys[j] == F::zero() {
                         continue 'attempt_loop;
@@ -75,7 +77,7 @@ where
 
             // Check if pairwise distinct.
             let xi_plus_xj: HashSet<F> = xs.into_iter().chain(ys.into_iter()).collect();
-            if xi_plus_xj.len() != 2 * t {
+            if xi_plus_xj.len() != 2 * input.t {
                 continue 'attempt_loop;
             }
 
