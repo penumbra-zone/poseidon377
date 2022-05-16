@@ -66,14 +66,8 @@ pub struct InputParameters<T: BigInteger> {
     pub log_2_p: f64,
 }
 
-impl<F: PrimeField> PoseidonParameters<F> {
-    /// Generate a Poseidon instance mapped over Fp given a choice of:
-    ///
-    /// * $\alpha$,
-    /// * M, a desired security level (in bits),
-    /// * t, the width of the desired hash function, e.g. $t=3$ corresponds to 2-to-1 hash.
-    /// * p, the prime modulus,
-    pub fn new(M: usize, alpha: i64, t: usize, p: F::BigInt) -> Self {
+impl<T: BigInteger> InputParameters<T> {
+    pub fn new(alpha: i64, M: usize, t: usize, p: T) -> Self {
         // Alpha must be a positive odd integer (p.10), or -1.
         let alpha_var: Alpha;
         if alpha == -1 {
@@ -83,15 +77,26 @@ impl<F: PrimeField> PoseidonParameters<F> {
         } else {
             panic!("invalid value for alpha: {}", alpha);
         }
-
         let log_2_p = log2(p);
-        let input = InputParameters {
+        InputParameters {
             alpha: alpha_var,
             M,
             t,
             p,
             log_2_p,
-        };
+        }
+    }
+}
+
+impl<F: PrimeField> PoseidonParameters<F> {
+    /// Generate a Poseidon instance mapped over Fp given a choice of:
+    ///
+    /// * $\alpha$,
+    /// * M, a desired security level (in bits),
+    /// * t, the width of the desired hash function, e.g. $t=3$ corresponds to 2-to-1 hash.
+    /// * p, the prime modulus,
+    pub fn new(M: usize, alpha: i64, t: usize, p: F::BigInt) -> Self {
+        let input = InputParameters::new(alpha, M, t, p);
         let rounds = rounds::RoundNumbers::new(&input);
         let mds = mds::MdsMatrix::new(&input);
 

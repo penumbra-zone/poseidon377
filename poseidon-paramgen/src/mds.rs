@@ -98,24 +98,16 @@ where
 mod tests {
     use super::*;
 
-    use crate::{log2, Alpha};
-
     use ark_ed_on_bls12_381::{Fq, FqParameters as Fq381Parameters};
     use ark_ff::{fields::FpParameters, Zero};
 
     #[test]
     fn cauchy_method_mds() {
         let M = 128;
-        let alpha = Alpha::Exponent(5);
+        let alpha = 5;
         let t = 3;
 
-        let input = InputParameters {
-            alpha,
-            M,
-            t,
-            p: Fq381Parameters::MODULUS,
-            log_2_p: log2(Fq381Parameters::MODULUS),
-        };
+        let input = InputParameters::new(alpha, M, 3, Fq381Parameters::MODULUS);
         let MDS_matrix: MdsMatrix<Fq> = MdsMatrix::new(&input);
 
         assert!(MDS_matrix.0.determinant() != Fq::zero());
