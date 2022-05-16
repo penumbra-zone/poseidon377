@@ -1,6 +1,5 @@
-//! Module for generating Poseidon parameters
-
 #![allow(non_snake_case)]
+//! Module for generating Poseidon parameters
 
 mod addition_chains;
 mod matrix;

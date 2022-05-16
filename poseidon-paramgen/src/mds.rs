@@ -37,7 +37,8 @@ where
 
     /// Whether this choice of MDS matrix is secure
     fn is_secure(&self) -> bool {
-        todo!()
+        // todo: run algorithms 1-3 to check if matrix is a secure choice
+        true
     }
 
     /// Attempt to generate a `t x t` Cauchy matrix
@@ -81,9 +82,12 @@ where
                 continue 'attempt_loop;
             }
 
-            // TODO: Check Cauchy determinant is nonzero
+            let cauchy_matrix = SquareMatrix::new(elements);
 
-            return Self(SquareMatrix::new(elements));
+            // Sanity checks
+            assert!(cauchy_matrix.determinant() != F::zero());
+
+            return Self(cauchy_matrix);
         }
 
         panic!("could not find a valid MDS matrix in Cauchy form")
@@ -93,17 +97,29 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::PoseidonParameters;
 
-    use ark_ed_on_bls12_381::FqParameters as Fq381Parameters;
-    use ark_ff::fields::FpParameters;
+    use crate::{log2, Alpha};
+
+    use ark_ed_on_bls12_381::{Fq, FqParameters as Fq381Parameters};
+    use ark_ff::{fields::FpParameters, Zero};
 
     #[test]
     fn cauchy_method_mds() {
-        // let M = 128;
-        // let alpha = 5;
-        // let t = 3;
-        // let params_rate_3 = PoseidonParameters::new(M, alpha, t, Fq381Parameters::MODULUS);
-        // params_rate_3.mds
+        let M = 128;
+        let alpha = Alpha::Exponent(5);
+        let t = 3;
+
+        let input = InputParameters {
+            alpha,
+            M,
+            t,
+            p: Fq381Parameters::MODULUS,
+            log_2_p: log2(Fq381Parameters::MODULUS),
+        };
+        let MDS_matrix: MdsMatrix<Fq> = MdsMatrix::new(&input);
+
+        assert!(MDS_matrix.0.determinant() != Fq::zero());
+        assert_eq!(MDS_matrix.0.nrows(), t);
+        assert!(MDS_matrix.0.elements.0[0][0] != Fq::zero());
     }
 }
