@@ -71,21 +71,51 @@ where
                         continue 'attempt_loop;
                     }
 
-                    row.push(F::one() / (xs[i] + ys[j]))
+                    row.push(F::one() / (xs[i] - ys[j]))
                 }
                 elements.push(row);
             }
 
             // Check if pairwise distinct.
-            let xi_plus_xj: HashSet<F> = xs.into_iter().chain(ys.into_iter()).collect();
+            let xi_plus_xj: HashSet<F> = xs
+                .clone()
+                .into_iter()
+                .chain(ys.clone().into_iter())
+                .collect();
             if xi_plus_xj.len() != 2 * input.t {
                 continue 'attempt_loop;
             }
 
             let cauchy_matrix = SquareMatrix::new(elements);
 
-            // Sanity checks
-            assert!(cauchy_matrix.determinant() != F::zero());
+            let computed_determinant = cauchy_matrix.determinant();
+            // All Cauchy matrices should be invertible
+            assert!(computed_determinant != F::zero());
+
+            // Check the determinant with the explicit formula for a Cauchy determinant
+            // from Cauchy 1841 p.154 (Exercices d'analyse et de physique mathematique, Vol 2)
+            let mut x_prod = F::one();
+            for i in 0..input.t {
+                for j in 0..i {
+                    x_prod *= xs[i] - xs[j];
+                }
+            }
+            let mut y_prod = F::one();
+            for i in 0..input.t {
+                for j in 0..i {
+                    y_prod *= ys[i] - ys[j];
+                }
+            }
+            let mut xy_prod = F::one();
+            for i in 0..input.t {
+                for j in 0..input.t {
+                    xy_prod *= xs[i] - ys[j];
+                }
+            }
+
+            // Prefix is given by the expression for k at the bottom of p.154 Cauchy 1841
+            let prefix = (-F::one()).pow(&[(input.t * (input.t - 1) / 2) as u64]);
+            assert_eq!(computed_determinant, prefix * x_prod * y_prod / xy_prod);
 
             return Self(cauchy_matrix);
         }
