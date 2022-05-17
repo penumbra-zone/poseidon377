@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use ark_ff::PrimeField;
 use merlin::Transcript;
+use nalgebra::DMatrix;
 
 use crate::{transcript::TranscriptProtocol, InputParameters, SquareMatrix};
 
@@ -37,14 +38,14 @@ where
 
     /// Whether this choice of MDS matrix is secure
     fn is_secure(&self) -> bool {
-        // todo: run algorithms 1-3 to check if matrix is a secure choice
+        // TODO: run algorithms 1-3 to check if matrix is a secure choice
         true
     }
 
     /// Attempt to generate a `t x t` Cauchy matrix
     ///
     /// For random x_i, y_i in Fp where `i=[0,t)`, the entries are
-    /// `1 / (x_i + y_i)`.
+    /// `1 / (x_i - y_i)`.
     ///
     /// The entries of {x_i}_{0<=i<t} and {y_i}_{0<=i<t}
     /// are pairwise distinct and
@@ -55,25 +56,23 @@ where
             transcript.domain_sep::<F>(input);
             let mut xs = Vec::with_capacity(input.t);
             let mut ys = Vec::with_capacity(input.t);
-            for n in 0..input.t {
+            for _ in 0..input.t {
                 let x_i = transcript.cauchy_coefficient();
                 let y_j = transcript.cauchy_coefficient();
                 xs.push(x_i);
                 ys.push(y_j);
             }
 
-            let mut elements = Vec::<Vec<F>>::with_capacity(input.t);
+            let mut elements = Vec::<F>::with_capacity(input.t);
             for i in 0..input.t {
-                let mut row = Vec::<F>::with_capacity(input.t);
                 for j in 0..input.t {
-                    // Check x_i + y_j != 0
-                    if xs[i] + ys[j] == F::zero() {
+                    // Check x_i - y_j != 0
+                    if xs[i] - ys[j] == F::zero() {
                         continue 'attempt_loop;
                     }
 
-                    row.push(F::one() / (xs[i] - ys[j]))
+                    elements.push(F::one() / (xs[i] - ys[j]))
                 }
-                elements.push(row);
             }
 
             // Check if pairwise distinct.
@@ -86,7 +85,7 @@ where
                 continue 'attempt_loop;
             }
 
-            let cauchy_matrix = SquareMatrix::new(elements);
+            let cauchy_matrix = SquareMatrix::from_vec(elements);
 
             let computed_determinant = cauchy_matrix.determinant();
             // All Cauchy matrices should be invertible
@@ -117,6 +116,17 @@ where
             let prefix = (-F::one()).pow(&[(input.t * (input.t - 1) / 2) as u64]);
             assert_eq!(computed_determinant, prefix * x_prod * y_prod / xy_prod);
 
+            // TODO: Check the matrix has no eigenvalues in Fp
+            let matrix: DMatrix<F> = DMatrix::from_vec(
+                cauchy_matrix.dim,
+                cauchy_matrix.dim,
+                cauchy_matrix.elements().to_vec(),
+            );
+            // Problem: ComplexField must be implemented on F for this to work
+            // let all_eigenvalues = matrix.eigenvalues();
+            // let complex_eigenvalues = matrix.complex_eigenvalues();
+            //assert!(all_eigenvalues.len() - complex_eigenvalues.len() == 0);
+
             return Self(cauchy_matrix);
         }
 
@@ -142,6 +152,6 @@ mod tests {
 
         assert!(MDS_matrix.0.determinant() != Fq::zero());
         assert_eq!(MDS_matrix.0.nrows(), t);
-        assert!(MDS_matrix.0.elements.0[0][0] != Fq::zero());
+        assert!(MDS_matrix.0.get_element(0, 0) != Fq::zero());
     }
 }

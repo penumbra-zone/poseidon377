@@ -95,26 +95,20 @@ impl RoundNumbers {
     /// These are the differential/linear distinguisher attacks described
     /// in Section 5.5.1 of the paper.
     fn statistical_attack_full_rounds<T: BigInteger>(input: &InputParameters<T>) -> usize {
-        let r_F = 0usize;
-
         // C is defined in Section 5.5.1, p.10.
-        let C: f64;
-        match input.alpha {
-            Alpha::Inverse => C = 2.0,
-            Alpha::Exponent(exp) => C = (exp as f64 - 1.0).log2(),
+        let C = match input.alpha {
+            Alpha::Inverse => 2.0,
+            Alpha::Exponent(exp) => (exp as f64 - 1.0).log2(),
         };
 
         // Statistical attacks require at least 6 full rounds.
         // Differential/Linear Distinguishers.
         // Ref: Section 5.5.1.
-        let r_F: usize;
         if input.M as f64 <= ((input.log_2_p.floor() - C) * (input.t as f64 + 1.0)) {
-            r_F = 6;
+            6
         } else {
-            r_F = 10;
+            10
         }
-
-        r_F
     }
 
     /// Number of total rounds to defend against interpolation attacks for positive alpha.

@@ -1,7 +1,7 @@
 use ark_ff::PrimeField;
 
 /// Represents a matrix over Fp
-pub struct Matrix<F: PrimeField>(pub Vec<Vec<F>>);
+pub struct Matrix<F: PrimeField>(pub Vec<F>);
 
 /// Represents a square matrix over Fp
 pub struct SquareMatrix<F: PrimeField> {
@@ -10,23 +10,12 @@ pub struct SquareMatrix<F: PrimeField> {
 }
 
 impl<F: PrimeField> SquareMatrix<F> {
-    pub fn new(elements: Vec<Vec<F>>) -> Self {
-        let dim = elements.len();
+    pub fn elements(&self) -> &Vec<F> {
+        &self.elements.0
+    }
 
-        if dim == 0 {
-            panic!("Matrix must have at least one row")
-        }
-
-        for row in elements.iter() {
-            if row.len() != dim {
-                panic!("SquareMatrix must be square!");
-            }
-        }
-
-        SquareMatrix {
-            elements: Matrix(elements),
-            dim,
-        }
+    pub fn get_element(&self, i: usize, j: usize) -> F {
+        self.elements.0[i * self.dim + j]
     }
 
     pub fn from_vec(elements: Vec<F>) -> Self {
@@ -36,19 +25,8 @@ impl<F: PrimeField> SquareMatrix<F> {
 
         let dim = (elements.len() as f64).sqrt() as usize;
 
-        let mut rows = Vec::new();
-        let mut element_index = 0;
-        for _ in 0..dim {
-            let mut columns = Vec::new();
-            for _ in 0..dim {
-                columns.push(elements[element_index]);
-                element_index += 1;
-            }
-            rows.push(columns);
-        }
-
         SquareMatrix {
-            elements: Matrix(rows),
+            elements: Matrix(elements),
             dim,
         }
     }
@@ -58,31 +36,35 @@ impl<F: PrimeField> SquareMatrix<F> {
     }
 
     pub fn nrows(&self) -> usize {
-        self.elements.0.len()
+        self.dim
+    }
+
+    pub fn ncols(&self) -> usize {
+        self.dim
     }
 
     /// Compute the matrix determinant
     pub fn determinant(&self) -> F {
         match self.dim {
             0 => panic!("matrix has no elements!"),
-            1 => self.elements.0[0][0],
+            1 => self.get_element(0, 0),
             2 => {
-                let a11 = self.elements.0[0][0];
-                let a12 = self.elements.0[0][1];
-                let a21 = self.elements.0[1][0];
-                let a22 = self.elements.0[1][1];
+                let a11 = self.get_element(0, 0);
+                let a12 = self.get_element(0, 1);
+                let a21 = self.get_element(1, 0);
+                let a22 = self.get_element(1, 1);
                 a11 * a22 - a21 * a12
             }
             3 => {
-                let a11 = self.elements.0[0][0];
-                let a12 = self.elements.0[0][1];
-                let a13 = self.elements.0[0][2];
-                let a21 = self.elements.0[1][0];
-                let a22 = self.elements.0[1][1];
-                let a23 = self.elements.0[1][2];
-                let a31 = self.elements.0[2][0];
-                let a32 = self.elements.0[2][1];
-                let a33 = self.elements.0[2][2];
+                let a11 = self.get_element(0, 0);
+                let a12 = self.get_element(0, 1);
+                let a13 = self.get_element(0, 2);
+                let a21 = self.get_element(1, 0);
+                let a22 = self.get_element(1, 1);
+                let a23 = self.get_element(1, 2);
+                let a31 = self.get_element(2, 0);
+                let a32 = self.get_element(2, 1);
+                let a33 = self.get_element(2, 2);
 
                 a11 * (SquareMatrix::new_2x2(a22, a23, a32, a33).determinant())
                     - a12 * (SquareMatrix::new_2x2(a21, a23, a31, a33).determinant())
@@ -97,19 +79,19 @@ impl<F: PrimeField> SquareMatrix<F> {
                     let mut elements: Vec<F> = Vec::new();
                     for k in 0..i {
                         for l in 1..self.dim {
-                            elements.push(self.elements.0[k][l])
+                            elements.push(self.get_element(k, l))
                         }
                     }
                     for k in i + 1..self.dim {
                         for l in 1..self.dim {
-                            elements.push(self.elements.0[k][l])
+                            elements.push(self.get_element(k, l))
                         }
                     }
                     let minor = SquareMatrix::from_vec(elements);
                     if levi_civita {
-                        det += self.elements.0[i][0] * minor.determinant();
+                        det += self.get_element(i, 0) * minor.determinant();
                     } else {
-                        det -= self.elements.0[i][0] * minor.determinant();
+                        det -= self.get_element(i, 0) * minor.determinant();
                     }
                     levi_civita = !levi_civita;
                 }
@@ -135,20 +117,20 @@ mod tests {
             Fq::from(3u64),
             Fq::from(4u64),
         ]);
-        assert_eq!(matrix_3x3.elements.0[0][0], Fq::one());
-        assert_eq!(matrix_3x3.elements.0[1][1], Fq::from(4u64));
+        assert_eq!(matrix_3x3.get_element(0, 0), Fq::one());
+        assert_eq!(matrix_3x3.get_element(1, 1), Fq::from(4u64));
     }
 
     #[test]
     fn determinant() {
-        let matrix_1x1 = SquareMatrix::new(vec![vec![Fq::one()]]);
+        let matrix_1x1 = SquareMatrix::from_vec(vec![Fq::one()]);
         assert_eq!(matrix_1x1.determinant(), Fq::one());
 
         let a = Fq::one();
         let b = Fq::one() + Fq::one();
         let c = Fq::from(3u64);
         let d = Fq::from(4u64);
-        let matrix_2x2 = SquareMatrix::new(vec![vec![a, b], vec![c, d]]);
+        let matrix_2x2 = SquareMatrix::from_vec(vec![a, b, c, d]);
         assert_eq!(matrix_2x2.determinant(), -Fq::from(2u64));
 
         let e = Fq::from(5u64);
@@ -156,7 +138,7 @@ mod tests {
         let g = Fq::from(7u64);
         let h = Fq::from(8u64);
         let i = Fq::from(9u64);
-        let matrix_3x3 = SquareMatrix::new(vec![vec![a, b, c], vec![d, e, f], vec![g, h, i]]);
+        let matrix_3x3 = SquareMatrix::from_vec(vec![a, b, c, d, e, f, g, h, i]);
         assert_eq!(matrix_3x3.determinant(), Fq::from(0u64));
 
         let elem = Fq::from(10u64);
