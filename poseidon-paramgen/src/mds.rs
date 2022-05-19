@@ -2,7 +2,6 @@ use std::collections::HashSet;
 
 use ark_ff::PrimeField;
 use merlin::Transcript;
-use nalgebra::DMatrix;
 
 use crate::{transcript::TranscriptProtocol, InputParameters, SquareMatrix};
 
@@ -115,17 +114,6 @@ where
             // Prefix is given by the expression for k at the bottom of p.154 Cauchy 1841
             let prefix = (-F::one()).pow(&[(input.t * (input.t - 1) / 2) as u64]);
             assert_eq!(computed_determinant, prefix * x_prod * y_prod / xy_prod);
-
-            // TODO: Check the matrix has no eigenvalues in Fp
-            let matrix: DMatrix<F> = DMatrix::from_vec(
-                cauchy_matrix.dim,
-                cauchy_matrix.dim,
-                cauchy_matrix.elements().to_vec(),
-            );
-            // Problem: ComplexField must be implemented on F for this to work
-            // let all_eigenvalues = matrix.eigenvalues();
-            // let complex_eigenvalues = matrix.complex_eigenvalues();
-            //assert!(all_eigenvalues.len() - complex_eigenvalues.len() == 0);
 
             return Self(cauchy_matrix);
         }
