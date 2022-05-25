@@ -1,12 +1,6 @@
-use std::collections::HashSet;
-
 use ark_ff::PrimeField;
-use merlin::Transcript;
 
-use crate::{transcript::TranscriptProtocol, InputParameters, SquareMatrix};
-
-/// The number of attempts to find a secure MDS matrix.
-const NUM_ATTEMPTS: usize = 100;
+use crate::{InputParameters, SquareMatrix};
 
 /// Represents an MDS (maximum distance separable) matrix.
 pub struct MdsMatrix<F: PrimeField>(pub SquareMatrix<F>);

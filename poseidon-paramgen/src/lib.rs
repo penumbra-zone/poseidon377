@@ -1,34 +1,20 @@
 #![allow(non_snake_case)]
 //! Module for generating Poseidon parameters
 
-mod addition_chains;
+mod alpha;
 mod matrix;
 mod mds;
 mod rounds;
 mod transcript;
 mod utils;
 
+pub use alpha::Alpha;
 pub use matrix::{Matrix, SquareMatrix};
 pub use mds::MdsMatrix;
 pub use rounds::RoundNumbers;
 pub use utils::log2;
 
 use ark_ff::{BigInteger, PrimeField};
-
-#[derive(Clone, Copy)]
-pub enum Alpha {
-    Exponent(u32),
-    Inverse,
-}
-
-impl Alpha {
-    pub fn to_bytes_le(&self) -> [u8; 4] {
-        match self {
-            Alpha::Exponent(exp) => exp.to_le_bytes(),
-            Alpha::Inverse => (-1i32).to_le_bytes(),
-        }
-    }
-}
 
 /// A set of Poseidon parameters for a given set of input parameters.
 ///
@@ -51,7 +37,10 @@ pub struct PoseidonParameters<F: PrimeField> {
 /// Input parameters that are used to generate Poseidon parameters.
 #[derive(Clone)]
 pub struct InputParameters<T: BigInteger> {
-    pub alpha: Alpha, // TODO: Choose best alpha based on choice of p.
+    // TODO: Make `Option`, generate if None
+    // but otherwise let the user specify (useful because then we can add tests against
+    // specific instances that have picked an alpha)
+    pub alpha: Alpha,
 
     /// Security level in bits.
     pub M: usize,
