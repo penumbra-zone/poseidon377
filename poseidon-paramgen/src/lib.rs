@@ -9,6 +9,7 @@ mod transcript;
 mod utils;
 
 pub use matrix::{Matrix, SquareMatrix};
+pub use mds::MdsMatrix;
 pub use rounds::RoundNumbers;
 pub use utils::log2;
 

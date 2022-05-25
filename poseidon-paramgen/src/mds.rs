@@ -22,34 +22,58 @@ where
             panic!("no MDS matrix exists");
         }
 
-        for _ in 0..NUM_ATTEMPTS {
-            let candidate = MdsMatrix::cauchy_matrix(&input);
-            if !candidate.is_secure() {
-                continue;
-            } else {
-                return candidate;
+        MdsMatrix::fixed_cauchy_matrix(&input)
+    }
+
+    /// Generate a deterministic Cauchy matrix
+    ///
+    /// The original Poseidon paper describes a method for constructing MDS matrices
+    /// from randomly selecting $x_i$, $y_j$ from the field. The resulting matrix needs
+    /// to be passed to algorithms 1-3 described in
+    /// [Grassi, Rechberger, Schofnegger 2020](https://eprint.iacr.org/archive/2020/500/20200702:141143)
+    /// in order to determine if infinitely long subspace trails can be constructed for
+    /// the Cauchy matrix. If yes, then the MDS matrix must be thrown away, and the process
+    /// must begin again for another random choice of $x_i$, $y_j$.
+    ///
+    /// However, Section 5.4 of [Keller and Rosemarin 2020](https://eprint.iacr.org/2020/179.pdf)
+    /// describes how the MDS matrix can be constructed in a deterministic fashion
+    /// where infinitely long subspace trails cannot be constructed. This method constructs an MDS
+    /// matrix using that method.
+    pub fn fixed_cauchy_matrix(input: &InputParameters<F::BigInt>) -> Self {
+        let xs: Vec<F> = (0..input.t as u64).map(F::from).collect();
+        let ys: Vec<F> = (input.t as u64..2 * input.t as u64).map(F::from).collect();
+
+        let mut elements = Vec::<F>::with_capacity(input.t);
+        for i in 0..input.t {
+            for j in 0..input.t {
+                // Check x_i + y_j != 0
+                assert_ne!(xs[i] + ys[i], F::zero());
+                elements.push(F::one() / (xs[i] + ys[j]))
             }
         }
 
-        // If we get here, we were not able to find a valid matrix
-        panic!("could not find a valid MDS matrix")
+        let cauchy_matrix = SquareMatrix::from_vec(elements);
+        // Sanity check: All Cauchy matrices should be invertible
+        assert!(cauchy_matrix.determinant() != F::zero());
+
+        Self(cauchy_matrix)
     }
 
-    /// Whether this choice of MDS matrix is secure
-    fn is_secure(&self) -> bool {
-        // TODO: run algorithms 1-3 to check if matrix is a secure choice
-        true
-    }
-
-    /// Attempt to generate a `t x t` Cauchy matrix
+    /// Attempt to generate a `t x t` Cauchy matrix using random sampling in Fp.
     ///
-    /// For random x_i, y_i in Fp where `i=[0,t)`, the entries are
-    /// `1 / (x_i - y_i)`.
+    /// For random x_i, y_j in Fp where `i,j=[0,t)`, the entries are
+    /// `1 / (x_i - y_j)`.
     ///
-    /// The entries of {x_i}_{0<=i<t} and {y_i}_{0<=i<t}
+    /// The entries of {x_i}_{0<=i<t} and {y_j}_{0<=j<t}
     /// are pairwise distinct and
     /// where i = {0,...,t-1} and j = {0,...,t-1}.
-    fn cauchy_matrix(input: &InputParameters<F::BigInt>) -> Self {
+    ///
+    /// # Security
+    ///
+    /// As described in the original Poseidon paper, these MDS matrices
+    /// must be run through Algorithms 1-3 in
+    /// [Grassi, Rechberger, Schofnegger 2020](https://eprint.iacr.org/archive/2020/500/20200702:141143).
+    fn random_cauchy_matrix(input: &InputParameters<F::BigInt>) -> Self {
         'attempt_loop: for _ in 0..NUM_ATTEMPTS {
             let mut transcript = Transcript::new(b"cauchy-matrix");
             transcript.domain_sep::<F>(input);
