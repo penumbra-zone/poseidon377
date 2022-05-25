@@ -2,23 +2,36 @@ from math import *
 import sys
 import Crypto.Util.number
 
-def sat_inequiv_alpha(p, t, R_F, R_P, alpha, M):
+"""Returns whether or not the number of rounds is secure for given parameters"""
+def sat_inequiv_alpha(p, t, R_F, R_P, alpha, M) -> bool:
     n = ceil(log(p, 2))
     N = int(n * t)
     if alpha > 0:
-        R_F_1 = 6 if M <= ((floor(log(p, 2) - ((alpha-1)/2.0))) * (t + 1)) else 10 # Statistical
-        R_F_2 = 1 + ceil(log(2, alpha) * min(M, n)) + ceil(log(t, alpha)) - R_P # Interpolation
-        #R_F_3 = ceil(min(n, M) / float(3*log(alpha, 2))) - R_P # Groebner 1
-        #R_F_3 = ((log(2, alpha) / float(2)) * min(n, M)) - R_P # Groebner 1
+        R_F_1 = 6 if M <= (((floor(log(p, 2)) - (log(alpha-1, 2)))) * (t + 1)) else 10 # Statistical
+
+        # Equation 3 should minimize (M, log2(p)), instead of (M, n) - this changes one row in Table 7 (Appendix G)
+        # R_F_2 = 1 + ceil(log(2, alpha) * min(M, n)) + ceil(log(t, alpha)) - R_P # Interpolation: original version
+        R_F_2 = 1 + ceil(log(2, alpha) * min(M, log(p, 2))) + ceil(log(t, alpha)) - R_P # Interpolation
+
+        # 1 is added to the Interpolation, Grobner constraints to ensure there is at least
+        # one round _beyond_ the round constraint, since the Grobner and interpolation round
+        # equations are written as "the number of rounds that can be attacked is..."
+
         R_F_3 = 1 + (log(2, alpha) * min(M/float(3), log(p, 2)/float(2))) - R_P # Groebner 1
         R_F_4 = t - 1 + min((log(2, alpha) * M) / float(t+1), ((log(2, alpha)*log(p, 2)) / float(2))) - R_P # Groebner 2
         #R_F_5 = ((1.0/(2*log((alpha**alpha)/float((alpha-1)**(alpha-1)), 2))) * min(n, M) + t - 2 - R_P) / float(t - 1) # Groebner 3
         R_F_max = max(ceil(R_F_1), ceil(R_F_2), ceil(R_F_3), ceil(R_F_4))
         return (R_F >= R_F_max)
     elif alpha == (-1):
-        R_F_1 = 6 if M <= ((floor(log(p, 2) - 2)) * (t + 1)) else 10 # Statistical
-        R_P_1 = 1 + ceil(0.5 * min(M, n)) + ceil(log(t, 2)) - floor(R_F * log(t, 2)) # Interpolation
-        R_P_2 = 1 + ceil(0.5 * min(M, n)) + ceil(log(t, 2)) - floor(R_F * log(t, 2))
+        #R_F_1 = 6 if M <= ((floor(log(p, 2) - 2)) * (t + 1)) else 10 # Statistical
+        R_F_1 = 6 if M <= (((floor(log(p, 2)) - 2)) * (t + 1)) else 10 # Statistical
+
+        # Equation 4 (interpolation) and Equation 6 (Grobner) minimize (M, log2(p)) instead of (M, n)
+        # R_P_1 = 1 + ceil(0.5 * min(M, n)) + ceil(log(t, 2)) - floor(R_F * log(t, 2)) # Interpolation: original version
+        # R_P_2 = 1 + ceil(0.5 * min(M, n)) + ceil(log(t, 2)) - floor(R_F * log(t, 2)) # Grobner 1: original version
+        R_P_1 = 1 + ceil(0.5 * min(M, log(p, 2))) + ceil(log(t, 2)) - floor(R_F * log(t, 2)) # Interpolation
+        R_P_2 = 1 + ceil(0.5 * min(M, log(p, 2))) + ceil(log(t, 2)) - floor(R_F * log(t, 2)) # Grobner 1
+
         R_P_3 = t - 1 + ceil(log(t, 2)) + min(ceil(M / float(t+1)), ceil(0.5*log(p, 2))) - floor(R_F * log(t, 2)) # Groebner 2
         R_F_max = ceil(R_F_1)
         R_P_max = max(ceil(R_P_1), ceil(R_P_2), ceil(R_P_3))
@@ -28,13 +41,22 @@ def sat_inequiv_alpha(p, t, R_F, R_P, alpha, M):
         exit(1)
 
 # Hypothesis: Multiplying the number of Sboxes by 5 (depth of addition chain) should yield number of constraints.
+
+"""Number of SBoxes"""
 def get_sbox_cost(R_F, R_P, N, t):
     return int(t * R_F + R_P)
 
+"""
+This is SBox cost scaled by a constant which is t. This is true because:
+
+t = width of hash function
+N = size of the permutation = n * t
+"""
 def get_size_cost(R_F, R_P, N, t):
     n = ceil(float(N) / t)
     return int((N * R_F) + (n * R_P))
 
+"""Total number of rounds"""
 def get_depth_cost(R_F, R_P, N, t):
     return int(R_F + R_P)
 
@@ -91,6 +113,8 @@ def print_latex_table_combinations(combinations, alpha, security_margin):
         M = comb[2]
         n = int(N / t)
         prime = Crypto.Util.number.getPrime(n)
+        print("prime used for this row:", prime)
+        print("num bits for this prime: ", n)
         ret = calc_final_numbers_fixed(prime, t, alpha, M, security_margin)
         field_string = "\mathbb F_{p}"
         sbox_string = "x^{" + str(alpha) + "}"
@@ -99,11 +123,11 @@ def print_latex_table_combinations(combinations, alpha, security_margin):
 # Single tests
 # print calc_final_numbers_fixed(Crypto.Util.number.getPrime(64), 24, 3, 128, True)
 # print calc_final_numbers_fixed(Crypto.Util.number.getPrime(253), 6, -1, 128, True)
-print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(255), 3, 5, 128, True))
-print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(255), 6, 5, 128, True))
-print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(254), 3, 5, 128, True))
-print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(254), 6, 5, 128, True))
-print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(64), 24, 3, 128, True))
+# print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(255), 3, 5, 128, True))
+# print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(255), 6, 5, 128, True))
+# print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(254), 3, 5, 128, True))
+# print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(254), 6, 5, 128, True))
+# print(calc_final_numbers_fixed(Crypto.Util.number.getPrime(64), 24, 3, 128, True))
 
 # x^5 (254-bit prime number)
 #prime = 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001
@@ -142,7 +166,7 @@ x_inv_combinations = [
 print("--- Table x^(-1) WITH security margin ---")
 print_latex_table_combinations(x_inv_combinations, -1, True)
 
-# Without security margin
+# # Without security margin
 print("--- Table x^(-1) WITHOUT security margin ---")
 print_latex_table_combinations(x_inv_combinations, -1, False)
 
@@ -154,6 +178,7 @@ security_margin = True
 addition_chain_depth = 5
 alpha_vals = [11, 17]
 t_vals = [2, 3, 5]
+print("bls12-377")
 for alpha in alpha_vals:
     for t in t_vals:
         print(f'for alpha {alpha} and t {t}')
@@ -163,3 +188,16 @@ for alpha in alpha_vals:
         print(f'num_constraints for Groth16: {num_constraints}')
 
 # We select alpha=17 as it has less partial rounds than 11. 
+
+bls381_prime = 52435875175126190479447740508185965837690552500527637822603658699938581184513
+
+addition_chain_depth = 3
+alpha_vals = [5]
+t_vals = [3, 5]
+print("bls12-381")
+for alpha in alpha_vals:
+    for t in t_vals:
+        print(f'for alpha {alpha} and t {t}')
+        R_F, R_P, min_sbox_cost, min_size_cost = calc_final_numbers_fixed(bls381_prime, t, alpha, M, security_margin)
+        print(f'results: R_F {R_F}, R_P {R_P}, min_sbox_cost {min_sbox_cost}, min_size_cost {min_size_cost}')
+
