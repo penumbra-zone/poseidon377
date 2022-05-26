@@ -14,7 +14,7 @@ pub struct RoundNumbers {
 }
 
 impl RoundNumbers {
-    pub fn new<T: BigInteger>(input: &InputParameters<T>) -> Self {
+    pub fn new<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> Self {
         let mut choice: Option<RoundNumbers> = None;
         let mut cost = usize::MAX;
         let mut cost_rf = usize::MAX;
@@ -23,7 +23,7 @@ impl RoundNumbers {
         for r_P in 1..400 {
             for r_F in 4..100 {
                 let mut candidate = RoundNumbers { r_F, r_P };
-                if !candidate.is_secure(input) {
+                if !candidate.is_secure(input, alpha) {
                     continue;
                 }
 
@@ -43,20 +43,20 @@ impl RoundNumbers {
     }
 
     /// Determine whether this `RoundNumbers` choice is secure given all known attacks.
-    fn is_secure<T: BigInteger>(&self, input: &InputParameters<T>) -> bool {
+    fn is_secure<T: BigInteger>(&self, input: &InputParameters<T>, alpha: &Alpha) -> bool {
         // Check if the number of full rounds are sufficient.
-        if self.r_F < RoundNumbers::statistical_attack_full_rounds(input) {
+        if self.r_F < RoundNumbers::statistical_attack_full_rounds(input, alpha) {
             return false;
         }
 
-        match input.alpha {
+        match alpha {
             // For positive alpha, the interpolation and Grobner bounds are on the total
             // number of rounds.
             Alpha::Exponent(_) => {
-                if self.total() <= RoundNumbers::algebraic_attack_interpolation(input) {
+                if self.total() <= RoundNumbers::algebraic_attack_interpolation(input, alpha) {
                     return false;
                 }
-                if self.total() <= RoundNumbers::algebraic_attack_grobner_basis(input) {
+                if self.total() <= RoundNumbers::algebraic_attack_grobner_basis(input, alpha) {
                     return false;
                 }
             }
@@ -64,12 +64,12 @@ impl RoundNumbers {
             // by the binary log of `t` plus r_P. See Eqn 4.
             Alpha::Inverse => {
                 if (self.r_F as f64 * (input.t as f64).log2()).floor() as usize + self.r_P
-                    <= RoundNumbers::algebraic_attack_interpolation(input)
+                    <= RoundNumbers::algebraic_attack_interpolation(input, alpha)
                 {
                     return false;
                 }
                 if (self.r_F as f64 * (input.t as f64).log2()).floor() as usize + self.r_P
-                    <= RoundNumbers::algebraic_attack_grobner_basis(input)
+                    <= RoundNumbers::algebraic_attack_grobner_basis(input, alpha)
                 {
                     return false;
                 }
@@ -95,11 +95,14 @@ impl RoundNumbers {
     ///
     /// These are the differential/linear distinguisher attacks described
     /// in Section 5.5.1 of the paper.
-    fn statistical_attack_full_rounds<T: BigInteger>(input: &InputParameters<T>) -> usize {
+    fn statistical_attack_full_rounds<T: BigInteger>(
+        input: &InputParameters<T>,
+        alpha: &Alpha,
+    ) -> usize {
         // C is defined in Section 5.5.1, p.10.
-        let C = match input.alpha {
+        let C = match alpha {
             Alpha::Inverse => 2.0,
-            Alpha::Exponent(exp) => (exp as f64 - 1.0).log2(),
+            Alpha::Exponent(exp) => (*exp as f64 - 1.0).log2(),
         };
 
         // Statistical attacks require at least 6 full rounds.
@@ -119,18 +122,21 @@ impl RoundNumbers {
     /// These attacks are described in Section 5.5.2 of the paper.
     /// For positive alpha, we use Eqn 3.
     /// For negative alpha, we use Eqn 4.
-    fn algebraic_attack_interpolation<T: BigInteger>(input: &InputParameters<T>) -> usize {
+    fn algebraic_attack_interpolation<T: BigInteger>(
+        input: &InputParameters<T>,
+        alpha: &Alpha,
+    ) -> usize {
         let min_args = [input.M as f64, input.log_2_p];
-        match input.alpha {
+        match alpha {
             Alpha::Inverse => {
                 return (((input.t as f64).log2()).ceil()
                     + (0.5 * min_args.iter().min_by(cmp_f64).expect("no NaNs")).ceil())
                     as usize;
             }
             Alpha::Exponent(exp) => {
-                return ((2f64.log(exp as f64) * min_args.iter().min_by(cmp_f64).expect("no NaNs"))
+                return ((2f64.log(*exp as f64) * min_args.iter().min_by(cmp_f64).expect("no NaNs"))
                     .ceil()
-                    + (input.t as f64).log(exp as f64))
+                    + (input.t as f64).log(*exp as f64))
                 .ceil() as usize;
             }
         };
@@ -143,11 +149,14 @@ impl RoundNumbers {
     /// We use the first two conditions described in Section C.2.2,
     /// eliding the third since if the first condition is satisfied, then
     /// the third will be also.
-    fn algebraic_attack_grobner_basis<T: BigInteger>(input: &InputParameters<T>) -> usize {
+    fn algebraic_attack_grobner_basis<T: BigInteger>(
+        input: &InputParameters<T>,
+        alpha: &Alpha,
+    ) -> usize {
         let grobner_1: f64;
         let grobner_2: f64;
 
-        match input.alpha {
+        match alpha {
             Alpha::Inverse => {
                 // First Grobner constraint
                 let grobner_1_min_args = [input.M as f64, (input.log_2_p as f64)];
@@ -166,12 +175,12 @@ impl RoundNumbers {
             Alpha::Exponent(exp) => {
                 // First Grobner constraint
                 let grobner_1_min_args = [(input.M as f64 / 3.0), (input.log_2_p / 2.0)];
-                grobner_1 = 2f64.log(exp as f64)
+                grobner_1 = 2f64.log(*exp as f64)
                     * grobner_1_min_args.iter().min_by(cmp_f64).expect("no NaNs");
                 // Second Grobner constraint
                 let grobner_2_min_args = [
-                    2f64.log(exp as f64) * input.M as f64 / (input.t as f64 + 1.0),
-                    2f64.log(exp as f64) * input.log_2_p / 2.0,
+                    2f64.log(*exp as f64) * input.M as f64 / (input.t as f64 + 1.0),
+                    2f64.log(*exp as f64) * input.log_2_p / 2.0,
                 ];
                 grobner_2 = (input.t - 1) as f64
                     + grobner_2_min_args.iter().min_by(cmp_f64).expect("no NaNs");

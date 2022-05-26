@@ -1,12 +1,6 @@
-use std::collections::HashSet;
-
 use ark_ff::PrimeField;
-use merlin::Transcript;
 
-use crate::{transcript::TranscriptProtocol, InputParameters, SquareMatrix};
-
-/// The number of attempts to find a secure MDS matrix.
-const NUM_ATTEMPTS: usize = 100;
+use crate::{InputParameters, SquareMatrix};
 
 /// Represents an MDS (maximum distance separable) matrix.
 pub struct MdsMatrix<F: PrimeField>(pub SquareMatrix<F>);
@@ -70,10 +64,9 @@ mod tests {
     #[test]
     fn cauchy_method_mds() {
         let M = 128;
-        let alpha = 5;
         let t = 3;
 
-        let input = InputParameters::new(alpha, M, 3, Fq381Parameters::MODULUS);
+        let input = InputParameters::new(M, 3, Fq381Parameters::MODULUS);
         let MDS_matrix: MdsMatrix<Fq> = MdsMatrix::new(&input);
 
         assert!(MDS_matrix.0.determinant() != Fq::zero());
