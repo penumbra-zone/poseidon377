@@ -122,14 +122,35 @@ mod tests {
 
     #[test]
     fn create_matrix_from_vec() {
-        let matrix_3x3 = SquareMatrix::from_vec(vec![
+        let matrix_2x2 = SquareMatrix::from_vec(vec![
             Fq::one(),
             Fq::from(2u64),
             Fq::from(3u64),
             Fq::from(4u64),
         ]);
-        assert_eq!(matrix_3x3.get_element(0, 0), Fq::one());
-        assert_eq!(matrix_3x3.get_element(1, 1), Fq::from(4u64));
+        assert_eq!(matrix_2x2.get_element(0, 0), Fq::one());
+        assert_eq!(matrix_2x2.get_element(0, 1), Fq::from(2u64));
+        assert_eq!(matrix_2x2.get_element(1, 0), Fq::from(3u64));
+        assert_eq!(matrix_2x2.get_element(1, 1), Fq::from(4u64));
+
+        let matrix_2x3 = Matrix::new(
+            2,
+            3,
+            vec![
+                Fq::one(),
+                Fq::from(2u64),
+                Fq::from(3u64),
+                Fq::from(4u64),
+                Fq::from(5u64),
+                Fq::from(6u64),
+            ],
+        );
+        assert_eq!(matrix_2x3.get_element(0, 0), Fq::one());
+        assert_eq!(matrix_2x3.get_element(0, 1), Fq::from(2u64));
+        assert_eq!(matrix_2x3.get_element(0, 2), Fq::from(3u64));
+        assert_eq!(matrix_2x3.get_element(1, 0), Fq::from(4u64));
+        assert_eq!(matrix_2x3.get_element(1, 1), Fq::from(5u64));
+        assert_eq!(matrix_2x3.get_element(1, 2), Fq::from(6u64));
     }
 
     #[test]
