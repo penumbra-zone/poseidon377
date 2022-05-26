@@ -15,7 +15,6 @@ impl TranscriptProtocol for Transcript {
         self.append_message(b"t", &input.t.to_le_bytes());
         self.append_message(b"M", &input.M.to_le_bytes());
         self.append_message(b"p", &input.p.to_bytes_le());
-        self.append_message(b"alpha", &input.alpha.to_bytes_le());
     }
 
     fn cauchy_coefficient<F: PrimeField>(&mut self) -> F {

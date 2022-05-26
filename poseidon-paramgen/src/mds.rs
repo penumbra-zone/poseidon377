@@ -64,10 +64,9 @@ mod tests {
     #[test]
     fn cauchy_method_mds() {
         let M = 128;
-        let alpha = 5;
         let t = 3;
 
-        let input = InputParameters::new(alpha, M, 3, Fq381Parameters::MODULUS);
+        let input = InputParameters::new(M, 3, Fq381Parameters::MODULUS);
         let MDS_matrix: MdsMatrix<Fq> = MdsMatrix::new(&input);
 
         assert!(MDS_matrix.0.determinant() != Fq::zero());

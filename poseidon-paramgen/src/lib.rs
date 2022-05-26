@@ -30,6 +30,7 @@ pub struct PoseidonParameters<F: PrimeField> {
     input: InputParameters<F::BigInt>,
 
     // Generated parameters.
+    pub alpha: Alpha,
     pub rounds: rounds::RoundNumbers,
     pub mds: mds::MdsMatrix<F>,
 }
@@ -37,11 +38,6 @@ pub struct PoseidonParameters<F: PrimeField> {
 /// Input parameters that are used to generate Poseidon parameters.
 #[derive(Clone)]
 pub struct InputParameters<T: BigInteger> {
-    // TODO: Make `Option`, generate if None
-    // but otherwise let the user specify (useful because then we can add tests against
-    // specific instances that have picked an alpha)
-    pub alpha: Alpha,
-
     /// Security level in bits.
     pub M: usize,
 
@@ -57,39 +53,29 @@ pub struct InputParameters<T: BigInteger> {
 }
 
 impl<T: BigInteger> InputParameters<T> {
-    pub fn new(alpha: i64, M: usize, t: usize, p: T) -> Self {
-        // Alpha must be a positive odd integer (p.10), or -1.
-        let alpha_var: Alpha;
-        if alpha == -1 {
-            alpha_var = Alpha::Inverse;
-        } else if alpha > 1 && alpha % 2 != 0 {
-            alpha_var = Alpha::Exponent(alpha as u32)
-        } else {
-            panic!("invalid value for alpha: {}", alpha);
-        }
+    pub fn new(M: usize, t: usize, p: T) -> Self {
         let log_2_p = log2(p);
-        InputParameters {
-            alpha: alpha_var,
-            M,
-            t,
-            p,
-            log_2_p,
-        }
+        InputParameters { M, t, p, log_2_p }
     }
 }
 
 impl<F: PrimeField> PoseidonParameters<F> {
     /// Generate a Poseidon instance mapped over Fp given a choice of:
     ///
-    /// * $\alpha$,
     /// * M, a desired security level (in bits),
     /// * t, the width of the desired hash function, e.g. $t=3$ corresponds to 2-to-1 hash.
     /// * p, the prime modulus,
-    pub fn new(M: usize, alpha: i64, t: usize, p: F::BigInt) -> Self {
-        let input = InputParameters::new(alpha, M, t, p);
-        let rounds = rounds::RoundNumbers::new(&input);
+    pub fn new(M: usize, t: usize, p: F::BigInt) -> Self {
+        let input = InputParameters::new(M, t, p);
+        let alpha = alpha::Alpha::generate::<F>(p);
+        let rounds = rounds::RoundNumbers::new(&input, &alpha);
         let mds = mds::MdsMatrix::new(&input);
 
-        Self { input, rounds, mds }
+        Self {
+            input,
+            alpha,
+            rounds,
+            mds,
+        }
     }
 }
