@@ -79,7 +79,7 @@ mod tests {
                 r_P: row[5],
                 cost: row[6],
             };
-            let input = InputParameters::new(table_row.M, table_row.t, table_row.p);
+            let input = InputParameters::new(table_row.M, table_row.t, table_row.p, true);
             let rounds = RoundNumbers::new(&input, &alpha);
             assert_eq!(rounds.full(), table_row.r_F);
             assert_eq!(rounds.partial(), table_row.r_P);
@@ -131,7 +131,7 @@ mod tests {
                 cost: row[6],
             };
 
-            let input = InputParameters::new(table_row.M, table_row.t, table_row.p);
+            let input = InputParameters::new(table_row.M, table_row.t, table_row.p, true);
             let rounds = RoundNumbers::new(&input, &alpha);
             assert_eq!(rounds.full(), table_row.r_F);
             assert_eq!(rounds.partial(), table_row.r_P);
@@ -182,7 +182,7 @@ mod tests {
                 r_P: row[5],
                 cost: row[6],
             };
-            let input = InputParameters::new(table_row.M, table_row.t, table_row.p);
+            let input = InputParameters::new(table_row.M, table_row.t, table_row.p, true);
             let rounds = RoundNumbers::new(&input, &alpha);
             assert_eq!(rounds.full(), table_row.r_F);
             assert_eq!(rounds.partial(), table_row.r_P);
@@ -194,25 +194,25 @@ mod tests {
         let alpha = Alpha::Exponent(17);
 
         // $t=3$ corresponds to a 2:1 hash
-        let input = InputParameters::new(128, 3, Fq377Parameters::MODULUS);
+        let input = InputParameters::new(128, 3, Fq377Parameters::MODULUS, true);
         let rounds = RoundNumbers::new(&input, &alpha);
         assert_eq!(rounds.full(), 8);
         assert_eq!(rounds.partial(), 31);
 
         // $t=4$ corresponds to a 3:1 hash
-        let input = InputParameters::new(128, 4, Fq377Parameters::MODULUS);
+        let input = InputParameters::new(128, 4, Fq377Parameters::MODULUS, true);
         let rounds = RoundNumbers::new(&input, &alpha);
         assert_eq!(rounds.full(), 8);
         assert_eq!(rounds.partial(), 31);
 
         // $t=5$ corresponds to a 4:1 hash
-        let input = InputParameters::new(128, 5, Fq377Parameters::MODULUS);
+        let input = InputParameters::new(128, 5, Fq377Parameters::MODULUS, true);
         let rounds = RoundNumbers::new(&input, &alpha);
         assert_eq!(rounds.full(), 8);
         assert_eq!(rounds.partial(), 31);
 
         // $t=6$ corresponds to a 5:1 hash
-        let input = InputParameters::new(128, 6, Fq377Parameters::MODULUS);
+        let input = InputParameters::new(128, 6, Fq377Parameters::MODULUS, true);
         let rounds = RoundNumbers::new(&input, &alpha);
         assert_eq!(rounds.full(), 8);
         assert_eq!(rounds.partial(), 31);

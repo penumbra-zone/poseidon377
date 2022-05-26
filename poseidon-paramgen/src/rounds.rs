@@ -5,7 +5,7 @@ use ark_ff::BigInteger;
 use super::{Alpha, InputParameters};
 
 /// `RoundNumbers` based on the equations from the original Poseidon paper.
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct RoundNumbers {
     /// Number of partial rounds.
     r_P: usize,

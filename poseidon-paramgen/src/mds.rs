@@ -19,6 +19,10 @@ where
         MdsMatrix::fixed_cauchy_matrix(&input)
     }
 
+    pub fn n_rows(&self) -> usize {
+        self.0.inner.n_rows
+    }
+
     /// Generate a deterministic Cauchy matrix
     ///
     /// The original Poseidon paper describes a method for constructing MDS matrices
@@ -66,11 +70,11 @@ mod tests {
         let M = 128;
         let t = 3;
 
-        let input = InputParameters::new(M, 3, Fq381Parameters::MODULUS);
+        let input = InputParameters::new(M, 3, Fq381Parameters::MODULUS, true);
         let MDS_matrix: MdsMatrix<Fq> = MdsMatrix::new(&input);
 
         assert!(MDS_matrix.0.determinant() != Fq::zero());
-        assert_eq!(MDS_matrix.0.nrows(), t);
+        assert_eq!(MDS_matrix.n_rows(), t);
         assert!(MDS_matrix.0.get_element(0, 0) != Fq::zero());
     }
 }
