@@ -38,7 +38,7 @@ pub enum Alpha {
 
 impl Alpha {
     /// Select the best choice of `Alpha` given the parameters.
-    pub fn generate<F: PrimeField>(p: F::BigInt) -> Self {
+    pub fn generate<F: PrimeField>(p: F::BigInt, allow_inverse: bool) -> Self {
         // Move through the addition chains in increasing depth,
         // picking the leftmost choice that meets the coprime requirement.
         for candidate in SHORTEST_ADDITION_CHAINS.depths_in_order() {
@@ -47,7 +47,11 @@ impl Alpha {
             }
         }
 
-        Alpha::Inverse
+        if allow_inverse {
+            Alpha::Inverse
+        } else {
+            panic!("could not find a small positive exponent and allow_inverse was not enabled")
+        }
     }
 
     fn alpha_coprime_to_p_minus_one<F: PrimeField>(alpha: u32, p: F::BigInt) -> bool {
@@ -97,16 +101,16 @@ mod tests {
         // We know from the Poseidon paper that we should get an alpha of 5 for
         // BLS12-381 and BN254 (see Table 2)
         let p = FqParameters381::MODULUS;
-        assert_eq!(Alpha::generate::<Fq381>(p), Alpha::Exponent(5));
+        assert_eq!(Alpha::generate::<Fq381>(p, true), Alpha::Exponent(5));
 
         let p = FqParameters254::MODULUS;
-        assert_eq!(Alpha::generate::<Fq254>(p), Alpha::Exponent(5));
+        assert_eq!(Alpha::generate::<Fq254>(p, true), Alpha::Exponent(5));
     }
 
     #[test]
     fn check_alpha_17() {
         // For Poseidon377, we should get an alpha of 17 (from our own work).
         let p = FqParameters377::MODULUS;
-        assert_eq!(Alpha::generate::<Fq377>(p), Alpha::Exponent(17));
+        assert_eq!(Alpha::generate::<Fq377>(p, true), Alpha::Exponent(17));
     }
 }

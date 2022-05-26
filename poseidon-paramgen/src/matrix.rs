@@ -1,21 +1,41 @@
 use ark_ff::PrimeField;
 
 /// Represents a matrix over Fp
-pub struct Matrix<F: PrimeField>(pub Vec<F>);
+pub struct Matrix<F: PrimeField> {
+    pub elements: Vec<F>,
+    pub n_cols: usize,
+    pub n_rows: usize,
+}
+
+impl<F: PrimeField> Matrix<F> {
+    pub fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Matrix<F> {
+        if elements.len() != n_rows * n_cols {
+            panic!("Matrix has insufficient elements")
+        }
+        Matrix {
+            elements,
+            n_cols,
+            n_rows,
+        }
+    }
+
+    pub fn get_element(&self, i: usize, j: usize) -> F {
+        self.elements[i * self.n_cols + j]
+    }
+}
 
 /// Represents a square matrix over Fp
 pub struct SquareMatrix<F: PrimeField> {
-    pub elements: Matrix<F>,
-    pub dim: usize,
+    pub inner: Matrix<F>,
 }
 
 impl<F: PrimeField> SquareMatrix<F> {
     pub fn elements(&self) -> &Vec<F> {
-        &self.elements.0
+        &self.inner.elements
     }
 
     pub fn get_element(&self, i: usize, j: usize) -> F {
-        self.elements.0[i * self.dim + j]
+        self.inner.get_element(i, j)
     }
 
     pub fn from_vec(elements: Vec<F>) -> Self {
@@ -26,8 +46,7 @@ impl<F: PrimeField> SquareMatrix<F> {
         let dim = (elements.len() as f64).sqrt() as usize;
 
         SquareMatrix {
-            elements: Matrix(elements),
-            dim,
+            inner: Matrix::new(dim, dim, elements),
         }
     }
 
@@ -35,17 +54,9 @@ impl<F: PrimeField> SquareMatrix<F> {
         SquareMatrix::from_vec(vec![a, b, c, d])
     }
 
-    pub fn nrows(&self) -> usize {
-        self.dim
-    }
-
-    pub fn ncols(&self) -> usize {
-        self.dim
-    }
-
     /// Compute the matrix determinant
     pub fn determinant(&self) -> F {
-        match self.dim {
+        match self.inner.n_cols {
             0 => panic!("matrix has no elements!"),
             1 => self.get_element(0, 0),
             2 => {
@@ -75,15 +86,15 @@ impl<F: PrimeField> SquareMatrix<F> {
                 let mut det = F::zero();
                 let mut levi_civita = true;
 
-                for i in 0..self.dim {
+                for i in 0..self.inner.n_cols {
                     let mut elements: Vec<F> = Vec::new();
                     for k in 0..i {
-                        for l in 1..self.dim {
+                        for l in 1..self.inner.n_cols {
                             elements.push(self.get_element(k, l))
                         }
                     }
-                    for k in i + 1..self.dim {
-                        for l in 1..self.dim {
+                    for k in i + 1..self.inner.n_cols {
+                        for l in 1..self.inner.n_cols {
                             elements.push(self.get_element(k, l))
                         }
                     }

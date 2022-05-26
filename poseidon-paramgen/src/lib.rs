@@ -2,19 +2,23 @@
 //! Module for generating Poseidon parameters
 
 mod alpha;
+mod input;
 mod matrix;
 mod mds;
+mod round_constants;
 mod rounds;
 mod transcript;
 mod utils;
 
 pub use alpha::Alpha;
+pub use input::InputParameters;
 pub use matrix::{Matrix, SquareMatrix};
 pub use mds::MdsMatrix;
+pub use round_constants::ArcMatrix;
 pub use rounds::RoundNumbers;
 pub use utils::log2;
 
-use ark_ff::{BigInteger, PrimeField};
+use ark_ff::PrimeField;
 
 /// A set of Poseidon parameters for a given set of input parameters.
 ///
@@ -30,33 +34,17 @@ pub struct PoseidonParameters<F: PrimeField> {
     input: InputParameters<F::BigInt>,
 
     // Generated parameters.
+    /// Exponent of the Sbox, i.e. S-box(x) = x^{\alpha} used in the `SubWords` step
     pub alpha: Alpha,
+
+    /// Round numbers
     pub rounds: rounds::RoundNumbers,
+
+    /// `t x t` MDS matrix used in the `MixLayer` step
     pub mds: mds::MdsMatrix<F>,
-}
 
-/// Input parameters that are used to generate Poseidon parameters.
-#[derive(Clone)]
-pub struct InputParameters<T: BigInteger> {
-    /// Security level in bits.
-    pub M: usize,
-
-    /// Width of desired hash function, e.g. $t=3$ corresponds to 2-to-1 hash.
-    pub t: usize,
-
-    /// Modulus of the prime field.
-    pub p: T, // let modulus = <F as PrimeField>::Params::MODULUS;
-
-    // The below are derived values, stored for convenience.
-    /// log_2(p)
-    pub log_2_p: f64,
-}
-
-impl<T: BigInteger> InputParameters<T> {
-    pub fn new(M: usize, t: usize, p: T) -> Self {
-        let log_2_p = log2(p);
-        InputParameters { M, t, p, log_2_p }
-    }
+    /// `num_total_rounds x t` matrix of constants used in the `AddRoundConstant` step
+    pub arc: round_constants::ArcMatrix<F>,
 }
 
 impl<F: PrimeField> PoseidonParameters<F> {
@@ -65,17 +53,20 @@ impl<F: PrimeField> PoseidonParameters<F> {
     /// * M, a desired security level (in bits),
     /// * t, the width of the desired hash function, e.g. $t=3$ corresponds to 2-to-1 hash.
     /// * p, the prime modulus,
-    pub fn new(M: usize, t: usize, p: F::BigInt) -> Self {
-        let input = InputParameters::new(M, t, p);
-        let alpha = alpha::Alpha::generate::<F>(p);
+    /// * allow_inverse, whether or not to allow an inverse alpha.
+    pub fn new(M: usize, t: usize, p: F::BigInt, allow_inverse: bool) -> Self {
+        let input = InputParameters::new(M, t, p, allow_inverse);
+        let alpha = alpha::Alpha::generate::<F>(p, allow_inverse);
         let rounds = rounds::RoundNumbers::new(&input, &alpha);
         let mds = mds::MdsMatrix::new(&input);
+        let arc = round_constants::ArcMatrix::generate(&input, rounds, alpha);
 
         Self {
             input,
             alpha,
             rounds,
             mds,
+            arc,
         }
     }
 }
