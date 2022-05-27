@@ -3,6 +3,7 @@ use ark_ff::PrimeField;
 use crate::{InputParameters, SquareMatrix};
 
 /// Represents an MDS (maximum distance separable) matrix.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MdsMatrix<F: PrimeField>(pub SquareMatrix<F>);
 
 impl<F> MdsMatrix<F>

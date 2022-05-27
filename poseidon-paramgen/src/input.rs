@@ -3,7 +3,7 @@ use ark_ff::BigInteger;
 use crate::log2;
 
 /// Input parameters that are used to generate Poseidon parameters.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct InputParameters<T: BigInteger> {
     /// Whether or not to allow inverse alpha.
     pub allow_inverse: bool,

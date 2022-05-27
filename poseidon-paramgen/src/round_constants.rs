@@ -4,6 +4,7 @@ use merlin::Transcript;
 use crate::{transcript::TranscriptProtocol, Alpha, InputParameters, Matrix, RoundNumbers};
 
 /// Represents an matrix of round constants.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ArcMatrix<F: PrimeField>(pub Matrix<F>);
 
 impl<F> ArcMatrix<F>

@@ -22,6 +22,7 @@ use ark_ff::PrimeField;
 use ark_sponge::poseidon::Parameters as ArkPoseidonParameters;
 
 /// A set of Poseidon parameters for a given set of input parameters.
+#[derive(Clone, Debug)]
 pub struct PoseidonParameters<F: PrimeField> {
     // Saved input parameters.
     pub input: InputParameters<F::BigInt>,

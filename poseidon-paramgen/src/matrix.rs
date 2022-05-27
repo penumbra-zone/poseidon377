@@ -1,6 +1,7 @@
 use ark_ff::PrimeField;
 
 /// Represents a matrix over Fp
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Matrix<F: PrimeField> {
     pub elements: Vec<F>,
     pub n_cols: usize,
@@ -25,6 +26,7 @@ impl<F: PrimeField> Matrix<F> {
 }
 
 /// Represents a square matrix over Fp
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SquareMatrix<F: PrimeField> {
     pub inner: Matrix<F>,
 }
