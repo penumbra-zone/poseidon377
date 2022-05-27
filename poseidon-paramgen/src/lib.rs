@@ -19,19 +19,13 @@ pub use rounds::RoundNumbers;
 pub use utils::log2;
 
 use ark_ff::PrimeField;
+use ark_sponge::poseidon::Parameters as ArkPoseidonParameters;
 
 /// A set of Poseidon parameters for a given set of input parameters.
-///
-/// This is based on the attacks described in the original Poseidon paper [1].
-///
-/// References:
-/// * Original Poseidon paper: https://eprint.iacr.org/2019/458.pdf
-/// * MDS Matrices https://eprint.iacr.org/2020/500/20200702:141143
-///
-/// TODO(later): Add an Into for converting this to be the ark-sponge Parameter struct.
+#[derive(Clone, Debug)]
 pub struct PoseidonParameters<F: PrimeField> {
     // Saved input parameters.
-    input: InputParameters<F::BigInt>,
+    pub input: InputParameters<F::BigInt>,
 
     // Generated parameters.
     /// Exponent of the Sbox, i.e. S-box(x) = x^{\alpha} used in the `SubWords` step
@@ -67,6 +61,25 @@ impl<F: PrimeField> PoseidonParameters<F> {
             rounds,
             mds,
             arc,
+        }
+    }
+}
+
+impl<F: PrimeField> Into<ArkPoseidonParameters<F>> for PoseidonParameters<F> {
+    fn into(self) -> ArkPoseidonParameters<F> {
+        let alpha = match self.alpha {
+            Alpha::Exponent(exp) => exp as u64,
+            Alpha::Inverse => panic!("ark-sponge does not allow inverse alpha"),
+        };
+
+        ArkPoseidonParameters {
+            full_rounds: self.rounds.full(),
+            partial_rounds: self.rounds.partial(),
+            alpha,
+            ark: self.arc.into(),
+            mds: self.mds.into(),
+            rate: self.input.t - 1,
+            capacity: 1,
         }
     }
 }

@@ -3,6 +3,7 @@ use ark_ff::PrimeField;
 use crate::{InputParameters, SquareMatrix};
 
 /// Represents an MDS (maximum distance separable) matrix.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MdsMatrix<F: PrimeField>(pub SquareMatrix<F>);
 
 impl<F> MdsMatrix<F>
@@ -19,7 +20,8 @@ where
         MdsMatrix::fixed_cauchy_matrix(&input)
     }
 
-    pub fn n_rows(&self) -> usize {
+    /// Dimension of the (square) MDS matrix
+    pub fn dim(&self) -> usize {
         self.0.inner.n_rows
     }
 
@@ -58,12 +60,41 @@ where
     }
 }
 
+impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<F> {
+    fn into(self) -> Vec<Vec<F>> {
+        let mut rows = Vec::<Vec<F>>::new();
+        for i in 0..self.dim() {
+            let mut row = Vec::new();
+            for j in 0..self.dim() {
+                row.push(self.0.get_element(i, j));
+            }
+            rows.push(row);
+        }
+        rows
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     use ark_ed_on_bls12_381::{Fq, FqParameters as Fq381Parameters};
     use ark_ff::{fields::FpParameters, Zero};
+
+    #[test]
+    fn convert_from_mds_to_vec_of_vecs() {
+        let MDS_matrix = MdsMatrix(SquareMatrix::from_vec(vec![
+            Fq::from(1u32),
+            Fq::from(2u32),
+            Fq::from(3u32),
+            Fq::from(4u32),
+        ]));
+        let vec_of_vecs: Vec<Vec<Fq>> = MDS_matrix.into();
+        assert_eq!(vec_of_vecs[0][0], Fq::from(1u32));
+        assert_eq!(vec_of_vecs[0][1], Fq::from(2u32));
+        assert_eq!(vec_of_vecs[1][0], Fq::from(3u32));
+        assert_eq!(vec_of_vecs[1][1], Fq::from(4u32));
+    }
 
     #[test]
     fn cauchy_method_mds() {
@@ -74,7 +105,7 @@ mod tests {
         let MDS_matrix: MdsMatrix<Fq> = MdsMatrix::new(&input);
 
         assert!(MDS_matrix.0.determinant() != Fq::zero());
-        assert_eq!(MDS_matrix.n_rows(), t);
+        assert_eq!(MDS_matrix.dim(), t);
         assert!(MDS_matrix.0.get_element(0, 0) != Fq::zero());
     }
 }
