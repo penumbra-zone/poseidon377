@@ -3,7 +3,7 @@ use std::convert::TryInto;
 use ark_ff::BigInteger;
 use num_bigint::BigUint;
 
-/// Take the binary log of a `BigInteger`
+/// Computes the binary log of a `BigInteger`
 pub fn log2<P>(x: P) -> f64
 where
     P: BigInteger,

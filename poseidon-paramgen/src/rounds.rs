@@ -4,7 +4,7 @@ use ark_ff::BigInteger;
 
 use super::{Alpha, InputParameters};
 
-/// `RoundNumbers` based on the equations from the original Poseidon paper.
+/// `RoundNumbers` required for security based on known attacks.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct RoundNumbers {
     /// Number of partial rounds.
@@ -42,7 +42,7 @@ impl RoundNumbers {
         choice.unwrap()
     }
 
-    /// Determine whether this `RoundNumbers` choice is secure given all known attacks.
+    /// Check if this `RoundNumbers` choice is secure given all known attacks.
     fn is_secure<T: BigInteger>(&self, input: &InputParameters<T>, alpha: &Alpha) -> bool {
         // Check if the number of full rounds are sufficient.
         if self.r_F < RoundNumbers::statistical_attack_full_rounds(input, alpha) {

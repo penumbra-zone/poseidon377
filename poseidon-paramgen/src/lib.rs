@@ -44,10 +44,10 @@ pub struct PoseidonParameters<F: PrimeField> {
 impl<F: PrimeField> PoseidonParameters<F> {
     /// Generate a Poseidon instance mapped over Fp given a choice of:
     ///
-    /// * M, a desired security level (in bits),
+    /// * M, the desired security level (in bits),
     /// * t, the width of the desired hash function, e.g. $t=3$ corresponds to 2-to-1 hash.
     /// * p, the prime modulus,
-    /// * allow_inverse, whether or not to allow an inverse alpha.
+    /// * `allow_inverse`, whether or not to allow an inverse alpha.
     pub fn new(M: usize, t: usize, p: F::BigInt, allow_inverse: bool) -> Self {
         let input = InputParameters::new(M, t, p, allow_inverse);
         let alpha = alpha::Alpha::generate::<F>(p, allow_inverse);
@@ -71,6 +71,9 @@ impl<F: PrimeField> Into<ArkPoseidonParameters<F>> for PoseidonParameters<F> {
             Alpha::Exponent(exp) => exp as u64,
             Alpha::Inverse => panic!("ark-sponge does not allow inverse alpha"),
         };
+        // TODO: let user specify different capacity choices
+        let capacity = 1;
+        let rate = self.input.t - capacity;
 
         ArkPoseidonParameters {
             full_rounds: self.rounds.full(),
@@ -78,8 +81,8 @@ impl<F: PrimeField> Into<ArkPoseidonParameters<F>> for PoseidonParameters<F> {
             alpha,
             ark: self.arc.into(),
             mds: self.mds.into(),
-            rate: self.input.t - 1,
-            capacity: 1,
+            rate,
+            capacity,
         }
     }
 }
