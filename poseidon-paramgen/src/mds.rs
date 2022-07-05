@@ -1,6 +1,6 @@
 use ark_ff::PrimeField;
 
-use crate::{InputParameters, SquareMatrix};
+use crate::{InputParameters, Matrix, SquareMatrix};
 
 /// Represents an MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -74,6 +74,22 @@ impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<F> {
         rows
     }
 }
+
+/// Represents an optimized MDS (maximum distance separable) matrix.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct OptimizedMdsMatrices<F: PrimeField> {
+    // The t x t MDS matrix of the linear layer,
+    M: SquareMatrix<F>,
+    // A (t - 1) x (t - 1) MDS matrix derived from M,
+    M_hat: SquareMatrix<F>,
+    // A 1 x (t - 1) matrix derived from M,
+    v: Matrix<F>,
+    // A (t - 1) x 1 matrix derived from M,
+    w: Matrix<F>,
+}
+
+// TODO
+// impl<F: PrimeField> Into<OptimizedMdsMatrices<F>> for MdsMatrix<F> {
 
 #[cfg(test)]
 mod tests {
