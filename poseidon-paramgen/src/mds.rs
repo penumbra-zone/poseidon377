@@ -59,6 +59,11 @@ where
 
         Self(cauchy_matrix)
     }
+
+    /// Compute inverse of MDS matrix
+    pub fn inverse(&self) -> SquareMatrix<F> {
+        self.0.inverse()
+    }
 }
 
 impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<F> {
@@ -79,17 +84,29 @@ impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<F> {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OptimizedMdsMatrices<F: PrimeField> {
     // The t x t MDS matrix of the linear layer,
-    M: SquareMatrix<F>,
+    M: MdsMatrix<F>,
     // A (t - 1) x (t - 1) MDS matrix derived from M,
-    M_hat: SquareMatrix<F>,
+    // M_hat: SquareMatrix<F>,
     // A 1 x (t - 1) matrix derived from M,
-    v: Matrix<F>,
+    // v: Matrix<F>,
     // A (t - 1) x 1 matrix derived from M,
-    w: Matrix<F>,
+    // w: Matrix<F>,
+
+    // The inverse of the t x t MDS matrix (needed to compute round constants).
+    M_inverse: SquareMatrix<F>,
 }
 
-// TODO
-// impl<F: PrimeField> Into<OptimizedMdsMatrices<F>> for MdsMatrix<F> {
+impl<F> OptimizedMdsMatrices<F>
+where
+    F: PrimeField,
+{
+    pub fn generate(mds: &MdsMatrix<F>, t: usize) -> OptimizedMdsMatrices<F> {
+        OptimizedMdsMatrices {
+            M: mds.clone(),
+            M_inverse: mds.inverse(),
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

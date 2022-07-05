@@ -23,6 +23,10 @@ impl<F: PrimeField> Matrix<F> {
     pub fn get_element(&self, i: usize, j: usize) -> F {
         self.elements[i * self.n_cols + j]
     }
+
+    pub fn set_element(&mut self, i: usize, j: usize, val: F) {
+        self.elements[i * self.n_cols + j] = val
+    }
 }
 
 /// Represents a square matrix over `PrimeField` elements
@@ -40,6 +44,10 @@ impl<F: PrimeField> SquareMatrix<F> {
         self.inner.get_element(i, j)
     }
 
+    pub fn set_element(&mut self, i: usize, j: usize, val: F) {
+        self.inner.set_element(i, j, val)
+    }
+
     pub fn from_vec(elements: Vec<F>) -> Self {
         if (elements.len() as f64).sqrt().fract() != 0.0 {
             panic!("SquareMatrix must be square")
@@ -52,8 +60,32 @@ impl<F: PrimeField> SquareMatrix<F> {
         }
     }
 
+    /// Dimension of the dim x dim matrix
+    pub fn dim(&self) -> usize {
+        self.inner.n_rows
+    }
+
+    /// Construct a dim x dim identity matrix
+    pub fn identity(dim: usize) -> SquareMatrix<F> {
+        let mut m = SquareMatrix::from_vec(vec![F::zero(); dim * dim]);
+
+        // Set diagonals to 1
+        for i in 0..dim {
+            m.set_element(i, i, F::one());
+        }
+
+        m
+    }
+
     pub fn new_2x2(a: F, b: F, c: F, d: F) -> Self {
         SquareMatrix::from_vec(vec![a, b, c, d])
+    }
+
+    /// Compute the inverse of the matrix
+    pub fn inverse(&self) -> SquareMatrix<F> {
+        let identity: SquareMatrix<F> = SquareMatrix::identity(self.dim());
+
+        todo!()
     }
 
     /// Compute the matrix determinant
@@ -120,7 +152,16 @@ mod tests {
     use super::*;
 
     use ark_ed_on_bls12_381::Fq;
-    use ark_ff::One;
+    use ark_ff::{One, Zero};
+
+    #[test]
+    fn identity_matrix() {
+        let identity: SquareMatrix<Fq> = SquareMatrix::identity(2);
+        assert_eq!(identity.get_element(0, 0), Fq::one());
+        assert_eq!(identity.get_element(0, 1), Fq::zero());
+        assert_eq!(identity.get_element(1, 1), Fq::one());
+        assert_eq!(identity.get_element(1, 0), Fq::zero());
+    }
 
     #[test]
     fn create_matrix_from_vec() {
