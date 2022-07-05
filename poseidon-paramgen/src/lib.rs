@@ -13,8 +13,8 @@ mod utils;
 pub use alpha::Alpha;
 pub use input::InputParameters;
 pub use matrix::{Matrix, SquareMatrix};
-pub use mds::MdsMatrix;
-pub use round_constants::ArcMatrix;
+pub use mds::{MdsMatrix, OptimizedMdsMatrices};
+pub use round_constants::{ArcMatrix, OptimizedArcMatrix};
 pub use rounds::RoundNumbers;
 pub use utils::log2;
 
@@ -39,6 +39,10 @@ pub struct PoseidonParameters<F: PrimeField> {
 
     /// `num_total_rounds x t` matrix of constants used in the `AddRoundConstant` step
     pub arc: round_constants::ArcMatrix<F>,
+
+    /// Optional optimizations
+    pub optimized_arc: round_constants::OptimizedArcMatrix<F>,
+    pub optimized_mds: mds::OptimizedMdsMatrices<F>,
 }
 
 impl<F: PrimeField> PoseidonParameters<F> {
@@ -54,6 +58,9 @@ impl<F: PrimeField> PoseidonParameters<F> {
         let rounds = rounds::RoundNumbers::new(&input, &alpha);
         let mds = mds::MdsMatrix::new(&input);
         let arc = round_constants::ArcMatrix::generate(&input, rounds, alpha);
+        let optimized_mds = mds::OptimizedMdsMatrices::generate(&mds, t);
+        let optimized_arc =
+            round_constants::OptimizedArcMatrix::generate(&arc, &optimized_mds, &rounds, t);
 
         Self {
             input,
@@ -61,6 +68,8 @@ impl<F: PrimeField> PoseidonParameters<F> {
             rounds,
             mds,
             arc,
+            optimized_mds,
+            optimized_arc,
         }
     }
 }

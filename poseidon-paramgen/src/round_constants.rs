@@ -1,7 +1,10 @@
 use ark_ff::PrimeField;
 use merlin::Transcript;
 
-use crate::{transcript::TranscriptProtocol, Alpha, InputParameters, Matrix, RoundNumbers};
+use crate::{
+    transcript::TranscriptProtocol, Alpha, InputParameters, Matrix, OptimizedMdsMatrices,
+    RoundNumbers,
+};
 
 /// Represents an matrix of round constants.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -60,14 +63,28 @@ impl<F: PrimeField> Into<Vec<Vec<F>>> for ArcMatrix<F> {
 /// $\hat{c}^{(i)} = MC^{-1}(c^{(i)}$ where MC is the linear layer in the
 /// i-th round."
 ///
+/// MC is the linear layer where we multiply the state by the MDS matrix.
+/// So to compute the optimized round constants, we need the MDS matrix inverse.
+///
 /// This modifies the partial rounds in the middle of the permutation,
 /// wherein you add constants _first_ before iterating through the partial
 /// rounds.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OptimizedArcMatrix<F: PrimeField>(pub Matrix<F>);
 
-// TODO:
-// impl<F: PrimeField> Into<OptimizedArcMatrix<F>> for ArcMatrix<F> {
+impl<F> OptimizedArcMatrix<F>
+where
+    F: PrimeField,
+{
+    pub fn generate(
+        arc: &ArcMatrix<F>,
+        mds: &OptimizedMdsMatrices<F>,
+        rounds: &RoundNumbers,
+        t: usize,
+    ) -> OptimizedArcMatrix<F> {
+        todo!()
+    }
+}
 
 #[cfg(test)]
 mod tests {
