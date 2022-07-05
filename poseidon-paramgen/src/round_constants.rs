@@ -49,6 +49,26 @@ impl<F: PrimeField> Into<Vec<Vec<F>>> for ArcMatrix<F> {
     }
 }
 
+/// Represents an optimized matrix of round constants.
+///
+/// From the text of Appendix B of the Poseidon paper:
+///
+/// "it is possible to swap the order of the linear layer and the
+/// round constant addition as both operations are linear. The round
+/// constant then needs to be exchanged with an equivalent one. For
+/// round constant $c^{(i)}$ the equivalent one can be written as:
+/// $\hat{c}^{(i)} = MC^{-1}(c^{(i)}$ where MC is the linear layer in the
+/// i-th round."
+///
+/// This modifies the partial rounds in the middle of the permutation,
+/// wherein you add constants _first_ before iterating through the partial
+/// rounds.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct OptimizedArcMatrix<F: PrimeField>(pub Matrix<F>);
+
+// TODO:
+// impl<F: PrimeField> Into<OptimizedArcMatrix<F>> for ArcMatrix<F> {
+
 #[cfg(test)]
 mod tests {
     use super::*;
