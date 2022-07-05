@@ -1,3 +1,5 @@
+use std::ops::Mul;
+
 use ark_ff::PrimeField;
 
 /// Represents a matrix over `PrimeField` elements
@@ -40,6 +42,10 @@ impl<F: PrimeField> SquareMatrix<F> {
         &self.inner.elements
     }
 
+    pub fn rows(&self) -> Vec<&[F]> {
+        self.elements().chunks(self.dim()).collect()
+    }
+
     pub fn get_element(&self, i: usize, j: usize) -> F {
         self.inner.get_element(i, j)
     }
@@ -77,6 +83,19 @@ impl<F: PrimeField> SquareMatrix<F> {
         m
     }
 
+    /// Take transpose of the matrix
+    pub fn transpose(&self) -> SquareMatrix<F> {
+        let dim = self.dim();
+        let mut transposed_elements = Vec::with_capacity(dim * dim);
+
+        for j in 0..dim {
+            for i in 0..dim {
+                transposed_elements.push(self.get_element(i, j))
+            }
+        }
+        SquareMatrix::from_vec(transposed_elements)
+    }
+
     pub fn new_2x2(a: F, b: F, c: F, d: F) -> Self {
         SquareMatrix::from_vec(vec![a, b, c, d])
     }
@@ -84,8 +103,9 @@ impl<F: PrimeField> SquareMatrix<F> {
     /// Compute the inverse of the matrix
     pub fn inverse(&self) -> SquareMatrix<F> {
         let identity: SquareMatrix<F> = SquareMatrix::identity(self.dim());
+        let matrix_inverse = todo!();
 
-        todo!()
+        debug_assert_eq!(self * matrix_inverse, identity);
     }
 
     /// Compute the matrix determinant
@@ -147,6 +167,50 @@ impl<F: PrimeField> SquareMatrix<F> {
     }
 }
 
+/// Flatten a vec of vecs
+fn flatten<T>(nested: Vec<Vec<T>>) -> Vec<T> {
+    nested.into_iter().flatten().collect()
+}
+
+/// Compute dot product between two vectors
+pub fn dot_product<F: PrimeField>(a: Vec<F>, b: Vec<F>) -> F {
+    a.iter().zip(b.iter()).map(|(x, y)| *x * *y).sum()
+}
+
+impl<F: PrimeField> Mul for SquareMatrix<F> {
+    type Output = SquareMatrix<F>;
+
+    // Only multiplying square matrices is infallible
+    // since the number of rows in the LHS must be equal to the
+    // number of columns in the RHS.
+    fn mul(self, rhs: Self) -> Self::Output {
+        let rhs_T = rhs.transpose();
+
+        let res: Vec<Vec<F>> = self
+            .rows()
+            .into_iter()
+            .map(|row| {
+                // Rows of the transposed matrix are the columns of the original matrix
+                rhs_T
+                    .rows()
+                    .into_iter()
+                    .map(|column| dot_product(row.to_vec(), column.to_vec()))
+                    .collect()
+            })
+            .collect();
+
+        SquareMatrix::from_vec(flatten(res))
+    }
+}
+
+impl<F: PrimeField> Mul for &SquareMatrix<F> {
+    type Output = SquareMatrix<F>;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        self.clone() * rhs.clone()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -161,6 +225,40 @@ mod tests {
         assert_eq!(identity.get_element(0, 1), Fq::zero());
         assert_eq!(identity.get_element(1, 1), Fq::one());
         assert_eq!(identity.get_element(1, 0), Fq::zero());
+    }
+
+    #[test]
+    fn matmul() {
+        let identity: SquareMatrix<Fq> = SquareMatrix::identity(2);
+
+        let matrix_2x2 = SquareMatrix::from_vec(vec![
+            Fq::one(),
+            Fq::from(2u64),
+            Fq::from(3u64),
+            Fq::from(4u64),
+        ]);
+
+        let res = matrix_2x2 * identity;
+        assert_eq!(res.get_element(0, 0), Fq::one());
+        assert_eq!(res.get_element(0, 1), Fq::from(2u64));
+        assert_eq!(res.get_element(1, 0), Fq::from(3u64));
+        assert_eq!(res.get_element(1, 1), Fq::from(4u64));
+    }
+
+    #[test]
+    fn transpose() {
+        let matrix_2x2 = SquareMatrix::from_vec(vec![
+            Fq::one(),
+            Fq::from(2u64),
+            Fq::from(3u64),
+            Fq::from(4u64),
+        ]);
+
+        let res = matrix_2x2.transpose();
+        assert_eq!(res.get_element(0, 0), Fq::one());
+        assert_eq!(res.get_element(0, 1), Fq::from(3u64));
+        assert_eq!(res.get_element(1, 0), Fq::from(2u64));
+        assert_eq!(res.get_element(1, 1), Fq::from(4u64));
     }
 
     #[test]
