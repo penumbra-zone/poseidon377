@@ -1,11 +1,13 @@
 #[allow(non_snake_case)]
 #[cfg(test)]
 mod tests {
+    use poseidon_paramgen::PoseidonParameters;
     use poseidon_paramgen::{Alpha, InputParameters, RoundNumbers};
     use std::convert::TryFrom;
 
     use ark_ff::{fields::FpParameters, BigInteger768};
 
+    use ark_ed_on_bls12_377::Fq;
     use ark_ed_on_bls12_377::FqParameters as Fq377Parameters;
     use num_bigint::BigUint;
 
@@ -198,23 +200,43 @@ mod tests {
         let rounds = RoundNumbers::new(&input, &alpha);
         assert_eq!(rounds.full(), 8);
         assert_eq!(rounds.partial(), 31);
+        let params_2_to_1 = PoseidonParameters::<Fq>::new(128, 3, Fq377Parameters::MODULUS, true);
+        assert_eq!(
+            params_2_to_1.mds.0,
+            &params_2_to_1.optimized_mds.M_prime * &params_2_to_1.optimized_mds.M_doubleprime
+        );
 
         // $t=4$ corresponds to a 3:1 hash
         let input = InputParameters::new(128, 4, Fq377Parameters::MODULUS, true);
         let rounds = RoundNumbers::new(&input, &alpha);
         assert_eq!(rounds.full(), 8);
         assert_eq!(rounds.partial(), 31);
+        let params_3_to_1 = PoseidonParameters::<Fq>::new(128, 4, Fq377Parameters::MODULUS, true);
+        assert_eq!(
+            params_3_to_1.mds.0,
+            &params_3_to_1.optimized_mds.M_prime * &params_3_to_1.optimized_mds.M_doubleprime
+        );
 
         // $t=5$ corresponds to a 4:1 hash
         let input = InputParameters::new(128, 5, Fq377Parameters::MODULUS, true);
         let rounds = RoundNumbers::new(&input, &alpha);
         assert_eq!(rounds.full(), 8);
         assert_eq!(rounds.partial(), 31);
+        let params_4_to_1 = PoseidonParameters::<Fq>::new(128, 5, Fq377Parameters::MODULUS, true);
+        assert_eq!(
+            params_4_to_1.mds.0,
+            &params_4_to_1.optimized_mds.M_prime * &params_4_to_1.optimized_mds.M_doubleprime
+        );
 
         // $t=6$ corresponds to a 5:1 hash
         let input = InputParameters::new(128, 6, Fq377Parameters::MODULUS, true);
         let rounds = RoundNumbers::new(&input, &alpha);
         assert_eq!(rounds.full(), 8);
         assert_eq!(rounds.partial(), 31);
+        let params_5_to_1 = PoseidonParameters::<Fq>::new(128, 6, Fq377Parameters::MODULUS, true);
+        assert_eq!(
+            params_5_to_1.mds.0,
+            &params_5_to_1.optimized_mds.M_prime * &params_5_to_1.optimized_mds.M_doubleprime
+        );
     }
 }
