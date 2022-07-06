@@ -1,6 +1,6 @@
 use ark_ff::PrimeField;
 
-use crate::{InputParameters, Matrix, SquareMatrix};
+use crate::{matrix::mat_mul, InputParameters, Matrix, SquareMatrix};
 
 /// Represents an MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -133,10 +133,8 @@ pub struct OptimizedMdsMatrices<F: PrimeField> {
     w: Matrix<F>,
     /// A matrix formed from Mhat (an MDS submatrix of the MDS matrix).
     M_prime: SquareMatrix<F>,
-
-    // TODO: M''
-    // This matrix should be sparse
-    // M_doubleprime: SquareMatrix<F>
+    /// A sparse matrix formed from M,
+    M_doubleprime: SquareMatrix<F>,
     /// The inverse of the t x t MDS matrix (needed to compute round constants).
     M_inverse: SquareMatrix<F>,
     /// The inverse of the (t - 1) x (t - 1) Mhat matrix.
@@ -151,12 +149,19 @@ where
         let M_hat = mds.hat();
         let M_hat_inverse = M_hat.inverse();
         let v = mds.v();
-        let w = mds.v();
+        let w = mds.w();
         let M_prime = OptimizedMdsMatrices::prime(&M_hat);
+        let M_00 = mds.get_element(0, 0);
+        let M_doubleprime = OptimizedMdsMatrices::doubleprime(&M_hat_inverse, &w, &v, M_00);
 
         // Sanity checks
         assert_eq!(M_prime.dim(), mds.dim());
         assert_eq!(M_hat.dim() + 1, mds.dim());
+
+        // If M' and M'' are well-formed, then M = M' * M'' (Eqn. 7, Appendix B)
+        assert_eq!(mds.0.clone(), &M_prime * &M_doubleprime);
+
+        // TODO: Check M_doubleprime is sparse?
 
         OptimizedMdsMatrices {
             M: mds.clone(),
@@ -165,6 +170,7 @@ where
             v,
             w,
             M_prime,
+            M_doubleprime,
             M_inverse: mds.inverse(),
         }
     }
@@ -182,6 +188,35 @@ where
                     new_elements.push(F::zero());
                 } else {
                     new_elements.push(M_hat.get_element(i, j))
+                }
+            }
+        }
+
+        SquareMatrix::from_vec(new_elements)
+    }
+
+    fn doubleprime(
+        M_hat_inverse: &SquareMatrix<F>,
+        w: &Matrix<F>,
+        v: &Matrix<F>,
+        M_00: F,
+    ) -> SquareMatrix<F> {
+        let dim = M_hat_inverse.dim() + 1;
+        let mut new_elements = Vec::with_capacity(dim * dim);
+        let identity = SquareMatrix::identity(dim - 1);
+        let w_hat =
+            mat_mul(&M_hat_inverse.inner, w).expect("matrix multiplication should always exist");
+
+        for i in 0..dim {
+            for j in 0..dim {
+                if i == 0 && j == 0 {
+                    new_elements.push(M_00);
+                } else if i == 0 {
+                    new_elements.push(v.get_element(i, j));
+                } else if j == 0 {
+                    new_elements.push(w_hat.get_element(i, j));
+                } else {
+                    new_elements.push(identity.get_element(i, j))
                 }
             }
         }
