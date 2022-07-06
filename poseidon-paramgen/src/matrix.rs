@@ -35,6 +35,15 @@ impl<F: PrimeField> Matrix<F> {
         self.elements.chunks(self.n_cols).collect()
     }
 
+    /// Get row vector at a specified row index
+    pub fn row_vector(&self, i: usize) -> Matrix<F> {
+        let mut row_elements = Vec::with_capacity(self.n_cols);
+        for j in 0..self.n_cols {
+            row_elements.push(self.get_element(i, j));
+        }
+        Matrix::new(1, self.n_cols, row_elements)
+    }
+
     /// Take transpose of the matrix
     pub fn transpose(&self) -> Matrix<F> {
         let mut transposed_elements = Vec::with_capacity(self.n_rows * self.n_cols);
@@ -45,6 +54,22 @@ impl<F: PrimeField> Matrix<F> {
             }
         }
         Matrix::new(self.n_cols, self.n_rows, transposed_elements)
+    }
+
+    /// Hadamard (element-wise) matrix product
+    pub fn hadamard_product(&self, rhs: &Matrix<F>) -> Result<Matrix<F>> {
+        if self.n_rows != rhs.n_rows || self.n_cols != rhs.n_cols {
+            return Err(anyhow!("Hadamard product requires same shape matrices"));
+        }
+
+        let mut new_elements = Vec::with_capacity(self.n_rows * self.n_cols);
+        for i in 0..self.n_rows {
+            for j in 0..self.n_cols {
+                new_elements.push(self.get_element(i, j) * rhs.get_element(i, j));
+            }
+        }
+
+        Ok(Matrix::new(self.n_rows, self.n_cols, new_elements))
     }
 }
 
@@ -118,21 +143,10 @@ impl<F: PrimeField> SquareMatrix<F> {
     }
 
     /// Hadamard (element-wise) matrix product
-    pub fn hadamard_product(&self, rhs: &SquareMatrix<F>) -> SquareMatrix<F> {
-        let dim = self.dim();
-
-        if dim != rhs.dim() {
-            panic!("Hadamard product requires same shape matrices")
-        }
-
-        let mut new_elements = Vec::with_capacity(dim * dim);
-        for i in 0..dim {
-            for j in 0..dim {
-                new_elements.push(self.get_element(i, j) * rhs.get_element(i, j));
-            }
-        }
-
-        SquareMatrix::from_vec(new_elements)
+    pub fn hadamard_product(&self, rhs: &SquareMatrix<F>) -> Result<SquareMatrix<F>> {
+        Ok(SquareMatrix {
+            inner: self.inner.hadamard_product(&rhs.inner)?,
+        })
     }
 
     /// Compute the inverse of the matrix
@@ -146,7 +160,9 @@ impl<F: PrimeField> SquareMatrix<F> {
 
         let minors = self.minors();
         let cofactor_matrix = self.cofactors();
-        let signed_minors = minors.hadamard_product(&cofactor_matrix);
+        let signed_minors = minors
+            .hadamard_product(&cofactor_matrix)
+            .expect("minor and cofactor matrix have correct dimensions");
         let adj = signed_minors.transpose();
         let matrix_inverse = adj * (F::one() / determinant);
 
@@ -415,6 +431,27 @@ mod tests {
         assert_eq!(res.get_element(2, 0), Fq::from(17u64));
         assert_eq!(res.get_element(2, 1), Fq::from(39u64));
         assert_eq!(res.get_element(2, 2), Fq::from(61u64));
+    }
+
+    #[test]
+    fn hadamard_product() {
+        let test_elements = vec![
+            Fq::one(),
+            Fq::from(2u64),
+            Fq::from(3u64),
+            Fq::from(4u64),
+            Fq::from(5u64),
+            Fq::from(6u64),
+        ];
+        let matrix_2x3 = Matrix::new(3, 2, test_elements);
+
+        let res = matrix_2x3.hadamard_product(&matrix_2x3).expect("is ok");
+        assert_eq!(res.get_element(0, 0), Fq::from(1u64));
+        assert_eq!(res.get_element(0, 1), Fq::from(4u64));
+        assert_eq!(res.get_element(1, 0), Fq::from(9u64));
+        assert_eq!(res.get_element(1, 1), Fq::from(16u64));
+        assert_eq!(res.get_element(2, 0), Fq::from(25u64));
+        assert_eq!(res.get_element(2, 1), Fq::from(36u64));
     }
 
     #[test]
