@@ -64,6 +64,46 @@ where
     pub fn inverse(&self) -> SquareMatrix<F> {
         self.0.inverse()
     }
+
+    pub fn get_element(&self, i: usize, j: usize) -> F {
+        self.0.get_element(i, j)
+    }
+
+    /// Compute the (t - 1) x (t - 1) Mhat matrix from the MDS matrix
+    ///
+    /// This is simply the MDS matrix with the first row and column removed
+    ///
+    /// Ref: p.20 of the Poseidon paper
+    pub fn hat(&self) -> SquareMatrix<F> {
+        let dim = self.dim();
+        let mut mhat_elements = Vec::with_capacity((dim - 1) * (dim - 1));
+        for i in 1..dim {
+            for j in 1..dim {
+                mhat_elements.push(self.get_element(i, j))
+            }
+        }
+
+        SquareMatrix::from_vec(mhat_elements)
+    }
+
+    /// Return the elements M_{0,1} .. M_{0,t} from the first row
+    ///
+    /// Ref: p.20 of the Poseidon paper
+    pub fn v(&self) -> Matrix<F> {
+        let elements: Vec<F> = self.0.elements()[1..self.dim() + 1].to_vec();
+        Matrix::new(1, self.dim() - 1, elements)
+    }
+
+    /// Return the elements M_{1,0} .. M_{t,0} from the first column
+    ///
+    /// Ref: p.20 of the Poseidon paper
+    pub fn w(&self) -> Matrix<F> {
+        let mut elements = Vec::with_capacity(self.dim() - 1);
+        for i in 1..self.dim() {
+            elements.push(self.get_element(i, 0))
+        }
+        Matrix::new(self.dim() - 1, 1, elements)
+    }
 }
 
 impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<F> {
@@ -83,17 +123,24 @@ impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<F> {
 /// Represents an optimized MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OptimizedMdsMatrices<F: PrimeField> {
-    // The t x t MDS matrix of the linear layer,
+    /// The t x t MDS matrix of the linear layer.
     M: MdsMatrix<F>,
-    // A (t - 1) x (t - 1) MDS matrix derived from M,
-    // M_hat: SquareMatrix<F>,
-    // A 1 x (t - 1) matrix derived from M,
-    // v: Matrix<F>,
-    // A (t - 1) x 1 matrix derived from M,
-    // w: Matrix<F>,
+    /// A (t - 1) x (t - 1) MDS submatrix derived from the MDS matrix.
+    M_hat: SquareMatrix<F>,
+    /// A 1 x (t - 1) (row) vector derived from the MDS matrix.
+    v: Matrix<F>,
+    /// A (t - 1) x 1 (column) vector derived from the MDS matrix.
+    w: Matrix<F>,
+    /// A matrix formed from Mhat (an MDS submatrix of the MDS matrix).
+    M_prime: SquareMatrix<F>,
 
-    // The inverse of the t x t MDS matrix (needed to compute round constants).
+    // TODO: M''
+    // This matrix should be sparse
+    // M_doubleprime: SquareMatrix<F>
+    /// The inverse of the t x t MDS matrix (needed to compute round constants).
     M_inverse: SquareMatrix<F>,
+    /// The inverse of the (t - 1) x (t - 1) Mhat matrix.
+    M_hat_inverse: SquareMatrix<F>,
 }
 
 impl<F> OptimizedMdsMatrices<F>
@@ -101,10 +148,45 @@ where
     F: PrimeField,
 {
     pub fn generate(mds: &MdsMatrix<F>, t: usize) -> OptimizedMdsMatrices<F> {
+        let M_hat = mds.hat();
+        let M_hat_inverse = M_hat.inverse();
+        let v = mds.v();
+        let w = mds.v();
+        let M_prime = OptimizedMdsMatrices::prime(&M_hat);
+
+        // Sanity checks
+        assert_eq!(M_prime.dim(), mds.dim());
+        assert_eq!(M_hat.dim() + 1, mds.dim());
+
         OptimizedMdsMatrices {
             M: mds.clone(),
+            M_hat,
+            M_hat_inverse,
+            v,
+            w,
+            M_prime,
             M_inverse: mds.inverse(),
         }
+    }
+
+    fn prime(M_hat: &SquareMatrix<F>) -> SquareMatrix<F> {
+        let dim = M_hat.dim() + 1;
+        let mut new_elements = Vec::with_capacity(dim * dim);
+
+        for i in 0..dim {
+            for j in 0..dim {
+                if i == 0 && j == 0 {
+                    // M_00 = 1
+                    new_elements.push(F::one());
+                } else if i == 0 || j == 0 {
+                    new_elements.push(F::zero());
+                } else {
+                    new_elements.push(M_hat.get_element(i, j))
+                }
+            }
+        }
+
+        SquareMatrix::from_vec(new_elements)
     }
 }
 
