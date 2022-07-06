@@ -90,7 +90,7 @@ where
     ///
     /// Ref: p.20 of the Poseidon paper
     pub fn v(&self) -> Matrix<F> {
-        let elements: Vec<F> = self.0.elements()[1..self.dim() + 1].to_vec();
+        let elements: Vec<F> = self.0.elements()[1..self.dim()].to_vec();
         Matrix::new(1, self.dim() - 1, elements)
     }
 
@@ -124,21 +124,21 @@ impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<F> {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OptimizedMdsMatrices<F: PrimeField> {
     /// The t x t MDS matrix of the linear layer.
-    M: MdsMatrix<F>,
+    pub M: MdsMatrix<F>,
     /// A (t - 1) x (t - 1) MDS submatrix derived from the MDS matrix.
-    M_hat: SquareMatrix<F>,
+    pub M_hat: SquareMatrix<F>,
     /// A 1 x (t - 1) (row) vector derived from the MDS matrix.
-    v: Matrix<F>,
+    pub v: Matrix<F>,
     /// A (t - 1) x 1 (column) vector derived from the MDS matrix.
-    w: Matrix<F>,
+    pub w: Matrix<F>,
     /// A matrix formed from Mhat (an MDS submatrix of the MDS matrix).
-    M_prime: SquareMatrix<F>,
+    pub M_prime: SquareMatrix<F>,
     /// A sparse matrix formed from M,
-    M_doubleprime: SquareMatrix<F>,
+    pub M_doubleprime: SquareMatrix<F>,
     /// The inverse of the t x t MDS matrix (needed to compute round constants).
-    M_inverse: SquareMatrix<F>,
+    pub M_inverse: SquareMatrix<F>,
     /// The inverse of the (t - 1) x (t - 1) Mhat matrix.
-    M_hat_inverse: SquareMatrix<F>,
+    pub M_hat_inverse: SquareMatrix<F>,
 }
 
 impl<F> OptimizedMdsMatrices<F>
@@ -187,7 +187,7 @@ where
                 } else if i == 0 || j == 0 {
                     new_elements.push(F::zero());
                 } else {
-                    new_elements.push(M_hat.get_element(i, j))
+                    new_elements.push(M_hat.get_element(i - 1, j - 1))
                 }
             }
         }
@@ -212,11 +212,11 @@ where
                 if i == 0 && j == 0 {
                     new_elements.push(M_00);
                 } else if i == 0 {
-                    new_elements.push(v.get_element(i, j));
+                    new_elements.push(v.get_element(0, j - 1));
                 } else if j == 0 {
-                    new_elements.push(w_hat.get_element(i, j));
+                    new_elements.push(w_hat.get_element(i - 1, 0));
                 } else {
-                    new_elements.push(identity.get_element(i, j))
+                    new_elements.push(identity.get_element(i - 1, j - 1))
                 }
             }
         }

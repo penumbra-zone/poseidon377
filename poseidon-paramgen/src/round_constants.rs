@@ -82,7 +82,14 @@ where
         rounds: &RoundNumbers,
         t: usize,
     ) -> OptimizedArcMatrix<F> {
-        todo!()
+        let n_rows = arc.n_rows();
+        let n_cols = arc.n_cols();
+        //let mut elements = Vec::with_capacity(n_rows * n_cols);
+        let elements = arc.0.clone().elements;
+
+        // TODO: update elements
+
+        OptimizedArcMatrix(Matrix::new(n_rows, n_cols, elements))
     }
 }
 
