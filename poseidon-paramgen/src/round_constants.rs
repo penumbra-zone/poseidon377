@@ -2,8 +2,8 @@ use ark_ff::PrimeField;
 use merlin::Transcript;
 
 use crate::{
-    transcript::TranscriptProtocol, Alpha, InputParameters, Matrix, OptimizedMdsMatrices,
-    RoundNumbers,
+    matrix::mat_mul, transcript::TranscriptProtocol, Alpha, InputParameters, Matrix,
+    OptimizedMdsMatrices, RoundNumbers,
 };
 
 /// Represents an matrix of round constants.
@@ -35,6 +35,11 @@ where
 
     pub fn n_cols(&self) -> usize {
         self.0.n_cols
+    }
+
+    /// Get row vector of constants by round
+    pub(crate) fn constants_by_round(&self, r: usize) -> Matrix<F> {
+        self.0.row_vector(r)
     }
 }
 
@@ -84,12 +89,66 @@ where
     ) -> OptimizedArcMatrix<F> {
         let n_rows = arc.n_rows();
         let n_cols = arc.n_cols();
-        //let mut elements = Vec::with_capacity(n_rows * n_cols);
-        let elements = arc.0.clone().elements;
+        let mut new_constants = Vec::with_capacity(n_rows * n_cols);
+        let original_constants = arc.0.clone().elements;
 
-        // TODO: update elements
+        let r_f = rounds.full() / 2;
+        let r_T = rounds.total();
+        let r_P = rounds.partial();
 
-        OptimizedArcMatrix(Matrix::new(n_rows, n_cols, elements))
+        // First round is unchanged
+        for i in 0..t {
+            new_constants.push(original_constants[i])
+        }
+
+        // Next r_f - 1 rounds are multiplied by Minv
+        for r in 1..r_f - 1 {
+            // Multiply row vector (1 x t) by Minv (t x t)
+            let new_round_constants = mat_mul(&arc.constants_by_round(r), &mds.M_inverse.inner)
+                .expect("parameter matrices have expected dimensions");
+            assert_eq!(new_round_constants.n_rows, 1);
+            assert_eq!(new_round_constants.n_cols, t);
+            new_constants.extend(new_round_constants.elements);
+        }
+
+        let mut partial_constants = Vec::with_capacity(r_P);
+        let mut acc = arc.constants_by_round(r_f + r_P);
+
+        for r in (r_f..r_f + r_P).rev() {
+            let mut acc_prime = mat_mul(&acc, &mds.M_inverse.inner)
+                .expect("parameter matrices have expected dimensions");
+            partial_constants.push(acc_prime.get_element(0, 0));
+            acc_prime.set_element(0, 0, F::zero());
+            acc = acc_prime
+                .hadamard_product(&arc.constants_by_round(r))
+                .expect("parameter matrices have expected dimensions");
+        }
+
+        let acc_times_m_inv = mat_mul(&acc, &mds.M_inverse.inner)
+            .expect("parameter matrices have expected dimensions");
+        new_constants.extend(acc_times_m_inv.elements);
+        let final_partial_constants: Vec<F> = partial_constants.into_iter().rev().collect();
+        new_constants.extend(final_partial_constants);
+
+        // Final r_f rounds are multiplied by Minv
+        for r in r_T - r_f..r_T {
+            let new_round_constants = mat_mul(&arc.constants_by_round(r), &mds.M_inverse.inner)
+                .expect("parameter matrices have expected dimensions");
+            new_constants.extend(new_round_constants.elements);
+        }
+
+        // The unoptimized constants are a matrix of size r x t.
+        // However, the optimized constants are a vector consisting of:
+        // * First t * r_f elements: applied to full rounds
+        // * Next 1 * r_P elements: applied to partial rounds
+        // * Final t * r_f elements: applied to full rounds
+        let expected_optimized_constant_length = t * 2 * r_f + r_P;
+        assert_eq!(new_constants.len(), expected_optimized_constant_length);
+        OptimizedArcMatrix(Matrix::new(
+            1,
+            expected_optimized_constant_length,
+            new_constants,
+        ))
     }
 }
 
