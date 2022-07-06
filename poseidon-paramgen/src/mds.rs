@@ -161,7 +161,26 @@ where
         // If M' and M'' are well-formed, then M = M' * M'' (Eqn. 7, Appendix B)
         assert_eq!(mds.0.clone(), &M_prime * &M_doubleprime);
 
-        // TODO: Check M_doubleprime is sparse?
+        // If M'' is well-formed, it should be sparse with:
+        // (t - 1)^2 - (t - 1) coefficients equal to 0
+        // t - 1 coefficients equal to 1
+        // (Text under Eqn. 7, Appendix B)
+        assert_eq!(
+            M_doubleprime
+                .elements()
+                .iter()
+                .filter(|&n| *n == F::zero())
+                .count(),
+            (t - 1) * (t - 1) - (t - 1)
+        );
+        assert_eq!(
+            M_doubleprime
+                .elements()
+                .iter()
+                .filter(|&n| *n == F::one())
+                .count(),
+            t - 1
+        );
 
         OptimizedMdsMatrices {
             M: mds.clone(),
