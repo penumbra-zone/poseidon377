@@ -9,23 +9,39 @@ pub struct SquareMatrix<F: PrimeField> {
     pub inner: Matrix<F>,
 }
 
-impl<F: PrimeField> SquareMatrix<F> {
-    pub fn elements(&self) -> &Vec<F> {
-        &self.inner.elements
+impl<F: PrimeField> MatrixOperations<F> for SquareMatrix<F> {
+    fn elements(&self) -> &Vec<F> {
+        self.inner.elements()
     }
 
-    pub fn rows(&self) -> Vec<&[F]> {
-        self.elements().chunks(self.dim()).collect()
-    }
-
-    pub fn get_element(&self, i: usize, j: usize) -> F {
+    fn get_element(&self, i: usize, j: usize) -> F {
         self.inner.get_element(i, j)
     }
 
-    pub fn set_element(&mut self, i: usize, j: usize, val: F) {
+    fn set_element(&mut self, i: usize, j: usize, val: F) {
         self.inner.set_element(i, j, val)
     }
 
+    fn rows(&self) -> Vec<&[F]> {
+        self.inner.rows()
+    }
+
+    /// Take transpose of the matrix
+    fn transpose(&self) -> SquareMatrix<F> {
+        SquareMatrix {
+            inner: self.inner.transpose(),
+        }
+    }
+
+    /// Hadamard (element-wise) matrix product
+    fn hadamard_product(&self, rhs: &SquareMatrix<F>) -> Result<SquareMatrix<F>> {
+        Ok(SquareMatrix {
+            inner: self.inner.hadamard_product(&rhs.inner)?,
+        })
+    }
+}
+
+impl<F: PrimeField> SquareMatrix<F> {
     pub fn from_vec(elements: Vec<F>) -> Self {
         if (elements.len() as f64).sqrt().fract() != 0.0 {
             panic!("SquareMatrix must be square")
@@ -36,6 +52,11 @@ impl<F: PrimeField> SquareMatrix<F> {
         SquareMatrix {
             inner: Matrix::new(dim, dim, elements),
         }
+    }
+
+    /// Get row vector at a specified row index
+    fn row_vector(&self, i: usize) -> Matrix<F> {
+        self.inner.row_vector(i)
     }
 
     /// Dimension of the dim x dim matrix
@@ -55,28 +76,8 @@ impl<F: PrimeField> SquareMatrix<F> {
         m
     }
 
-    /// Take transpose of the matrix
-    pub fn transpose(&self) -> SquareMatrix<F> {
-        let dim = self.dim();
-        let mut transposed_elements = Vec::with_capacity(dim * dim);
-
-        for j in 0..dim {
-            for i in 0..dim {
-                transposed_elements.push(self.get_element(i, j))
-            }
-        }
-        SquareMatrix::from_vec(transposed_elements)
-    }
-
     pub fn new_2x2(a: F, b: F, c: F, d: F) -> Self {
         SquareMatrix::from_vec(vec![a, b, c, d])
-    }
-
-    /// Hadamard (element-wise) matrix product
-    pub fn hadamard_product(&self, rhs: &SquareMatrix<F>) -> Result<SquareMatrix<F>> {
-        Ok(SquareMatrix {
-            inner: self.inner.hadamard_product(&rhs.inner)?,
-        })
     }
 
     /// Compute the inverse of the matrix
