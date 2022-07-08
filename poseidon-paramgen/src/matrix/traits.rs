@@ -10,8 +10,6 @@ pub trait MatrixOperations<F> {
     fn set_element(&mut self, i: usize, j: usize, val: F);
     /// Get rows
     fn rows(&self) -> Vec<&[F]>;
-    /// Get row vector at a specified row index
-    fn row_vector(&self, i: usize) -> Self;
     /// Compute matrix transpose
     fn transpose(&self) -> Self;
     /// Compute Hadamard (element-wise) product

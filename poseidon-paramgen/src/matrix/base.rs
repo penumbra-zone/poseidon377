@@ -31,15 +31,6 @@ impl<F: PrimeField> MatrixOperations<F> for Matrix<F> {
         self.elements.chunks(self.n_cols).collect()
     }
 
-    /// Get row vector at a specified row index
-    fn row_vector(&self, i: usize) -> Matrix<F> {
-        let mut row_elements = Vec::with_capacity(self.n_cols);
-        for j in 0..self.n_cols {
-            row_elements.push(self.get_element(i, j));
-        }
-        Matrix::new(1, self.n_cols, row_elements)
-    }
-
     /// Take transpose of the matrix
     fn transpose(&self) -> Matrix<F> {
         let mut transposed_elements = Vec::with_capacity(self.n_rows * self.n_cols);
@@ -79,5 +70,14 @@ impl<F: PrimeField> Matrix<F> {
             n_cols,
             n_rows,
         }
+    }
+
+    /// Get row vector at a specified row index
+    pub fn row_vector(&self, i: usize) -> Matrix<F> {
+        let mut row_elements = Vec::with_capacity(self.n_cols);
+        for j in 0..self.n_cols {
+            row_elements.push(self.get_element(i, j));
+        }
+        Matrix::new(1, self.n_cols, row_elements)
     }
 }
