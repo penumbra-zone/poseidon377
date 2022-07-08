@@ -153,6 +153,13 @@ impl<F: PrimeField> SquareMatrix<F> {
     pub fn inverse(&self) -> SquareMatrix<F> {
         let identity: SquareMatrix<F> = SquareMatrix::identity(self.dim());
 
+        if self.dim() == 1 {
+            return SquareMatrix::from_vec(vec![self
+                .get_element(0, 0)
+                .inverse()
+                .expect("inverse of single element must exist for 1x1 matrix")]);
+        }
+
         let determinant = self.determinant();
         if determinant == F::zero() {
             panic!("err: matrix has no inverse")
@@ -508,6 +515,10 @@ mod tests {
 
     #[test]
     fn inverse() {
+        let matrix_1x1 = SquareMatrix::from_vec(vec![Fq::from(2u64)]);
+        let res = matrix_1x1.inverse();
+        assert_eq!(matrix_1x1 * res, SquareMatrix::identity(1));
+
         let matrix_2x2 = SquareMatrix::from_vec(vec![
             Fq::one(),
             Fq::from(2u64),
