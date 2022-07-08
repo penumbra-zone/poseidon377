@@ -1,7 +1,12 @@
 use anyhow::{anyhow, Result};
 use ark_ff::PrimeField;
 
-/// Represents a matrix over `PrimeField` elements
+use crate::MatrixOperations;
+
+/// Represents a matrix over `PrimeField` elements.
+///
+/// This matrix can be used to represent row or column
+/// vectors.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Matrix<F: PrimeField> {
     pub elements: Vec<F>,
@@ -9,32 +14,25 @@ pub struct Matrix<F: PrimeField> {
     pub n_rows: usize,
 }
 
-impl<F: PrimeField> Matrix<F> {
-    pub fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Matrix<F> {
-        if elements.len() != n_rows * n_cols {
-            panic!("Matrix has insufficient elements")
-        }
-        Matrix {
-            elements,
-            n_cols,
-            n_rows,
-        }
+impl<F: PrimeField> MatrixOperations<F> for Matrix<F> {
+    fn elements(&self) -> &Vec<F> {
+        &self.elements
     }
 
-    pub fn get_element(&self, i: usize, j: usize) -> F {
+    fn get_element(&self, i: usize, j: usize) -> F {
         self.elements[i * self.n_cols + j]
     }
 
-    pub fn set_element(&mut self, i: usize, j: usize, val: F) {
+    fn set_element(&mut self, i: usize, j: usize, val: F) {
         self.elements[i * self.n_cols + j] = val
     }
 
-    pub fn rows(&self) -> Vec<&[F]> {
+    fn rows(&self) -> Vec<&[F]> {
         self.elements.chunks(self.n_cols).collect()
     }
 
     /// Get row vector at a specified row index
-    pub fn row_vector(&self, i: usize) -> Matrix<F> {
+    fn row_vector(&self, i: usize) -> Matrix<F> {
         let mut row_elements = Vec::with_capacity(self.n_cols);
         for j in 0..self.n_cols {
             row_elements.push(self.get_element(i, j));
@@ -43,7 +41,7 @@ impl<F: PrimeField> Matrix<F> {
     }
 
     /// Take transpose of the matrix
-    pub fn transpose(&self) -> Matrix<F> {
+    fn transpose(&self) -> Matrix<F> {
         let mut transposed_elements = Vec::with_capacity(self.n_rows * self.n_cols);
 
         for j in 0..self.n_cols {
@@ -55,7 +53,7 @@ impl<F: PrimeField> Matrix<F> {
     }
 
     /// Hadamard (element-wise) matrix product
-    pub fn hadamard_product(&self, rhs: &Matrix<F>) -> Result<Matrix<F>> {
+    fn hadamard_product(&self, rhs: &Matrix<F>) -> Result<Matrix<F>> {
         if self.n_rows != rhs.n_rows || self.n_cols != rhs.n_cols {
             return Err(anyhow!("Hadamard product requires same shape matrices"));
         }
@@ -68,5 +66,18 @@ impl<F: PrimeField> Matrix<F> {
         }
 
         Ok(Matrix::new(self.n_rows, self.n_cols, new_elements))
+    }
+}
+
+impl<F: PrimeField> Matrix<F> {
+    pub fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Matrix<F> {
+        if elements.len() != n_rows * n_cols {
+            panic!("Matrix has insufficient elements")
+        }
+        Matrix {
+            elements,
+            n_cols,
+            n_rows,
+        }
     }
 }
