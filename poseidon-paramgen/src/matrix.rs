@@ -1,99 +1,23 @@
-use std::ops::Mul;
-
-use anyhow::{anyhow, Result};
-use ark_ff::PrimeField;
+//! Matrix operations over field elements.
+//!
+//! This module provides the essential linear algebra needed for
+//! parameter generation.
+//!
+//! The [`Matrix`] structure can be used to represent any matrix, row vector,
+//! or column vector. The [`SquareMatrix`] should be used to represent any
+//! matrix that is square.
+//!
+//! Matrix multiplication is defined using `mat_mul`.
 
 mod base;
+mod mult;
 mod square;
+mod traits;
 
 pub use base::Matrix;
+pub use mult::mat_mul;
 pub use square::SquareMatrix;
-
-/// Flatten a vec of vecs
-fn flatten<T>(nested: Vec<Vec<T>>) -> Vec<T> {
-    nested.into_iter().flatten().collect()
-}
-
-/// Compute dot product between two vectors
-pub fn dot_product<F: PrimeField>(a: Vec<F>, b: Vec<F>) -> F {
-    if a.len() != b.len() {
-        panic!("vecs not same len")
-    }
-
-    a.iter().zip(b.iter()).map(|(x, y)| *x * *y).sum()
-}
-
-/// Matrix multiplication
-impl<F: PrimeField> Mul<SquareMatrix<F>> for SquareMatrix<F> {
-    type Output = SquareMatrix<F>;
-
-    // Only multiplying square matrices is infallible
-    // since the number of columns in the LHS must be equal to the
-    // number of rows in the RHS.
-    fn mul(self, rhs: Self) -> Self::Output {
-        let rhs_T = rhs.transpose();
-
-        let res: Vec<Vec<F>> = self
-            .rows()
-            .into_iter()
-            .map(|row| {
-                // Rows of the transposed matrix are the columns of the original matrix
-                rhs_T
-                    .rows()
-                    .into_iter()
-                    .map(|column| dot_product(row.to_vec(), column.to_vec()))
-                    .collect()
-            })
-            .collect();
-
-        SquareMatrix::from_vec(flatten(res))
-    }
-}
-
-pub fn mat_mul<F: PrimeField>(lhs: &Matrix<F>, rhs: &Matrix<F>) -> Result<Matrix<F>> {
-    if lhs.n_cols != rhs.n_rows {
-        return Err(anyhow!(
-            "matrix dimensions do not allow matrix multiplication"
-        ));
-    }
-
-    let rhs_T = rhs.transpose();
-
-    let res: Vec<Vec<F>> = lhs
-        .rows()
-        .into_iter()
-        .map(|row| {
-            // Rows of the transposed matrix are the columns of the original matrix
-            rhs_T
-                .rows()
-                .into_iter()
-                .map(|column| dot_product(row.to_vec(), column.to_vec()))
-                .collect()
-        })
-        .collect();
-
-    Ok(Matrix::new(lhs.n_rows, rhs.n_cols, flatten(res)))
-}
-
-/// Matrix multiplication
-impl<F: PrimeField> Mul for &SquareMatrix<F> {
-    type Output = SquareMatrix<F>;
-
-    fn mul(self, rhs: Self) -> Self::Output {
-        self.clone() * rhs.clone()
-    }
-}
-
-/// Multiply scalar by matrix
-impl<F: PrimeField> Mul<F> for SquareMatrix<F> {
-    type Output = SquareMatrix<F>;
-
-    fn mul(self, rhs: F) -> Self::Output {
-        let elements = self.elements();
-        let new_elements: Vec<F> = elements.iter().map(|element| *element * rhs).collect();
-        SquareMatrix::from_vec(new_elements)
-    }
-}
+pub use traits::{MatrixOperations, SquareMatrixOperations};
 
 #[cfg(test)]
 mod tests {

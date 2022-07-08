@@ -12,7 +12,7 @@ mod utils;
 
 pub use alpha::Alpha;
 pub use input::InputParameters;
-pub use matrix::{Matrix, SquareMatrix};
+pub use matrix::{Matrix, MatrixOperations, SquareMatrix, SquareMatrixOperations};
 pub use mds::{MdsMatrix, OptimizedMdsMatrices};
 pub use round_constants::{ArcMatrix, OptimizedArcMatrix};
 pub use rounds::RoundNumbers;

@@ -1,6 +1,6 @@
 use ark_ff::PrimeField;
 
-use crate::{matrix::mat_mul, InputParameters, Matrix, SquareMatrix};
+use crate::{matrix::mat_mul, InputParameters, Matrix, MatrixOperations, SquareMatrix};
 
 /// Represents an MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]

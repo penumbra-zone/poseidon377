@@ -3,7 +3,7 @@ use merlin::Transcript;
 
 use crate::{
     matrix::mat_mul, transcript::TranscriptProtocol, Alpha, InputParameters, Matrix,
-    OptimizedMdsMatrices, RoundNumbers,
+    MatrixOperations, OptimizedMdsMatrices, RoundNumbers,
 };
 
 /// Represents an matrix of round constants.

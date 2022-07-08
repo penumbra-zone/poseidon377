@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use ark_ff::PrimeField;
 
-use crate::Matrix;
+use crate::{Matrix, MatrixOperations};
 
 /// Represents a square matrix over `PrimeField` elements
 #[derive(Clone, Debug, PartialEq, Eq)]
