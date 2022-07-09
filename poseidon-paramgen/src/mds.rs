@@ -1,3 +1,4 @@
+use anyhow::Result;
 use ark_ff::PrimeField;
 
 use crate::{
@@ -108,6 +109,31 @@ where
             elements.push(self.get_element(i, 0))
         }
         Matrix::new(self.dim() - 1, 1, elements)
+    }
+}
+
+impl<F: PrimeField> MatrixOperations<F> for MdsMatrix<F> {
+    fn elements(&self) -> &Vec<F> {
+        self.0.elements()
+    }
+
+    fn get_element(&self, i: usize, j: usize) -> F {
+        self.0.get_element(i, j)
+    }
+
+    fn set_element(&mut self, i: usize, j: usize, val: F) {
+        self.0.set_element(i, j, val)
+    }
+    fn rows(&self) -> Vec<&[F]> {
+        self.0.rows()
+    }
+
+    fn transpose(&self) -> Self {
+        MdsMatrix(self.0.transpose())
+    }
+
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
+        Ok(MdsMatrix(self.0.hadamard_product(&rhs.0)?))
     }
 }
 
