@@ -2,6 +2,8 @@ use anyhow::Result;
 
 /// Basic matrix operations all matrices should implement.
 pub trait MatrixOperations<F> {
+    /// Create a new matrix
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self;
     /// Access elements as a vector
     fn elements(&self) -> &Vec<F>;
     /// Get element[i,j]
@@ -16,6 +18,10 @@ pub trait MatrixOperations<F> {
     fn hadamard_product(&self, rhs: &Self) -> Result<Self>
     where
         Self: Sized;
+    /// Number of rows
+    fn n_rows(&self) -> usize;
+    /// Number of columns
+    fn n_cols(&self) -> usize;
 }
 
 /// Matrix operations that are defined on square matrices.

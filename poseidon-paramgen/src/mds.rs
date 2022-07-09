@@ -14,7 +14,7 @@ impl<F> MdsMatrix<F>
 where
     F: PrimeField,
 {
-    pub fn new(input: &InputParameters<F::BigInt>) -> Self {
+    pub fn generate(input: &InputParameters<F::BigInt>) -> Self {
         // A t x t MDS matrix only exists if: 2t + 1 <= p
         let two_times_t_bigint: F::BigInt = (2 * input.t as u64).into();
         if two_times_t_bigint > input.p {
@@ -81,7 +81,7 @@ where
     ///
     /// Ref: p.20 of the Poseidon paper
     pub fn hat(&self) -> SquareMatrix<F> {
-        let dim = self.dim();
+        let dim = self.n_rows();
         let mut mhat_elements = Vec::with_capacity((dim - 1) * (dim - 1));
         for i in 1..dim {
             for j in 1..dim {
@@ -96,25 +96,37 @@ where
     ///
     /// Ref: p.20 of the Poseidon paper
     pub fn v(&self) -> Matrix<F> {
-        let elements: Vec<F> = self.0.elements()[1..self.dim()].to_vec();
-        Matrix::new(1, self.dim() - 1, elements)
+        let elements: Vec<F> = self.0.elements()[1..self.n_rows()].to_vec();
+        Matrix::new(1, self.n_rows() - 1, elements)
     }
 
     /// Return the elements M_{1,0} .. M_{t,0} from the first column
     ///
     /// Ref: p.20 of the Poseidon paper
     pub fn w(&self) -> Matrix<F> {
-        let mut elements = Vec::with_capacity(self.dim() - 1);
-        for i in 1..self.dim() {
+        let mut elements = Vec::with_capacity(self.n_rows() - 1);
+        for i in 1..self.n_rows() {
             elements.push(self.get_element(i, 0))
         }
-        Matrix::new(self.dim() - 1, 1, elements)
+        Matrix::new(self.n_rows() - 1, 1, elements)
     }
 }
 
 impl<F: PrimeField> MatrixOperations<F> for MdsMatrix<F> {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> MdsMatrix<F> {
+        MdsMatrix(SquareMatrix::new(n_rows, n_cols, elements))
+    }
+
     fn elements(&self) -> &Vec<F> {
         self.0.elements()
+    }
+
+    fn n_rows(&self) -> usize {
+        self.0.n_rows()
+    }
+
+    fn n_cols(&self) -> usize {
+        self.0.n_cols()
     }
 
     fn get_element(&self, i: usize, j: usize) -> F {
@@ -188,11 +200,14 @@ where
         let M_doubleprime = OptimizedMdsMatrices::doubleprime(&M_hat_inverse, &w, &v, M_00);
 
         // Sanity checks
-        assert_eq!(M_prime.dim(), mds.dim());
-        assert_eq!(M_hat.dim() + 1, mds.dim());
+        assert_eq!(M_prime.n_cols(), mds.n_cols());
+        assert_eq!(M_hat.n_cols() + 1, mds.n_cols());
 
         // If M' and M'' are well-formed, then M = M' * M'' (Eqn. 7, Appendix B)
-        assert_eq!(mds.0.clone(), &M_prime * &M_doubleprime);
+        assert_eq!(
+            mds.0.clone(),
+            mat_mul(&M_prime, &M_doubleprime).expect("M' and M'' must have the same dimensions")
+        );
 
         // If M'' is well-formed, it should be sparse with:
         // (t - 1)^2 - (t - 1) coefficients equal to 0
@@ -228,7 +243,7 @@ where
     }
 
     fn prime(M_hat: &SquareMatrix<F>) -> SquareMatrix<F> {
-        let dim = M_hat.dim() + 1;
+        let dim = M_hat.n_cols() + 1;
         let mut new_elements = Vec::with_capacity(dim * dim);
 
         for i in 0..dim {
@@ -253,7 +268,7 @@ where
         v: &Matrix<F>,
         M_00: F,
     ) -> SquareMatrix<F> {
-        let dim = M_hat_inverse.dim() + 1;
+        let dim = M_hat_inverse.n_cols() + 1;
         let mut new_elements = Vec::with_capacity(dim * dim);
         let identity = SquareMatrix::identity(dim - 1);
         let w_hat =
@@ -305,7 +320,7 @@ mod tests {
         let t = 3;
 
         let input = InputParameters::new(M, 3, Fq381Parameters::MODULUS, true);
-        let MDS_matrix: MdsMatrix<Fq> = MdsMatrix::new(&input);
+        let MDS_matrix: MdsMatrix<Fq> = MdsMatrix::generate(&input);
 
         assert!(MDS_matrix.0.determinant() != Fq::zero());
         assert_eq!(MDS_matrix.dim(), t);

@@ -46,7 +46,7 @@ mod tests {
             Fq::from(4u64),
         ]);
 
-        let res = matrix_2x2 * identity;
+        let res = mat_mul(&matrix_2x2, &identity).unwrap();
         assert_eq!(res.get_element(0, 0), Fq::one());
         assert_eq!(res.get_element(0, 1), Fq::from(2u64));
         assert_eq!(res.get_element(1, 0), Fq::from(3u64));
@@ -158,7 +158,10 @@ mod tests {
     fn inverse() {
         let matrix_1x1 = SquareMatrix::from_vec(vec![Fq::from(2u64)]);
         let res = matrix_1x1.inverse().unwrap();
-        assert_eq!(matrix_1x1 * res, SquareMatrix::identity(1));
+        assert_eq!(
+            mat_mul(&matrix_1x1, &res).unwrap(),
+            SquareMatrix::identity(1)
+        );
 
         let matrix_2x2 = SquareMatrix::from_vec(vec![
             Fq::one(),
@@ -168,7 +171,10 @@ mod tests {
         ]);
 
         let res = matrix_2x2.inverse().unwrap();
-        assert_eq!(matrix_2x2 * res, SquareMatrix::identity(2));
+        assert_eq!(
+            mat_mul(&matrix_2x2, &res).unwrap(),
+            SquareMatrix::identity(2)
+        );
 
         let identity_3x3: SquareMatrix<Fq> = SquareMatrix::identity(3);
         assert_eq!(identity_3x3, identity_3x3.inverse().unwrap());
@@ -185,7 +191,10 @@ mod tests {
             Fq::from(1u64),
         ]);
         let res = matrix_3x3.inverse().unwrap();
-        assert_eq!(matrix_3x3 * res.clone(), SquareMatrix::identity(3));
+        assert_eq!(
+            mat_mul(&matrix_3x3, &res).unwrap(),
+            SquareMatrix::identity(3)
+        );
         let expected_res = SquareMatrix::from_vec(vec![
             Fq::from(2u64),
             Fq::from(2u64),

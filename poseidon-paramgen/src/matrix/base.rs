@@ -15,6 +15,25 @@ pub struct Matrix<F: PrimeField> {
 }
 
 impl<F: PrimeField> MatrixOperations<F> for Matrix<F> {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Matrix<F> {
+        if elements.len() != n_rows * n_cols {
+            panic!("Matrix has insufficient elements")
+        }
+        Matrix {
+            elements,
+            n_cols,
+            n_rows,
+        }
+    }
+
+    fn n_rows(&self) -> usize {
+        self.n_rows
+    }
+
+    fn n_cols(&self) -> usize {
+        self.n_cols
+    }
+
     fn elements(&self) -> &Vec<F> {
         &self.elements
     }
@@ -61,17 +80,6 @@ impl<F: PrimeField> MatrixOperations<F> for Matrix<F> {
 }
 
 impl<F: PrimeField> Matrix<F> {
-    pub fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Matrix<F> {
-        if elements.len() != n_rows * n_cols {
-            panic!("Matrix has insufficient elements")
-        }
-        Matrix {
-            elements,
-            n_cols,
-            n_rows,
-        }
-    }
-
     /// Get row vector at a specified row index
     pub fn row_vector(&self, i: usize) -> Matrix<F> {
         let mut row_elements = Vec::with_capacity(self.n_cols);
