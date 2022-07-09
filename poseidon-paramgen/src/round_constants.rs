@@ -1,3 +1,4 @@
+use anyhow::Result;
 use ark_ff::PrimeField;
 use merlin::Transcript;
 
@@ -14,6 +15,7 @@ impl<F> ArcMatrix<F>
 where
     F: PrimeField,
 {
+    /// Generate round constants.
     pub fn generate(
         input: &InputParameters<F::BigInt>,
         round_numbers: RoundNumbers,
@@ -29,17 +31,46 @@ where
         ArcMatrix(Matrix::new(num_total_rounds, input.t, elements))
     }
 
-    pub fn n_rows(&self) -> usize {
-        self.0.n_rows
-    }
-
-    pub fn n_cols(&self) -> usize {
-        self.0.n_cols
-    }
-
     /// Get row vector of constants by round
     pub(crate) fn constants_by_round(&self, r: usize) -> Matrix<F> {
         self.0.row_vector(r)
+    }
+}
+
+impl<F: PrimeField> MatrixOperations<F> for ArcMatrix<F> {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> ArcMatrix<F> {
+        ArcMatrix(Matrix::new(n_rows, n_cols, elements))
+    }
+
+    fn elements(&self) -> &Vec<F> {
+        self.0.elements()
+    }
+
+    fn n_rows(&self) -> usize {
+        self.0.n_rows()
+    }
+
+    fn n_cols(&self) -> usize {
+        self.0.n_cols()
+    }
+
+    fn get_element(&self, i: usize, j: usize) -> F {
+        self.0.get_element(i, j)
+    }
+
+    fn set_element(&mut self, i: usize, j: usize, val: F) {
+        self.0.set_element(i, j, val)
+    }
+    fn rows(&self) -> Vec<&[F]> {
+        self.0.rows()
+    }
+
+    fn transpose(&self) -> Self {
+        ArcMatrix(self.0.transpose())
+    }
+
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
+        Ok(ArcMatrix(self.0.hadamard_product(&rhs.0)?))
     }
 }
 
@@ -81,6 +112,7 @@ impl<F> OptimizedArcMatrix<F>
 where
     F: PrimeField,
 {
+    /// Generate the optimized round constants.
     pub fn generate(
         arc: &ArcMatrix<F>,
         mds: &OptimizedMdsMatrices<F>,
@@ -104,7 +136,7 @@ where
         // Next r_f - 1 rounds are multiplied by Minv
         for r in 1..r_f - 1 {
             // Multiply row vector (1 x t) by Minv (t x t)
-            let new_round_constants = mat_mul(&arc.constants_by_round(r), &mds.M_inverse.inner)
+            let new_round_constants = mat_mul(&arc.constants_by_round(r), &mds.M_inverse.0)
                 .expect("parameter matrices have expected dimensions");
             assert_eq!(new_round_constants.n_rows, 1);
             assert_eq!(new_round_constants.n_cols, t);
@@ -115,7 +147,7 @@ where
         let mut acc = arc.constants_by_round(r_f + r_P);
 
         for r in (r_f..r_f + r_P).rev() {
-            let mut acc_prime = mat_mul(&acc, &mds.M_inverse.inner)
+            let mut acc_prime = mat_mul(&acc, &mds.M_inverse.0)
                 .expect("parameter matrices have expected dimensions");
             partial_constants.push(acc_prime.get_element(0, 0));
             acc_prime.set_element(0, 0, F::zero());
@@ -124,15 +156,15 @@ where
                 .expect("parameter matrices have expected dimensions");
         }
 
-        let acc_times_m_inv = mat_mul(&acc, &mds.M_inverse.inner)
-            .expect("parameter matrices have expected dimensions");
+        let acc_times_m_inv =
+            mat_mul(&acc, &mds.M_inverse.0).expect("parameter matrices have expected dimensions");
         new_constants.extend(acc_times_m_inv.elements);
         let final_partial_constants: Vec<F> = partial_constants.into_iter().rev().collect();
         new_constants.extend(final_partial_constants);
 
         // Final r_f rounds are multiplied by Minv
         for r in r_T - r_f..r_T {
-            let new_round_constants = mat_mul(&arc.constants_by_round(r), &mds.M_inverse.inner)
+            let new_round_constants = mat_mul(&arc.constants_by_round(r), &mds.M_inverse.0)
                 .expect("parameter matrices have expected dimensions");
             new_constants.extend(new_round_constants.elements);
         }

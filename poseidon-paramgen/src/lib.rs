@@ -1,5 +1,19 @@
 #![allow(non_snake_case)]
-//! Module for generating Poseidon parameters
+#![deny(missing_docs)]
+//! Module for generating parameters for the Poseidon SNARK-friendly hash function.
+//!
+//! This crate will, given a choice of:
+//!
+//! * M, the desired security level (in bits),
+//! * t, the width of the desired hash function, e.g. $t=3$ corresponds to 2-to-1 hash.
+//! * p, the prime modulus,
+//! * `allow_inverse`, whether or not to allow an inverse alpha for the Sbox layer.
+//!
+//! generate the best choice of parameters, for both the unoptimized version of Poseidon
+//! specified in the [Poseidon paper], as well as the optimizations described in Appendix
+//! B.
+//!
+//! [Poseidon paper]: https://eprint.iacr.org/2019/458.pdf
 
 mod alpha;
 mod input;
@@ -24,7 +38,7 @@ use ark_sponge::poseidon::Parameters as ArkPoseidonParameters;
 /// A set of Poseidon parameters for a given set of input parameters.
 #[derive(Clone, Debug)]
 pub struct PoseidonParameters<F: PrimeField> {
-    // Saved input parameters.
+    /// Saved input parameters.
     pub input: InputParameters<F::BigInt>,
 
     // Generated parameters.
@@ -40,8 +54,10 @@ pub struct PoseidonParameters<F: PrimeField> {
     /// `num_total_rounds x t` matrix of constants used in the `AddRoundConstant` step
     pub arc: round_constants::ArcMatrix<F>,
 
-    /// Optional optimizations
+    /// Optimized round constants.
     pub optimized_arc: round_constants::OptimizedArcMatrix<F>,
+
+    /// Optimized MDS matrices.
     pub optimized_mds: mds::OptimizedMdsMatrices<F>,
 }
 

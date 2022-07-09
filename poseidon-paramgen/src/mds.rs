@@ -14,6 +14,7 @@ impl<F> MdsMatrix<F>
 where
     F: PrimeField,
 {
+    /// Generate the MDS matrix.
     pub fn generate(input: &InputParameters<F::BigInt>) -> Self {
         // A t x t MDS matrix only exists if: 2t + 1 <= p
         let two_times_t_bigint: F::BigInt = (2 * input.t as u64).into();
@@ -22,11 +23,6 @@ where
         }
 
         MdsMatrix::fixed_cauchy_matrix(input)
-    }
-
-    /// Dimension of the (square) MDS matrix
-    pub fn dim(&self) -> usize {
-        self.0.inner.n_rows
     }
 
     /// Generate a deterministic Cauchy matrix
@@ -69,10 +65,6 @@ where
         self.0
             .inverse()
             .expect("all well-formed MDS matrices should have inverses")
-    }
-
-    pub fn get_element(&self, i: usize, j: usize) -> F {
-        self.0.get_element(i, j)
     }
 
     /// Compute the (t - 1) x (t - 1) Mhat matrix from the MDS matrix
@@ -152,9 +144,9 @@ impl<F: PrimeField> MatrixOperations<F> for MdsMatrix<F> {
 impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<F> {
     fn into(self) -> Vec<Vec<F>> {
         let mut rows = Vec::<Vec<F>>::new();
-        for i in 0..self.dim() {
+        for i in 0..self.n_rows() {
             let mut row = Vec::new();
-            for j in 0..self.dim() {
+            for j in 0..self.n_rows() {
                 row.push(self.0.get_element(i, j));
             }
             rows.push(row);
@@ -188,6 +180,7 @@ impl<F> OptimizedMdsMatrices<F>
 where
     F: PrimeField,
 {
+    /// Generate the optimized MDS matrices.
     pub fn generate(mds: &MdsMatrix<F>, t: usize) -> OptimizedMdsMatrices<F> {
         let M_hat = mds.hat();
         let M_hat_inverse = M_hat
@@ -272,7 +265,7 @@ where
         let mut new_elements = Vec::with_capacity(dim * dim);
         let identity = SquareMatrix::identity(dim - 1);
         let w_hat =
-            mat_mul(&M_hat_inverse.inner, w).expect("matrix multiplication should always exist");
+            mat_mul(&M_hat_inverse.0, w).expect("matrix multiplication should always exist");
 
         for i in 0..dim {
             for j in 0..dim {
@@ -323,7 +316,7 @@ mod tests {
         let MDS_matrix: MdsMatrix<Fq> = MdsMatrix::generate(&input);
 
         assert!(MDS_matrix.0.determinant() != Fq::zero());
-        assert_eq!(MDS_matrix.dim(), t);
+        assert_eq!(MDS_matrix.n_rows(), t);
         assert!(MDS_matrix.0.get_element(0, 0) != Fq::zero());
     }
 }
