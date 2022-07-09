@@ -22,9 +22,10 @@ pub use traits::{MatrixOperations, SquareMatrixOperations};
 #[cfg(test)]
 mod tests {
     use super::*;
+    use proptest::prelude::*;
 
-    use ark_ed_on_bls12_381::Fq;
-    use ark_ff::{One, Zero};
+    use ark_ed_on_bls12_377::Fq;
+    use ark_ff::{One, PrimeField, Zero};
 
     #[test]
     fn identity_matrix() {
@@ -152,6 +153,24 @@ mod tests {
         let expected_res =
             SquareMatrix::from_vec(vec![Fq::one(), -Fq::one(), -Fq::one(), Fq::one()]);
         assert_eq!(identity_2x2.cofactors(), expected_res);
+    }
+
+    fn fq_strategy() -> BoxedStrategy<Fq> {
+        any::<[u8; 32]>()
+            .prop_map(|bytes| Fq::from_le_bytes_mod_order(&bytes[..]))
+            .boxed()
+    }
+
+    proptest! {
+        #[test]
+        fn inverse_2x2(a in fq_strategy(), b in fq_strategy(), c in fq_strategy(), d in fq_strategy()) {
+            let matrix_2x2 = SquareMatrix::from_vec(vec![
+                a,b,c,d
+            ]);
+
+            let res = matrix_2x2.inverse().unwrap();
+            assert_eq!(mat_mul(&matrix_2x2, &res).unwrap(), SquareMatrix::identity(2));
+        }
     }
 
     #[test]
