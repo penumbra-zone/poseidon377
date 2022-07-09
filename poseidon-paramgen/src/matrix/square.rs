@@ -5,53 +5,45 @@ use crate::{mat_mul, Matrix, MatrixOperations, SquareMatrixOperations};
 
 /// Represents a square matrix over `PrimeField` elements
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SquareMatrix<F: PrimeField> {
-    pub inner: Matrix<F>,
-}
+pub struct SquareMatrix<F: PrimeField>(pub Matrix<F>);
 
 impl<F: PrimeField> MatrixOperations<F> for SquareMatrix<F> {
     fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> SquareMatrix<F> {
-        SquareMatrix {
-            inner: Matrix::new(n_rows, n_cols, elements),
-        }
+        SquareMatrix(Matrix::new(n_rows, n_cols, elements))
     }
 
     fn elements(&self) -> &Vec<F> {
-        self.inner.elements()
+        self.0.elements()
     }
 
     fn n_rows(&self) -> usize {
-        self.inner.n_rows
+        self.0.n_rows
     }
 
     fn n_cols(&self) -> usize {
-        self.inner.n_cols
+        self.0.n_cols
     }
 
     fn get_element(&self, i: usize, j: usize) -> F {
-        self.inner.get_element(i, j)
+        self.0.get_element(i, j)
     }
 
     fn set_element(&mut self, i: usize, j: usize, val: F) {
-        self.inner.set_element(i, j, val)
+        self.0.set_element(i, j, val)
     }
 
     fn rows(&self) -> Vec<&[F]> {
-        self.inner.rows()
+        self.0.rows()
     }
 
     /// Take transpose of the matrix
     fn transpose(&self) -> SquareMatrix<F> {
-        SquareMatrix {
-            inner: self.inner.transpose(),
-        }
+        SquareMatrix(self.0.transpose())
     }
 
     /// Hadamard (element-wise) matrix product
     fn hadamard_product(&self, rhs: &SquareMatrix<F>) -> Result<SquareMatrix<F>> {
-        Ok(SquareMatrix {
-            inner: self.inner.hadamard_product(&rhs.inner)?,
-        })
+        Ok(SquareMatrix(self.0.hadamard_product(&rhs.0)?))
     }
 }
 
@@ -102,7 +94,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
 
     /// Compute the (unsigned) minors of this matrix
     fn minors(&self) -> SquareMatrix<F> {
-        match self.inner.n_cols {
+        match self.0.n_cols {
             0 => panic!("matrix has no elements!"),
             1 => SquareMatrix::from_vec(vec![self.get_element(0, 0)]),
             2 => {
@@ -157,7 +149,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
 
     /// Compute the matrix determinant
     fn determinant(&self) -> F {
-        match self.inner.n_cols {
+        match self.0.n_cols {
             0 => panic!("matrix has no elements!"),
             1 => self.get_element(0, 0),
             2 => {
@@ -216,6 +208,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
 }
 
 impl<F: PrimeField> SquareMatrix<F> {
+    /// Create a `SquareMatrix` from a vector of elements.
     pub fn from_vec(elements: Vec<F>) -> Self {
         if (elements.len() as f64).sqrt().fract() != 0.0 {
             panic!("SquareMatrix must be square")
@@ -223,16 +216,15 @@ impl<F: PrimeField> SquareMatrix<F> {
 
         let dim = (elements.len() as f64).sqrt() as usize;
 
-        SquareMatrix {
-            inner: Matrix::new(dim, dim, elements),
-        }
+        SquareMatrix(Matrix::new(dim, dim, elements))
     }
 
-    /// Get row vector at a specified row index
-    fn row_vector(&self, i: usize) -> Matrix<F> {
-        self.inner.row_vector(i)
+    /// Get row vector at a specified row index.
+    pub fn row_vector(&self, i: usize) -> Matrix<F> {
+        self.0.row_vector(i)
     }
 
+    /// Create a 2x2 `SquareMatrix` from four elements.
     pub fn new_2x2(a: F, b: F, c: F, d: F) -> Self {
         SquareMatrix::from_vec(vec![a, b, c, d])
     }

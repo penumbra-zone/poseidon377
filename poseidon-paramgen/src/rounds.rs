@@ -14,6 +14,7 @@ pub struct RoundNumbers {
 }
 
 impl RoundNumbers {
+    /// Generate round numbers.
     pub fn new<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> Self {
         let mut choice: Option<RoundNumbers> = None;
         let mut cost = usize::MAX;
@@ -196,14 +197,17 @@ impl RoundNumbers {
             .ceil() as usize;
     }
 
+    /// Number of total rounds.
     pub fn total(&self) -> usize {
         self.r_P + self.r_F
     }
 
+    /// Number of partial rounds.
     pub fn partial(&self) -> usize {
         self.r_P
     }
 
+    /// Number of full rounds.
     pub fn full(&self) -> usize {
         self.r_F
     }

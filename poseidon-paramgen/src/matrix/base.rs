@@ -9,8 +9,11 @@ use crate::MatrixOperations;
 /// vectors.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Matrix<F: PrimeField> {
+    /// Elements of the matrix.
     pub elements: Vec<F>,
+    /// Number of columns.
     pub n_cols: usize,
+    /// Number of rows.
     pub n_rows: usize,
 }
 

@@ -23,6 +23,7 @@ pub struct InputParameters<T: BigInteger> {
 }
 
 impl<T: BigInteger> InputParameters<T> {
+    /// Create a new set of input parameters for a new Poseidon instance.
     pub fn new(M: usize, t: usize, p: T, allow_inverse: bool) -> Self {
         let log_2_p = log2(p);
         InputParameters {

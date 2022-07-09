@@ -2,7 +2,9 @@ use ark_ff::PrimeField;
 use num::integer::gcd;
 use num_bigint::BigUint;
 
-/// Shortest addition chains for some small numbers
+/// Shortest addition chains for small numbers.
+///
+/// Used for selecting the optimal choice of alpha.
 ///
 /// Courtesy of:
 /// https://wwwhomes.uni-bielefeld.de/achim/addition_chain.html
@@ -29,10 +31,12 @@ impl ShortestAdditionChains {
     }
 }
 
-/// The exponent in `S-box(x) = x^\alpha`.
+/// The exponent in `Sbox(x) = x^\alpha`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Alpha {
+    /// A positive exponent $x^{alpha}$.
     Exponent(u32),
+    /// 1/x
     Inverse,
 }
 
@@ -62,6 +66,7 @@ impl Alpha {
         F::from(computed_gcd) == F::one()
     }
 
+    /// Return the memory representation of alpha as a byte array in little-endian byte order.
     pub fn to_bytes_le(&self) -> [u8; 4] {
         match self {
             Alpha::Exponent(exp) => exp.to_le_bytes(),
