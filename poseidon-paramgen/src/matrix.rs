@@ -157,7 +157,7 @@ mod tests {
     #[test]
     fn inverse() {
         let matrix_1x1 = SquareMatrix::from_vec(vec![Fq::from(2u64)]);
-        let res = matrix_1x1.inverse();
+        let res = matrix_1x1.inverse().unwrap();
         assert_eq!(matrix_1x1 * res, SquareMatrix::identity(1));
 
         let matrix_2x2 = SquareMatrix::from_vec(vec![
@@ -167,11 +167,11 @@ mod tests {
             Fq::from(4u64),
         ]);
 
-        let res = matrix_2x2.inverse();
+        let res = matrix_2x2.inverse().unwrap();
         assert_eq!(matrix_2x2 * res, SquareMatrix::identity(2));
 
         let identity_3x3: SquareMatrix<Fq> = SquareMatrix::identity(3);
-        assert_eq!(identity_3x3, identity_3x3.inverse());
+        assert_eq!(identity_3x3, identity_3x3.inverse().unwrap());
 
         let matrix_3x3 = SquareMatrix::from_vec(vec![
             Fq::from(3u64),
@@ -184,7 +184,7 @@ mod tests {
             Fq::from(1u64),
             Fq::from(1u64),
         ]);
-        let res = matrix_3x3.inverse();
+        let res = matrix_3x3.inverse().unwrap();
         assert_eq!(matrix_3x3 * res.clone(), SquareMatrix::identity(3));
         let expected_res = SquareMatrix::from_vec(vec![
             Fq::from(2u64),
