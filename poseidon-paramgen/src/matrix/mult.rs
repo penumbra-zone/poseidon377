@@ -1,0 +1,68 @@
+use std::ops::Mul;
+
+use anyhow::{anyhow, Result};
+use ark_ff::PrimeField;
+
+use crate::{Matrix, MatrixOperations, SquareMatrix};
+
+/// Flatten a vec of vecs
+fn flatten<T>(nested: Vec<Vec<T>>) -> Vec<T> {
+    nested.into_iter().flatten().collect()
+}
+
+/// Compute vector dot product
+pub fn dot_product<F: PrimeField>(a: Vec<F>, b: Vec<F>) -> F {
+    if a.len() != b.len() {
+        panic!("vecs not same len")
+    }
+
+    a.iter().zip(b.iter()).map(|(x, y)| *x * *y).sum()
+}
+
+/// Multiply two matrices
+pub fn mat_mul<F: PrimeField, M: MatrixOperations<F>>(lhs: &M, rhs: &M) -> Result<M> {
+    if lhs.n_cols() != rhs.n_rows() {
+        return Err(anyhow!(
+            "matrix dimensions do not allow matrix multiplication"
+        ));
+    }
+
+    let rhs_T = rhs.transpose();
+
+    let res: Vec<Vec<F>> = lhs
+        .rows()
+        .into_iter()
+        .map(|row| {
+            // Rows of the transposed matrix are the columns of the original matrix
+            rhs_T
+                .rows()
+                .into_iter()
+                .map(|column| dot_product(row.to_vec(), column.to_vec()))
+                .collect()
+        })
+        .collect();
+
+    Ok(M::new(lhs.n_rows(), rhs.n_cols(), flatten(res)))
+}
+
+/// Multiply scalar by Matrix
+impl<F: PrimeField> Mul<F> for Matrix<F> {
+    type Output = Matrix<F>;
+
+    fn mul(self, rhs: F) -> Self::Output {
+        let elements = self.elements();
+        let new_elements: Vec<F> = elements.iter().map(|element| *element * rhs).collect();
+        Matrix::new(self.n_rows, self.n_cols, new_elements)
+    }
+}
+
+/// Multiply scalar by SquareMatrix
+impl<F: PrimeField> Mul<F> for SquareMatrix<F> {
+    type Output = SquareMatrix<F>;
+
+    fn mul(self, rhs: F) -> Self::Output {
+        let elements = self.elements();
+        let new_elements: Vec<F> = elements.iter().map(|element| *element * rhs).collect();
+        SquareMatrix::from_vec(new_elements)
+    }
+}

@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use ark_ff::PrimeField;
 
-use crate::{Matrix, MatrixOperations, SquareMatrixOperations};
+use crate::{mat_mul, Matrix, MatrixOperations, SquareMatrixOperations};
 
 /// Represents a square matrix over `PrimeField` elements
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -10,8 +10,22 @@ pub struct SquareMatrix<F: PrimeField> {
 }
 
 impl<F: PrimeField> MatrixOperations<F> for SquareMatrix<F> {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> SquareMatrix<F> {
+        SquareMatrix {
+            inner: Matrix::new(n_rows, n_cols, elements),
+        }
+    }
+
     fn elements(&self) -> &Vec<F> {
         self.inner.elements()
+    }
+
+    fn n_rows(&self) -> usize {
+        self.inner.n_rows
+    }
+
+    fn n_cols(&self) -> usize {
+        self.inner.n_cols
     }
 
     fn get_element(&self, i: usize, j: usize) -> F {
@@ -56,9 +70,9 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
 
     /// Compute the inverse of the matrix
     fn inverse(&self) -> Result<SquareMatrix<F>> {
-        let identity: SquareMatrix<F> = SquareMatrix::identity(self.dim());
+        let identity: SquareMatrix<F> = SquareMatrix::identity(self.n_rows());
 
-        if self.dim() == 1 {
+        if self.n_rows() == 1 {
             return Ok(SquareMatrix::from_vec(vec![self
                 .get_element(0, 0)
                 .inverse()
@@ -78,7 +92,11 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
         let adj = signed_minors.transpose();
         let matrix_inverse = adj * (F::one() / determinant);
 
-        debug_assert_eq!(self * &matrix_inverse, identity);
+        debug_assert_eq!(
+            mat_mul(self, &matrix_inverse)
+                .expect("matrix and its inverse should have same dimensions"),
+            identity
+        );
         Ok(matrix_inverse)
     }
 
@@ -95,7 +113,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
                 SquareMatrix::from_vec(vec![d, c, b, a])
             }
             _ => {
-                let dim = self.dim();
+                let dim = self.n_rows();
                 let mut minor_matrix_elements = Vec::with_capacity(dim * dim);
                 for i in 0..dim {
                     for j in 0..dim {
@@ -127,7 +145,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
 
     /// Compute the cofactor matrix, i.e. $C_{ij} = (-1)^{i+j}$
     fn cofactors(&self) -> SquareMatrix<F> {
-        let dim = self.dim();
+        let dim = self.n_rows();
         let mut elements = Vec::with_capacity(dim);
         for i in 0..dim {
             for j in 0..dim {
@@ -168,7 +186,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
                 // Unoptimized, but MDS matrices are fairly small, so we do the naive thing
                 let mut det = F::zero();
                 let mut levi_civita = true;
-                let dim = self.dim();
+                let dim = self.n_rows();
 
                 for i in 0..dim {
                     let mut elements: Vec<F> = Vec::new();
@@ -213,11 +231,6 @@ impl<F: PrimeField> SquareMatrix<F> {
     /// Get row vector at a specified row index
     fn row_vector(&self, i: usize) -> Matrix<F> {
         self.inner.row_vector(i)
-    }
-
-    /// Dimension of the dim x dim matrix
-    pub fn dim(&self) -> usize {
-        self.inner.n_rows
     }
 
     pub fn new_2x2(a: F, b: F, c: F, d: F) -> Self {

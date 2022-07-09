@@ -12,7 +12,7 @@ mod utils;
 
 pub use alpha::Alpha;
 pub use input::InputParameters;
-pub use matrix::{Matrix, MatrixOperations, SquareMatrix, SquareMatrixOperations};
+pub use matrix::{mat_mul, Matrix, MatrixOperations, SquareMatrix, SquareMatrixOperations};
 pub use mds::{MdsMatrix, OptimizedMdsMatrices};
 pub use round_constants::{ArcMatrix, OptimizedArcMatrix};
 pub use rounds::RoundNumbers;
@@ -56,7 +56,7 @@ impl<F: PrimeField> PoseidonParameters<F> {
         let input = InputParameters::new(M, t, p, allow_inverse);
         let alpha = alpha::Alpha::generate::<F>(p, allow_inverse);
         let rounds = rounds::RoundNumbers::new(&input, &alpha);
-        let mds = mds::MdsMatrix::new(&input);
+        let mds = mds::MdsMatrix::generate(&input);
         let arc = round_constants::ArcMatrix::generate(&input, rounds, alpha);
         let optimized_mds = mds::OptimizedMdsMatrices::generate(&mds, t);
         let optimized_arc =
