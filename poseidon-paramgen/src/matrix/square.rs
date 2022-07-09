@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use ark_ff::PrimeField;
 
-use crate::{Matrix, MatrixOperations};
+use crate::{Matrix, MatrixOperations, SquareMatrixOperations};
 
 /// Represents a square matrix over `PrimeField` elements
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -41,31 +41,9 @@ impl<F: PrimeField> MatrixOperations<F> for SquareMatrix<F> {
     }
 }
 
-impl<F: PrimeField> SquareMatrix<F> {
-    pub fn from_vec(elements: Vec<F>) -> Self {
-        if (elements.len() as f64).sqrt().fract() != 0.0 {
-            panic!("SquareMatrix must be square")
-        }
-
-        let dim = (elements.len() as f64).sqrt() as usize;
-
-        SquareMatrix {
-            inner: Matrix::new(dim, dim, elements),
-        }
-    }
-
-    /// Get row vector at a specified row index
-    fn row_vector(&self, i: usize) -> Matrix<F> {
-        self.inner.row_vector(i)
-    }
-
-    /// Dimension of the dim x dim matrix
-    pub fn dim(&self) -> usize {
-        self.inner.n_rows
-    }
-
+impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
     /// Construct a dim x dim identity matrix
-    pub fn identity(dim: usize) -> SquareMatrix<F> {
+    fn identity(dim: usize) -> SquareMatrix<F> {
         let mut m = SquareMatrix::from_vec(vec![F::zero(); dim * dim]);
 
         // Set diagonals to 1
@@ -76,24 +54,20 @@ impl<F: PrimeField> SquareMatrix<F> {
         m
     }
 
-    pub fn new_2x2(a: F, b: F, c: F, d: F) -> Self {
-        SquareMatrix::from_vec(vec![a, b, c, d])
-    }
-
     /// Compute the inverse of the matrix
-    pub fn inverse(&self) -> SquareMatrix<F> {
+    fn inverse(&self) -> Result<SquareMatrix<F>> {
         let identity: SquareMatrix<F> = SquareMatrix::identity(self.dim());
 
         if self.dim() == 1 {
-            return SquareMatrix::from_vec(vec![self
+            return Ok(SquareMatrix::from_vec(vec![self
                 .get_element(0, 0)
                 .inverse()
-                .expect("inverse of single element must exist for 1x1 matrix")]);
+                .expect("inverse of single element must exist for 1x1 matrix")]));
         }
 
         let determinant = self.determinant();
         if determinant == F::zero() {
-            panic!("err: matrix has no inverse")
+            return Err(anyhow!("err: matrix has no inverse"));
         }
 
         let minors = self.minors();
@@ -105,11 +79,11 @@ impl<F: PrimeField> SquareMatrix<F> {
         let matrix_inverse = adj * (F::one() / determinant);
 
         debug_assert_eq!(self * &matrix_inverse, identity);
-        matrix_inverse
+        Ok(matrix_inverse)
     }
 
     /// Compute the (unsigned) minors of this matrix
-    pub fn minors(&self) -> SquareMatrix<F> {
+    fn minors(&self) -> SquareMatrix<F> {
         match self.inner.n_cols {
             0 => panic!("matrix has no elements!"),
             1 => SquareMatrix::from_vec(vec![self.get_element(0, 0)]),
@@ -152,7 +126,7 @@ impl<F: PrimeField> SquareMatrix<F> {
     }
 
     /// Compute the cofactor matrix, i.e. $C_{ij} = (-1)^{i+j}$
-    pub fn cofactors(&self) -> SquareMatrix<F> {
+    fn cofactors(&self) -> SquareMatrix<F> {
         let dim = self.dim();
         let mut elements = Vec::with_capacity(dim);
         for i in 0..dim {
@@ -164,7 +138,7 @@ impl<F: PrimeField> SquareMatrix<F> {
     }
 
     /// Compute the matrix determinant
-    pub fn determinant(&self) -> F {
+    fn determinant(&self) -> F {
         match self.inner.n_cols {
             0 => panic!("matrix has no elements!"),
             1 => self.get_element(0, 0),
@@ -220,5 +194,33 @@ impl<F: PrimeField> SquareMatrix<F> {
                 det
             }
         }
+    }
+}
+
+impl<F: PrimeField> SquareMatrix<F> {
+    pub fn from_vec(elements: Vec<F>) -> Self {
+        if (elements.len() as f64).sqrt().fract() != 0.0 {
+            panic!("SquareMatrix must be square")
+        }
+
+        let dim = (elements.len() as f64).sqrt() as usize;
+
+        SquareMatrix {
+            inner: Matrix::new(dim, dim, elements),
+        }
+    }
+
+    /// Get row vector at a specified row index
+    fn row_vector(&self, i: usize) -> Matrix<F> {
+        self.inner.row_vector(i)
+    }
+
+    /// Dimension of the dim x dim matrix
+    pub fn dim(&self) -> usize {
+        self.inner.n_rows
+    }
+
+    pub fn new_2x2(a: F, b: F, c: F, d: F) -> Self {
+        SquareMatrix::from_vec(vec![a, b, c, d])
     }
 }

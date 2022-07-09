@@ -1,6 +1,9 @@
 use ark_ff::PrimeField;
 
-use crate::{matrix::mat_mul, InputParameters, Matrix, MatrixOperations, SquareMatrix};
+use crate::{
+    matrix::mat_mul, InputParameters, Matrix, MatrixOperations, SquareMatrix,
+    SquareMatrixOperations,
+};
 
 /// Represents an MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -62,7 +65,9 @@ where
 
     /// Compute inverse of MDS matrix
     pub fn inverse(&self) -> SquareMatrix<F> {
-        self.0.inverse()
+        self.0
+            .inverse()
+            .expect("all well-formed MDS matrices should have inverses")
     }
 
     pub fn get_element(&self, i: usize, j: usize) -> F {
@@ -147,7 +152,9 @@ where
 {
     pub fn generate(mds: &MdsMatrix<F>, t: usize) -> OptimizedMdsMatrices<F> {
         let M_hat = mds.hat();
-        let M_hat_inverse = M_hat.inverse();
+        let M_hat_inverse = M_hat
+            .inverse()
+            .expect("all well-formed MDS matrices should have inverses");
         let v = mds.v();
         let w = mds.w();
         let M_prime = OptimizedMdsMatrices::prime(&M_hat);
