@@ -161,6 +161,5 @@ mod tests {
     }
 }
 
-// TODO: Add benchmarks that compare with ark-sponge
 // TODO: Vectorize
 // TODO: Optimized permutation

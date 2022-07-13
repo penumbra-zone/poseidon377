@@ -8,24 +8,25 @@ use rand_core::{RngCore, SeedableRng};
 use poseidon_paramgen::PoseidonParameters;
 use poseidon_permutation::Instance;
 
-fn hash_2_1_ark_sponge(i: &Fq, j: &Fq, k: &Fq) -> Fq {
-    let params_2_to_1 = PoseidonParameters::<Fq>::new(128, 3, FqParameters::MODULUS, true);
+fn hash_4_1_ark_sponge(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
+    let params_4_to_1 = PoseidonParameters::<Fq>::new(128, 5, FqParameters::MODULUS, true);
 
-    let params_ark: Parameters<Fq> = params_2_to_1.into();
+    let params_ark: Parameters<Fq> = params_4_to_1.into();
     let mut ark_state = State::from(params_ark);
     ark_state[0] = *i;
     ark_state[1] = *j;
     ark_state[2] = *k;
+    ark_state[3] = *l;
+    ark_state[4] = *m;
     ark_state.permute();
 
     ark_state[1]
 }
 
-fn hash_2_1_our_impl(i: &Fq, j: &Fq, k: &Fq) -> Fq {
-    let params_2_to_1 = PoseidonParameters::<Fq>::new(128, 3, FqParameters::MODULUS, true);
-
-    let mut our_instance = Instance::new(params_2_to_1);
-    our_instance.n_to_1_fixed_hash(vec![*i, *j, *k])
+fn hash_4_1_our_impl(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
+    let params_4_to_1 = PoseidonParameters::<Fq>::new(128, 5, FqParameters::MODULUS, true);
+    let mut our_instance = Instance::new(params_4_to_1);
+    our_instance.n_to_1_fixed_hash(vec![*i, *j, *k, *l, *m])
 }
 
 pub fn bench_ark_sponge_vs_optimized(c: &mut Criterion) {
@@ -38,26 +39,35 @@ pub fn bench_ark_sponge_vs_optimized(c: &mut Criterion) {
         let mut i_bytes = [0u8; 32];
         let mut j_bytes = [0u8; 32];
         let mut k_bytes = [0u8; 32];
+        let mut l_bytes = [0u8; 32];
+        let mut m_bytes = [0u8; 32];
         rng.fill_bytes(&mut i_bytes);
         rng.fill_bytes(&mut j_bytes);
         rng.fill_bytes(&mut k_bytes);
+        rng.fill_bytes(&mut l_bytes);
+        rng.fill_bytes(&mut m_bytes);
         test_field_elements.push((
             Fq::from_le_bytes_mod_order(&i_bytes[..]),
             Fq::from_le_bytes_mod_order(&j_bytes[..]),
             Fq::from_le_bytes_mod_order(&k_bytes[..]),
+            Fq::from_le_bytes_mod_order(&l_bytes[..]),
+            Fq::from_le_bytes_mod_order(&m_bytes[..]),
         ))
     }
 
-    for (i, j, k) in test_field_elements {
+    for (i, j, k, l, m) in test_field_elements {
         group.bench_with_input(
-            BenchmarkId::new("ark-sponge", format!("{}/{}/{}", i, j, k)),
-            &(&i, &j, &k),
-            |b, (i, j, k)| b.iter(|| hash_2_1_ark_sponge(i, j, k)),
+            BenchmarkId::new("ark-sponge", format!("ark-sponge:{}", i)),
+            &(&i, &j, &k, &l, &m),
+            |b, (i, j, k, l, m)| b.iter(|| hash_4_1_ark_sponge(i, j, k, l, m)),
         );
         group.bench_with_input(
-            BenchmarkId::new("poseidon-permutation", format!("{}/{}", i, j)),
-            &(&i, &j, &k),
-            |b, (i, j, k)| b.iter(|| hash_2_1_our_impl(i, j, k)),
+            BenchmarkId::new(
+                "poseidon-permutation",
+                format!("poseidon-permutation:{}", i),
+            ),
+            &(&i, &j, &k, &l, &m),
+            |b, (i, j, k, l, m)| b.iter(|| hash_4_1_our_impl(i, j, k, l, m)),
         );
     }
     group.finish();
