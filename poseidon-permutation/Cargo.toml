@@ -16,4 +16,11 @@ poseidon-paramgen = { path = "../poseidon-paramgen/" }
 [dev-dependencies]
 ark-ed-on-bls12-377 = "0.3"
 ark-sponge = { git = "https://github.com/penumbra-zone/sponge", branch = "split-sponge" }
+criterion = { version = "0.3", features=["html_reports"] }
 proptest = "1"
+rand_core = { version = "0.6.3", features = ["getrandom"] }
+rand_chacha = "0.3"
+
+[[bench]]
+name = "permutation"
+harness = false
