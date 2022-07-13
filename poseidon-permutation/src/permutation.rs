@@ -131,34 +131,36 @@ mod tests {
     use proptest::prelude::*;
 
     use ark_ed_on_bls12_377::{Fq, FqParameters};
-    use ark_ff::{FpParameters, One};
+    use ark_ff::FpParameters;
     use ark_sponge::poseidon::{Parameters, State};
 
-    #[test]
-    fn check_vs_ark_sponge() {
-        let params_2_to_1 = PoseidonParameters::<Fq>::new(128, 3, FqParameters::MODULUS, true);
+    fn fq_strategy() -> BoxedStrategy<Fq> {
+        any::<[u8; 32]>()
+            .prop_map(|bytes| Fq::from_le_bytes_mod_order(&bytes[..]))
+            .boxed()
+    }
 
-        let elem_1 = Fq::one();
-        let elem_2 = Fq::from(2u64);
-        let elem_3 = Fq::from(3u64);
+    proptest! {
+        #[test]
+        fn ark_sponge_and_unoptimized_permutation_consistent(elem_1 in fq_strategy(), elem_2 in fq_strategy(), elem_3 in fq_strategy()) {
+            let params_2_to_1 = PoseidonParameters::<Fq>::new(128, 3, FqParameters::MODULUS, true);
 
-        let params_ark: Parameters<Fq> = params_2_to_1.clone().into();
-        let mut ark_state = State::from(params_ark);
-        ark_state[0] = elem_1;
-        ark_state[1] = elem_2;
-        ark_state[2] = elem_3;
-        ark_state.permute();
-        let ark_result = ark_state[1];
+            let params_ark: Parameters<Fq> = params_2_to_1.clone().into();
+            let mut ark_state = State::from(params_ark);
+            ark_state[0] = elem_1;
+            ark_state[1] = elem_2;
+            ark_state[2] = elem_3;
+            ark_state.permute();
+            let ark_result = ark_state[1];
 
-        let mut our_instance = Instance::new(params_2_to_1);
-        let our_result = our_instance.n_to_1_fixed_hash(vec![elem_1, elem_2, elem_3]);
+            let mut our_instance = Instance::new(params_2_to_1);
+            let our_result = our_instance.n_to_1_fixed_hash(vec![elem_1, elem_2, elem_3]);
 
-        assert_eq!(ark_result, our_result);
+            assert_eq!(ark_result, our_result);
+        }
     }
 }
 
-// TODO: Add tests that compare the output with ark-sponge
-// TODO: Convert those tests to proptests
 // TODO: Add benchmarks that compare with ark-sponge
 // TODO: Vectorize
 // TODO: Optimized permutation
