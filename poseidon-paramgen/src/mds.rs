@@ -2,7 +2,7 @@ use anyhow::Result;
 use ark_ff::PrimeField;
 
 use crate::{
-    matrix::mat_mul, InputParameters, Matrix, MatrixOperations, SquareMatrix,
+    matrix::mat_mul, InputParameters, Matrix, MatrixOperations, RoundNumbers, SquareMatrix,
     SquareMatrixOperations,
 };
 
@@ -92,7 +92,7 @@ where
         Matrix::new(1, self.n_rows() - 1, elements)
     }
 
-    /// Return the elements M_{1,0} .. M_{t,0} from the first column
+    /// Return the elements M_{1,0} .. M_{t,0}from the first column
     ///
     /// Ref: p.20 of the Poseidon paper
     pub fn w(&self) -> Matrix<F> {
@@ -174,6 +174,14 @@ pub struct OptimizedMdsMatrices<F: PrimeField> {
     pub M_inverse: SquareMatrix<F>,
     /// The inverse of the (t - 1) x (t - 1) Mhat matrix.
     pub M_hat_inverse: SquareMatrix<F>,
+    /// Element at M00
+    pub M_00: F,
+    /// M_i
+    pub M_i: Matrix<F>,
+    /// v_collection: one per round.
+    pub v_collection: Vec<Matrix<F>>,
+    /// w_hat_collection: one per round
+    pub w_hat_collection: Vec<Matrix<F>>,
 }
 
 impl<F> OptimizedMdsMatrices<F>
@@ -181,7 +189,11 @@ where
     F: PrimeField,
 {
     /// Generate the optimized MDS matrices.
-    pub fn generate(mds: &MdsMatrix<F>, t: usize) -> OptimizedMdsMatrices<F> {
+    pub fn generate(
+        mds: &MdsMatrix<F>,
+        t: usize,
+        rounds: &RoundNumbers,
+    ) -> OptimizedMdsMatrices<F> {
         let M_hat = mds.hat();
         let M_hat_inverse = M_hat
             .inverse()
@@ -223,6 +235,10 @@ where
             t - 1
         );
 
+        // From `calc_equivalent_matrices` in `poseidonperm_x3_64_24_optimized.sage`.
+        let (M_i, v_collection, w_hat_collection) =
+            OptimizedMdsMatrices::calc_equivalent_matrices(mds, rounds);
+
         OptimizedMdsMatrices {
             M: mds.clone(),
             M_hat,
@@ -232,7 +248,47 @@ where
             M_prime,
             M_doubleprime,
             M_inverse: mds.inverse(),
+            M_i,
+            v_collection,
+            w_hat_collection,
+            M_00,
         }
+    }
+
+    pub(crate) fn calc_equivalent_matrices(
+        mds: &MdsMatrix<F>,
+        rounds: &RoundNumbers,
+    ) -> (Matrix<F>, Vec<Matrix<F>>, Vec<Matrix<F>>) {
+        // print!("MDS!");
+        // for elem in mds.elements().into_iter() {
+        //     // We use the BigUint type here since the Display of the field element
+        //     // is not in decimal: see https://github.com/arkworks-rs/algebra/issues/320
+        //     let elem_bigint: BigUint = (*elem).into();
+        //     print!("{} ", elem_bigint.to_string());
+        // }
+        let r_P = rounds.partial();
+        let mut w_hat_collection = Vec::with_capacity(rounds.partial());
+        let mut v_collection = Vec::with_capacity(rounds.partial());
+
+        let mut M_mul = mds.clone().transpose();
+        let mut M_i = OptimizedMdsMatrices::prime(&M_mul.0);
+
+        for _ in (0..r_P).rev() {
+            let M_hat = M_mul.hat();
+            let w = M_mul.w();
+
+            let v = M_mul.v();
+            v_collection.push(v);
+            let w_hat = mat_mul(&M_hat.inverse().expect("can invert Mhat").0, &w)
+                .expect("can compute w_hat");
+            w_hat_collection.push(w_hat);
+
+            // Now we compute M' and M * M' for the previous round
+            M_i = OptimizedMdsMatrices::prime(&M_hat);
+            M_mul = MdsMatrix(mat_mul(&mds.0, &M_i).expect("mds and M_i have same dimensions"));
+        }
+
+        (M_i.0, v_collection, w_hat_collection)
     }
 
     fn prime(M_hat: &SquareMatrix<F>) -> SquareMatrix<F> {
@@ -287,10 +343,13 @@ where
 
 #[cfg(test)]
 mod tests {
+    use crate::Alpha;
+
     use super::*;
 
+    use ark_ed_on_bls12_377::{Fq as Fq377, FqParameters as Fq377Parameters};
     use ark_ed_on_bls12_381::{Fq, FqParameters as Fq381Parameters};
-    use ark_ff::{fields::FpParameters, Zero};
+    use ark_ff::{fields::FpParameters, One, Zero};
 
     #[test]
     fn convert_from_mds_to_vec_of_vecs() {
@@ -318,5 +377,104 @@ mod tests {
         assert!(MDS_matrix.0.determinant() != Fq::zero());
         assert_eq!(MDS_matrix.n_rows(), t);
         assert!(MDS_matrix.0.get_element(0, 0) != Fq::zero());
+    }
+
+    #[test]
+    fn check_calc_equivalent_matrices_vs_sage() {
+        let M = 128;
+
+        let input = InputParameters::new(M, 3, Fq377Parameters::MODULUS, true);
+        let rounds = RoundNumbers::new(&input, &Alpha::Exponent(17));
+        let mds: MdsMatrix<Fq377> = MdsMatrix::generate(&input);
+        let M_00 = mds.get_element(0, 0);
+        // Sanity check
+        assert_eq!(
+            M_00,
+            ark_ff::field_new!(
+                Fq377,
+                "5629641166285580282832549959187697687583932890102709218623488970611606159361"
+            ),
+        );
+
+        let (M_i, v_collection, w_hat_collection) =
+            OptimizedMdsMatrices::calc_equivalent_matrices(&mds, &rounds);
+
+        // There are 31 (number of partial rounds) of these, we check the first 2 since it's the same method.
+        let v_collection_expected = [
+            [
+                ark_ff::field_new!(
+                    Fq377,
+                    "6333346312071277818186618704086159898531924501365547870951425091938056929281"
+                ),
+                ark_ff::field_new!(
+                    Fq377,
+                    "6755569399542696339399059951025237225100719468123251062348186764733927391233"
+                ),
+            ],
+            [
+                ark_ff::field_new!(
+                    Fq377,
+                    "7740756603642672888894756193883084320427907723891225175607297334590958469121"
+                ),
+                ark_ff::field_new!(
+                    Fq377,
+                    "7851338840837568215878966996652842667862592119946814106687401582227972161537"
+                ),
+            ],
+        ];
+        for i in 0..v_collection_expected.len() {
+            for (j, v_entry_computed) in v_collection[i].elements().iter().enumerate() {
+                assert_eq!(*v_entry_computed, v_collection_expected[i][j]);
+            }
+        }
+
+        let w_hat_collection_expected = [
+            [
+                ark_ff::field_new!(Fq377, "3"),
+                ark_ff::field_new!(
+                    Fq377,
+                    "844446174942837042424882493878154653137589933515406382793523345591740923902"
+                ),
+            ],
+            [
+                ark_ff::field_new!(Fq377, "981"),
+                ark_ff::field_new!(
+                    Fq377,
+                    "1688892349885674084849764987756309306275179867030812765587046691183481846649"
+                ),
+            ],
+        ];
+        for i in 0..w_hat_collection_expected.len() {
+            for (j, w_hat_entry_computed) in w_hat_collection[i].elements().iter().enumerate() {
+                assert_eq!(*w_hat_entry_computed, w_hat_collection_expected[i][j]);
+            }
+        }
+
+        let M_i_expected = vec![
+            Fq377::one(),
+            Fq377::zero(),
+            Fq377::zero(),
+            Fq377::zero(),
+            ark_ff::field_new!(
+                Fq377,
+                "1949629285152675843545617098663080067734218406516000484720630379218497119024"
+            ),
+            ark_ff::field_new!(
+                Fq377,
+                "6804287869450188502728877251894011667833647269738979685488937504164506768586"
+            ),
+            Fq377::zero(),
+            ark_ff::field_new!(
+                Fq377,
+                "6804287869450188502728877251894011667833647269738979685488937504164506768586"
+            ),
+            ark_ff::field_new!(
+                Fq377,
+                "4924677972410444052137834859533533887056104638988047570112284264367323462906"
+            ),
+        ];
+        for (a, b) in M_i.elements().iter().zip(M_i_expected.iter()) {
+            assert_eq!(*a, *b);
+        }
     }
 }

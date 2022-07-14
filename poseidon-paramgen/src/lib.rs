@@ -74,9 +74,9 @@ impl<F: PrimeField> PoseidonParameters<F> {
         let rounds = rounds::RoundNumbers::new(&input, &alpha);
         let mds = mds::MdsMatrix::generate(&input);
         let arc = round_constants::ArcMatrix::generate(&input, rounds, alpha);
-        let optimized_mds = mds::OptimizedMdsMatrices::generate(&mds, t);
+        let optimized_mds = mds::OptimizedMdsMatrices::generate(&mds, t, &rounds);
         let optimized_arc =
-            round_constants::OptimizedArcMatrix::generate(&arc, &optimized_mds, &rounds, t);
+            round_constants::OptimizedArcMatrix::generate(&arc, &optimized_mds, &rounds);
 
         Self {
             input,
