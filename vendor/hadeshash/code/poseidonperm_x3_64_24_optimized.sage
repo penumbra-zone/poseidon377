@@ -69,12 +69,17 @@ def calc_equivalent_matrices():
     v_collection = []
     v = MDS_matrix_field_transpose[[0], list(range(1,t))]
     # print "M:", MDS_matrix_field_transpose
-    # print "v:", v
+    print("v:", v)
+    print("done")
     M_mul = MDS_matrix_field_transpose
     M_i = matrix(F, t, t)
     for i in range(R_P - 1, -1, -1):
+        print(M_mul)
         M_hat = M_mul[list(range(1,t)), list(range(1,t))]
+        print(M_hat)
         w = M_mul[list(range(1,t)), [0]]
+        print('wlen:', len(list(range(1,t))) + 1)
+        print('t: ', t)
         v = M_mul[[0], list(range(1,t))]
         v_collection.append(v.list())
         w_hat = M_hat.inverse() * w
@@ -170,7 +175,10 @@ def perm(input_words):
             round_constants_round_counter += 1
             state_words[0] = state_words[0] + round_constants_field_new[round_constants_round_counter][0]
         # Optimized multiplication with cheap matrices
-        state_words = cheap_matrix_mul(state_words, v_collection[R_P - r - 1], w_hat_collection[R_P - r - 1], M_0_0)
+        new_state_words = state_words.copy()
+        print(state_words)
+        new_state_words = cheap_matrix_mul(new_state_words, v_collection[R_P - r - 1], w_hat_collection[R_P - r - 1], M_0_0)
+        state_words = new_state_words
     round_constants_round_counter += 1
 
     # Last full rounds
@@ -259,7 +267,7 @@ print_concat_words_to_large(output_words)
 
 total_time_passed = 0
 for i in range(0, num_iterations):
-    output_words = perm(input_words)
+    opt_output_words = perm(input_words)
     time_passed = timer_end - timer_start
     total_time_passed += time_passed
 average_time = total_time_passed / float(num_iterations)
@@ -268,9 +276,12 @@ print("Average time for optimized:", average_time)
 # print "Input:"
 # print_words_to_hex(input_words)
 # print "Output:"
-# print_words_to_hex(output_words)
+# print_words_to_hex(opt_output_words)
 
-print("Input (concat):")
+print("Input (concat):") 
 print_concat_words_to_large(input_words)
 print("Output (concat):")
-print_concat_words_to_large(output_words)
+print_concat_words_to_large(opt_output_words)
+
+# Check optimized is equal to the unoptimized
+assert opt_output_words == output_words
