@@ -79,6 +79,47 @@ pub fn bench_ark_sponge_vs_optimized(c: &mut Criterion) {
     group.finish();
 }
 
+pub fn bench_ark_sponge_vs_unoptimized(c: &mut Criterion) {
+    let mut group = c.benchmark_group("ark_sponge_vs_unoptimized");
+    let n = 10;
+    let mut rng = ChaChaRng::seed_from_u64(666);
+    let mut test_field_elements = Vec::with_capacity(n);
+
+    for _ in 0..n {
+        let mut i_bytes = [0u8; 32];
+        let mut j_bytes = [0u8; 32];
+        let mut k_bytes = [0u8; 32];
+        let mut l_bytes = [0u8; 32];
+        let mut m_bytes = [0u8; 32];
+        rng.fill_bytes(&mut i_bytes);
+        rng.fill_bytes(&mut j_bytes);
+        rng.fill_bytes(&mut k_bytes);
+        rng.fill_bytes(&mut l_bytes);
+        rng.fill_bytes(&mut m_bytes);
+        test_field_elements.push((
+            Fq::from_le_bytes_mod_order(&i_bytes[..]),
+            Fq::from_le_bytes_mod_order(&j_bytes[..]),
+            Fq::from_le_bytes_mod_order(&k_bytes[..]),
+            Fq::from_le_bytes_mod_order(&l_bytes[..]),
+            Fq::from_le_bytes_mod_order(&m_bytes[..]),
+        ))
+    }
+
+    for (index, (i, j, k, l, m)) in test_field_elements.iter().enumerate() {
+        group.bench_with_input(
+            BenchmarkId::new("ark-sponge", format!("ark-sponge: {}", index)),
+            &(&i, &j, &k, &l, &m),
+            |b, (i, j, k, l, m)| b.iter(|| hash_4_1_ark_sponge(i, j, k, l, m)),
+        );
+        group.bench_with_input(
+            BenchmarkId::new("unoptimized", format!("unoptimized: {}", index)),
+            &(&i, &j, &k, &l, &m),
+            |b, (i, j, k, l, m)| b.iter(|| hash_4_1_our_impl_unoptimized(i, j, k, l, m)),
+        );
+    }
+    group.finish();
+}
+
 pub fn bench_unoptimized_vs_optimized(c: &mut Criterion) {
     let mut group = c.benchmark_group("unoptimized_vs_optimized");
     let n = 10;
@@ -121,5 +162,6 @@ pub fn bench_unoptimized_vs_optimized(c: &mut Criterion) {
 }
 
 //criterion_group!(benches, bench_ark_sponge_vs_optimized);
-criterion_group!(benches, bench_unoptimized_vs_optimized);
+criterion_group!(benches, bench_ark_sponge_vs_unoptimized);
+//criterion_group!(benches, bench_unoptimized_vs_optimized);
 criterion_main!(benches);

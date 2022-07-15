@@ -11,7 +11,7 @@ fn flatten<T>(nested: Vec<Vec<T>>) -> Vec<T> {
 }
 
 /// Compute vector dot product
-pub fn dot_product<F: PrimeField>(a: Vec<F>, b: Vec<F>) -> F {
+pub fn dot_product<F: PrimeField>(a: &[F], b: &[F]) -> F {
     if a.len() != b.len() {
         panic!("vecs not same len")
     }
@@ -30,14 +30,12 @@ pub fn mat_mul<F: PrimeField, M: MatrixOperations<F>>(lhs: &M, rhs: &M) -> Resul
     let rhs_T = rhs.transpose();
 
     let res: Vec<Vec<F>> = lhs
-        .rows()
-        .into_iter()
+        .iter_rows()
         .map(|row| {
             // Rows of the transposed matrix are the columns of the original matrix
             rhs_T
-                .rows()
-                .into_iter()
-                .map(|column| dot_product(row.to_vec(), column.to_vec()))
+                .iter_rows()
+                .map(|column| dot_product(row, column))
                 .collect()
         })
         .collect();

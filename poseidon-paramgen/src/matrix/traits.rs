@@ -1,3 +1,5 @@
+use std::slice::Chunks;
+
 use anyhow::Result;
 
 /// Basic matrix operations all matrices should implement.
@@ -12,6 +14,10 @@ pub trait MatrixOperations<F> {
     fn set_element(&mut self, i: usize, j: usize, val: F);
     /// Get rows
     fn rows(&self) -> Vec<&[F]>;
+    /// Get rows in chunks
+    fn iter_rows(&self) -> Chunks<F> {
+        self.elements().chunks(self.n_cols())
+    }
     /// Compute matrix transpose
     fn transpose(&self) -> Self;
     /// Compute Hadamard (element-wise) product

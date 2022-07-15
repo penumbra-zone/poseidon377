@@ -5,3 +5,6 @@ members = [
     "poseidon-paramgen",
     "poseidon-permutation",
 ]
+
+[profile.release]
+debug = true

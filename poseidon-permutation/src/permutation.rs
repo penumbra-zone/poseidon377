@@ -59,7 +59,6 @@ impl<F: PrimeField> Instance<F> {
         let mut round_constants_counter = 0;
         let t = self.parameters.input.t;
         let round_constants = self.parameters.optimized_arc.0.clone();
-        let mds_matrix = &self.parameters.mds.0.clone();
 
         // First chunk of full rounds
         for _ in 0..R_f {
@@ -68,7 +67,7 @@ impl<F: PrimeField> Instance<F> {
                 self.state_words[i] += round_constants.get_element(round_constants_counter, i);
             }
             self.full_sub_words();
-            self.mix_layer(&mds_matrix.0);
+            self.mix_layer_mds();
             round_constants_counter += 1;
         }
 
@@ -103,7 +102,7 @@ impl<F: PrimeField> Instance<F> {
                 self.state_words[i] += round_constants.get_element(round_constants_counter, i);
             }
             self.full_sub_words();
-            self.mix_layer(&mds_matrix.0);
+            self.mix_layer_mds();
             round_constants_counter += 1;
         }
     }
@@ -137,7 +136,6 @@ impl<F: PrimeField> Instance<F> {
         let mut round_constants_counter = 0;
         let t = self.parameters.input.t;
         let round_constants = self.parameters.arc.elements().clone();
-        let mds_matrix = &self.parameters.mds.0.clone();
 
         // First full rounds
         for _ in 0..R_f {
@@ -147,7 +145,7 @@ impl<F: PrimeField> Instance<F> {
                 round_constants_counter += 1;
             }
             self.full_sub_words();
-            self.mix_layer(&mds_matrix.0);
+            self.mix_layer_mds();
         }
 
         // Partial rounds
@@ -158,7 +156,7 @@ impl<F: PrimeField> Instance<F> {
                 round_constants_counter += 1;
             }
             self.partial_sub_words();
-            self.mix_layer(&mds_matrix.0);
+            self.mix_layer_mds();
         }
 
         // Final full rounds
@@ -169,7 +167,7 @@ impl<F: PrimeField> Instance<F> {
                 round_constants_counter += 1;
             }
             self.full_sub_words();
-            self.mix_layer(&mds_matrix.0);
+            self.mix_layer_mds();
         }
     }
 
@@ -193,8 +191,7 @@ impl<F: PrimeField> Instance<F> {
         }
     }
 
-    /// Applies the `MixLayer` given the matrix (always the base MDS matrix M for unoptimized
-    /// poseidon, else it is M').
+    /// Applies the `MixLayer` given the matrix.
     fn mix_layer(&mut self, M: &Matrix<F>) {
         let t = self.parameters.input.t;
 
@@ -206,6 +203,18 @@ impl<F: PrimeField> Instance<F> {
         for (i, new_state_word) in new_state_words.elements().iter().enumerate() {
             self.state_words[i] = *new_state_word
         }
+    }
+
+    /// Applies the `MixLayer` using the MDS matrix.
+    fn mix_layer_mds(&mut self) {
+        let state_words_col_vector =
+            Matrix::new(self.parameters.input.t, 1, self.state_words.clone());
+        self.state_words = mat_mul(&self.parameters.mds.0 .0, &state_words_col_vector)
+            .expect(
+                "MDS matrix and state words column vector should have correct matrix dimensions",
+            )
+            .elements()
+            .to_vec();
     }
 }
 
