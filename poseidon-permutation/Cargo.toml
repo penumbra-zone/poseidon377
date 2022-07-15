@@ -26,6 +26,3 @@ rand_chacha = "0.3"
 [[bench]]
 name = "permutation"
 harness = false
-
-[profile.release]
-debug = true
