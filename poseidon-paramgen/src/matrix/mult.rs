@@ -5,11 +5,6 @@ use ark_ff::PrimeField;
 
 use crate::{Matrix, MatrixOperations, SquareMatrix};
 
-/// Flatten a vec of vecs
-fn flatten<T>(nested: Vec<Vec<T>>) -> Vec<T> {
-    nested.into_iter().flatten().collect()
-}
-
 /// Compute vector dot product
 pub fn dot_product<F: PrimeField>(a: &[F], b: &[F]) -> F {
     if a.len() != b.len() {
@@ -29,18 +24,19 @@ pub fn mat_mul<F: PrimeField, M: MatrixOperations<F>>(lhs: &M, rhs: &M) -> Resul
 
     let rhs_T = rhs.transpose();
 
-    let res: Vec<Vec<F>> = lhs
-        .iter_rows()
-        .map(|row| {
-            // Rows of the transposed matrix are the columns of the original matrix
-            rhs_T
-                .iter_rows()
-                .map(|column| dot_product(row, column))
-                .collect()
-        })
-        .collect();
-
-    Ok(M::new(lhs.n_rows(), rhs.n_cols(), flatten(res)))
+    Ok(M::new(
+        lhs.n_rows(),
+        rhs.n_cols(),
+        lhs.iter_rows()
+            .flat_map(|row| {
+                // Rows of the transposed matrix are the columns of the original matrix
+                rhs_T
+                    .iter_rows()
+                    .map(|column| dot_product(row, column))
+                    .collect::<Vec<F>>()
+            })
+            .collect(),
+    ))
 }
 
 /// Multiply scalar by Matrix

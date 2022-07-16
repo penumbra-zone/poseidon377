@@ -15,7 +15,7 @@ mod square;
 mod traits;
 
 pub use base::Matrix;
-pub use mult::mat_mul;
+pub use mult::{dot_product, mat_mul};
 pub use square::SquareMatrix;
 pub use traits::{MatrixOperations, SquareMatrixOperations};
 
