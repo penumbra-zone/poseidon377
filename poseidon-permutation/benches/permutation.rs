@@ -161,7 +161,7 @@ pub fn bench_unoptimized_vs_optimized(c: &mut Criterion) {
     group.finish();
 }
 
-//criterion_group!(benches, bench_ark_sponge_vs_optimized);
-criterion_group!(benches, bench_ark_sponge_vs_unoptimized);
+criterion_group!(benches, bench_ark_sponge_vs_optimized);
+//criterion_group!(benches, bench_ark_sponge_vs_unoptimized);
 //criterion_group!(benches, bench_unoptimized_vs_optimized);
 criterion_main!(benches);

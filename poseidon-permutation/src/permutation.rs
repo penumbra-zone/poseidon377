@@ -2,7 +2,7 @@
 
 use ark_ff::PrimeField;
 
-use poseidon_paramgen::{mat_mul, Alpha, Matrix, MatrixOperations, PoseidonParameters};
+use poseidon_paramgen::{Alpha, MatrixOperations, PoseidonParameters};
 
 /// Represents a generic instance of `Poseidon`.
 ///
@@ -55,51 +55,55 @@ impl<F: PrimeField> Instance<F> {
     /// `poseidonperm_x3_64_optimized.sage` provided in Appendix B of the Poseidon paper.
     fn permute(&mut self) {
         let R_f = self.parameters.rounds.full() / 2;
-        let R_P = self.parameters.rounds.partial();
-        let mut round_constants_counter = 0;
-        let t = self.parameters.input.t;
-        let round_constants = self.parameters.optimized_arc.0.clone();
 
         // First chunk of full rounds
-        for _ in 0..R_f {
+        for r in 0..R_f {
             // Apply `AddRoundConstants` layer
-            for i in 0..t {
-                self.state_words[i] += round_constants.get_element(round_constants_counter, i);
+            for i in 0..self.parameters.input.t {
+                self.state_words[i] += self.parameters.optimized_arc.0.get_element(r, i);
             }
             self.full_sub_words();
             self.mix_layer_mds();
-            round_constants_counter += 1;
         }
+        let mut round_constants_counter = R_f;
 
         // Partial rounds
         // First part of `AddRoundConstants` layer
-        for i in 0..t {
-            self.state_words[i] += round_constants.get_element(round_constants_counter, i);
+        for i in 0..self.parameters.input.t {
+            self.state_words[i] += self
+                .parameters
+                .optimized_arc
+                .0
+                .get_element(round_constants_counter, i);
         }
         // First full matrix multiplication.
-        self.mix_layer(&self.parameters.optimized_mds.M_i.clone());
+        self.mix_layer_mi();
 
-        for r in 0..R_P {
+        for r in 0..self.parameters.rounds.partial() - 1 {
             self.partial_sub_words();
             // Rest of `AddRoundConstants` layer, moved to after the S-box layer
-            if r < R_P - 1 {
-                round_constants_counter += 1;
-                self.state_words[0] += round_constants.get_element(round_constants_counter, 0);
-            }
-            self.state_words = sparse_mat_mul(
-                self.state_words.clone(),
-                self.parameters.optimized_mds.v_collection[R_P - r - 1].clone(),
-                self.parameters.optimized_mds.w_hat_collection[R_P - r - 1].clone(),
-                self.parameters.optimized_mds.M_00,
-            );
+            round_constants_counter += 1;
+            self.state_words[0] += self
+                .parameters
+                .optimized_arc
+                .0
+                .get_element(round_constants_counter, 0);
+            self.sparse_mat_mul(self.parameters.rounds.partial() - r - 1);
         }
+        // Last partial round
+        self.partial_sub_words();
+        self.sparse_mat_mul(0);
         round_constants_counter += 1;
 
         // Final full rounds
         for _ in 0..R_f {
             // Apply `AddRoundConstants` layer
-            for i in 0..t {
-                self.state_words[i] += round_constants.get_element(round_constants_counter, i);
+            for i in 0..self.parameters.input.t {
+                self.state_words[i] += self
+                    .parameters
+                    .optimized_arc
+                    .0
+                    .get_element(round_constants_counter, i);
             }
             self.full_sub_words();
             self.mix_layer_mds();
@@ -181,81 +185,78 @@ impl<F: PrimeField> Instance<F> {
 
     /// Applies the full `SubWords` layer.
     fn full_sub_words(&mut self) {
-        for i in 0..self.parameters.input.t {
-            match self.parameters.alpha {
-                Alpha::Exponent(exp) => {
-                    self.state_words[i] = (self.state_words[i]).pow(&[exp as u64])
-                }
-                Alpha::Inverse => self.state_words[i] = F::one() / self.state_words[i],
+        match self.parameters.alpha {
+            Alpha::Exponent(exp) => {
+                self.state_words = self
+                    .state_words
+                    .iter()
+                    .map(|x| x.pow(&[exp as u64]))
+                    .collect()
+            }
+            Alpha::Inverse => {
+                self.state_words = self.state_words.iter().map(|x| F::one() / x).collect()
             }
         }
     }
 
-    /// Applies the `MixLayer` given the matrix.
-    fn mix_layer(&mut self, M: &Matrix<F>) {
-        let t = self.parameters.input.t;
-
-        let state_words_col_vector = Matrix::new(t, 1, self.state_words.clone());
-        let new_state_words = mat_mul(M, &state_words_col_vector).expect(
-            "MDS matrix and state words column vector should have correct matrix dimensions",
-        );
-        // Set new state words.
-        for (i, new_state_word) in new_state_words.elements().iter().enumerate() {
-            self.state_words[i] = *new_state_word
-        }
+    /// Applies the `MixLayer` using the M_i matrix.
+    fn mix_layer_mi(&mut self) {
+        self.state_words = self
+            .parameters
+            .optimized_mds
+            .M_i
+            .iter_rows()
+            .map(|row| {
+                row.iter()
+                    .zip(&self.state_words)
+                    .map(|(x, y)| *x * *y)
+                    .sum()
+            })
+            .collect();
     }
 
     /// Applies the `MixLayer` using the MDS matrix.
     fn mix_layer_mds(&mut self) {
-        let state_words_col_vector =
-            Matrix::new(self.parameters.input.t, 1, self.state_words.clone());
-        self.state_words = mat_mul(&self.parameters.mds.0 .0, &state_words_col_vector)
-            .expect(
-                "MDS matrix and state words column vector should have correct matrix dimensions",
-            )
+        self.state_words = self
+            .parameters
+            .mds
+            .0
+             .0
+            .iter_rows()
+            .map(|row| {
+                row.iter()
+                    .zip(&self.state_words)
+                    .map(|(x, y)| *x * *y)
+                    .sum()
+            })
+            .collect();
+    }
+
+    /// This is `cheap_matrix_mul` in the Sage spec
+    fn sparse_mat_mul(&mut self, round_number: usize) {
+        // mul_row = [(state_words[0] * v[i]) for i in range(0, t-1)]
+        // add_row = [(mul_row[i] + state_words[i+1]) for i in range(0, t-1)]
+        let add_row: Vec<F> = self.parameters.optimized_mds.v_collection[round_number]
             .elements()
-            .to_vec();
-    }
-}
-
-/// This is `cheap_matrix_mul` in the Sage spec
-fn sparse_mat_mul<F: PrimeField>(
-    state_words: Vec<F>,
-    v: Matrix<F>,
-    w_hat: Matrix<F>,
-    M_00: F,
-) -> Vec<F> {
-    let mut state_words_new: Vec<F> = Vec::with_capacity(state_words.len());
-
-    // column_1 = [M_0_0] + w_hat
-    let mut column_1_elements = Vec::with_capacity(state_words.len());
-    column_1_elements.push(M_00);
-    column_1_elements.extend(w_hat.elements());
-
-    // state_words_new[0] = sum([column_1[i] * state_words[i] for i in range(0, t)])
-    state_words_new.push(
-        column_1_elements
             .iter()
-            .zip(state_words.iter())
-            .map(|(&c, &s)| c * s)
-            .collect::<Vec<F>>()
-            .into_iter()
-            .sum(),
-    );
-    // mul_row = [(state_words[0] * v[i]) for i in range(0, t-1)]
-    let mut mul_row = v.elements().clone();
-    mul_row.iter_mut().for_each(|x| *x *= state_words[0]);
+            .enumerate()
+            .map(|(i, x)| *x * self.state_words[0] + self.state_words[i + 1])
+            .collect();
 
-    // add_row = [(mul_row[i] + state_words[i+1]) for i in range(0, t-1)]
-    let mut add_row = Vec::with_capacity(state_words.len() - 1);
-    for i in 0..state_words.len() - 1 {
-        add_row.push(mul_row[i] + state_words[i + 1]);
+        // column_1 = [M_0_0] + w_hat
+        // state_words_new[0] = sum([column_1[i] * state_words[i] for i in range(0, t)])
+        // state_words_new = [state_words_new[0]] + add_row
+        self.state_words[0] = self.parameters.optimized_mds.M_00 * self.state_words[0]
+            + self.parameters.optimized_mds.w_hat_collection[round_number]
+                .elements()
+                .iter()
+                .zip(self.state_words[1..self.parameters.input.t].iter())
+                .map(|(x, y)| *x * *y)
+                .sum::<F>();
+
+        self.state_words[1..self.parameters.input.t]
+            .copy_from_slice(&add_row[..(self.parameters.input.t - 1)]);
     }
-
-    // state_words_new = [state_words_new[0]] + add_row
-    state_words_new.extend(add_row);
-
-    state_words_new
 }
 
 #[cfg(test)]

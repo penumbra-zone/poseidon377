@@ -26,7 +26,9 @@ mod utils;
 
 pub use alpha::Alpha;
 pub use input::InputParameters;
-pub use matrix::{mat_mul, Matrix, MatrixOperations, SquareMatrix, SquareMatrixOperations};
+pub use matrix::{
+    dot_product, mat_mul, Matrix, MatrixOperations, SquareMatrix, SquareMatrixOperations,
+};
 pub use mds::{MdsMatrix, OptimizedMdsMatrices};
 pub use round_constants::{ArcMatrix, OptimizedArcMatrix};
 pub use rounds::RoundNumbers;
