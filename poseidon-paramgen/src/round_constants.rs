@@ -122,7 +122,8 @@ where
         let mut constants_temp = arc.clone();
         let r_f = rounds.full() / 2;
         let r_T = rounds.total();
-        let mds_inv = &mds.M.transpose().inverse();
+        let mds_T = mds.M.transpose();
+        let mds_inv = &mds_T.inverse();
 
         // C_i = M^-1 * C_(i+1)
         for r in ((r_f)..(r_T - 1 - r_f)).rev() {

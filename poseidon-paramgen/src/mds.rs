@@ -263,7 +263,8 @@ where
         let mut w_hat_collection = Vec::with_capacity(rounds.partial());
         let mut v_collection = Vec::with_capacity(rounds.partial());
 
-        let mut M_mul = mds.clone().transpose();
+        let M_T = mds.transpose();
+        let mut M_mul = M_T.clone();
         let mut M_i = OptimizedMdsMatrices::prime(&M_mul.0);
 
         for _ in (0..r_P).rev() {
@@ -278,10 +279,10 @@ where
 
             // Now we compute M' and M * M' for the previous round
             M_i = OptimizedMdsMatrices::prime(&M_hat);
-            M_mul = MdsMatrix(mat_mul(&mds.0, &M_i).expect("mds and M_i have same dimensions"));
+            M_mul = MdsMatrix(mat_mul(&M_T.0, &M_i).expect("mds and M_i have same dimensions"));
         }
 
-        (M_i.0, v_collection, w_hat_collection)
+        (M_i.0.transpose(), v_collection, w_hat_collection)
     }
 
     fn prime(M_hat: &SquareMatrix<F>) -> SquareMatrix<F> {
