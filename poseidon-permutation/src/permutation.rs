@@ -335,33 +335,37 @@ mod tests {
 
     proptest! {
         #[test]
-        fn ark_sponge_and_permutation_consistent(elem_1 in fq_strategy(), elem_2 in fq_strategy(), elem_3 in fq_strategy()) {
-            let params_2_to_1 = PoseidonParameters::<Fq>::new(128, 3, FqParameters::MODULUS, true);
+        fn ark_sponge_and_permutation_consistent(elem_1 in fq_strategy(), elem_2 in fq_strategy(), elem_3 in fq_strategy(), elem_4 in fq_strategy(), elem_5 in fq_strategy()) {
+            let t = 5;
+            let params_4_to_1 = PoseidonParameters::<Fq>::new(128, t, FqParameters::MODULUS, true);
 
-            let params_ark: Parameters<Fq> = params_2_to_1.clone().into();
+            let params_ark: Parameters<Fq> = params_4_to_1.clone().into();
             let mut ark_state = State::from(params_ark);
             ark_state[0] = elem_1;
             ark_state[1] = elem_2;
             ark_state[2] = elem_3;
+            ark_state[3] = elem_4;
+            ark_state[4] = elem_5;
             ark_state.permute();
             let ark_result = ark_state[1];
 
-            let mut our_instance = Instance::new(params_2_to_1);
-            let our_result = our_instance.n_to_1_fixed_hash(vec![elem_1, elem_2, elem_3]);
+            let mut our_instance = Instance::new(params_4_to_1);
+            let our_result = our_instance.n_to_1_fixed_hash(vec![elem_1, elem_2, elem_3, elem_4, elem_5]);
 
             assert_eq!(ark_result, our_result);
         }
 
         #[test]
-        fn optimized_and_unoptimized_permutation_consistent(elem_1 in fq_strategy(), elem_2 in fq_strategy(), elem_3 in fq_strategy()) {
-            let params_2_to_1 = PoseidonParameters::<Fq>::new(128, 3, FqParameters::MODULUS, true);
+        fn optimized_and_unoptimized_permutation_consistent(elem_1 in fq_strategy(), elem_2 in fq_strategy(), elem_3 in fq_strategy(), elem_4 in fq_strategy(), elem_5 in fq_strategy()) {
+            let t = 5;
+            let params_4_to_1 = PoseidonParameters::<Fq>::new(128, t, FqParameters::MODULUS, true);
 
-            let mut our_instance = Instance::new(params_2_to_1.clone());
-            let our_result = our_instance.n_to_1_fixed_hash(vec![elem_1, elem_2, elem_3]);
+            let mut our_instance = Instance::new(params_4_to_1.clone());
+            let our_result = our_instance.n_to_1_fixed_hash(vec![elem_1, elem_2, elem_3, elem_4, elem_5]);
 
-            let mut unoptimized_instance = Instance::new(params_2_to_1);
+            let mut unoptimized_instance = Instance::new(params_4_to_1);
             let unoptimized_result =
-                unoptimized_instance.unoptimized_n_to_1_fixed_hash(vec![elem_1, elem_2, elem_3]);
+                unoptimized_instance.unoptimized_n_to_1_fixed_hash(vec![elem_1, elem_2, elem_3, elem_4, elem_5]);
 
             assert_eq!(unoptimized_result, our_result);
         }

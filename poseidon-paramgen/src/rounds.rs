@@ -43,6 +43,16 @@ impl RoundNumbers {
         choice.unwrap()
     }
 
+    /// Instantiate round numbers from existing choice.
+    ///
+    /// # Safety
+    ///
+    /// This method does not check the choices are secure. It is the caller's
+    /// responsibility to ensure that the components passed to are secure.
+    pub(crate) fn from_rounds(r_F: usize, r_P: usize) -> Self {
+        RoundNumbers { r_F, r_P }
+    }
+
     /// Check if this `RoundNumbers` choice is secure given all known attacks.
     fn is_secure<T: BigInteger>(&self, input: &InputParameters<T>, alpha: &Alpha) -> bool {
         // Check if the number of full rounds are sufficient.

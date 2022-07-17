@@ -6,8 +6,8 @@
 // Generated with `generate_mds.sage`. Do not edit manually.
 // Regenerate with: `sage vendor/generate_mds.sage > src/params.rs`
 
-use crate::Parameters;
 use ark_ff::PrimeField;
+use ark_sponge::poseidon::Parameters;
 
 /// Parameters for the rate-1 instance of Poseidon.
 ///
