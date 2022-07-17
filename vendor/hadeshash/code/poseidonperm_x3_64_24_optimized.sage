@@ -69,17 +69,17 @@ def calc_equivalent_matrices():
     v_collection = []
     v = MDS_matrix_field_transpose[[0], list(range(1,t))]
     # print "M:", MDS_matrix_field_transpose
-    print("v:", v)
-    print("done")
+    #print("v:", v)
+    #print("done")
     M_mul = MDS_matrix_field_transpose
     M_i = matrix(F, t, t)
     for i in range(R_P - 1, -1, -1):
-        print(M_mul)
+        #print(M_mul)
         M_hat = M_mul[list(range(1,t)), list(range(1,t))]
-        print(M_hat)
+        #print(M_hat)
         w = M_mul[list(range(1,t)), [0]]
-        print('wlen:', len(list(range(1,t))) + 1)
-        print('t: ', t)
+        #print('wlen:', len(list(range(1,t))) + 1)
+        #print('t: ', t)
         v = M_mul[[0], list(range(1,t))]
         v_collection.append(v.list())
         w_hat = M_hat.inverse() * w
@@ -176,7 +176,7 @@ def perm(input_words):
             state_words[0] = state_words[0] + round_constants_field_new[round_constants_round_counter][0]
         # Optimized multiplication with cheap matrices
         new_state_words = state_words.copy()
-        print(state_words)
+        #print(state_words)
         new_state_words = cheap_matrix_mul(new_state_words, v_collection[R_P - r - 1], w_hat_collection[R_P - r - 1], M_0_0)
         state_words = new_state_words
     round_constants_round_counter += 1

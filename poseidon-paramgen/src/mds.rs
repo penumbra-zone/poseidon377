@@ -259,13 +259,6 @@ where
         mds: &MdsMatrix<F>,
         rounds: &RoundNumbers,
     ) -> (Matrix<F>, Vec<Matrix<F>>, Vec<Matrix<F>>) {
-        // print!("MDS!");
-        // for elem in mds.elements().into_iter() {
-        //     // We use the BigUint type here since the Display of the field element
-        //     // is not in decimal: see https://github.com/arkworks-rs/algebra/issues/320
-        //     let elem_bigint: BigUint = (*elem).into();
-        //     print!("{} ", elem_bigint.to_string());
-        // }
         let r_P = rounds.partial();
         let mut w_hat_collection = Vec::with_capacity(rounds.partial());
         let mut v_collection = Vec::with_capacity(rounds.partial());

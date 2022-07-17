@@ -30,6 +30,7 @@ pub use matrix::{
     dot_product, mat_mul, Matrix, MatrixOperations, SquareMatrix, SquareMatrixOperations,
 };
 pub use mds::{MdsMatrix, OptimizedMdsMatrices};
+use num::BigUint;
 pub use round_constants::{ArcMatrix, OptimizedArcMatrix};
 pub use rounds::RoundNumbers;
 pub use utils::log2;
@@ -90,6 +91,54 @@ impl<F: PrimeField> PoseidonParameters<F> {
             optimized_arc,
         }
     }
+
+    /// Instantiate poseidon parameters from existing unoptimized components.
+    ///
+    /// # Safety
+    ///
+    /// This method does not check the choices are secure. It is the caller's
+    /// responsibility to ensure that the components passed are secure.
+    pub fn from_unoptimized_components(
+        alpha: u32,
+        mds_elements: Vec<Vec<F>>,
+        arc_elements: Vec<Vec<F>>,
+        M: usize,
+        t: usize,
+        p: F::BigInt,
+        r_F: usize,
+        r_P: usize,
+    ) -> Self {
+        let input = InputParameters::new(M, t, p, false);
+        let alpha = alpha::Alpha::Exponent(alpha);
+        let rounds = rounds::RoundNumbers::from_rounds(r_F, r_P);
+        let mds = mds::MdsMatrix::new(t, t, flatten(mds_elements));
+        let arc = round_constants::ArcMatrix::new(r_P + r_F, t, flatten(arc_elements));
+        dbg!("MDS!");
+        for elem in mds.elements().into_iter() {
+            // We use the BigUint type here since the Display of the field element
+            // is not in decimal: see https://github.com/arkworks-rs/algebra/issues/320
+            let elem_bigint: BigUint = (*elem).into();
+            dbg!("{} ", elem_bigint.to_string());
+        }
+        let optimized_mds = mds::OptimizedMdsMatrices::generate(&mds, t, &rounds);
+        let optimized_arc =
+            round_constants::OptimizedArcMatrix::generate(&arc, &optimized_mds, &rounds);
+
+        Self {
+            input,
+            alpha,
+            rounds,
+            mds,
+            arc,
+            optimized_mds,
+            optimized_arc,
+        }
+    }
+}
+
+/// Flatten a vec of vecs
+fn flatten<T>(nested: Vec<Vec<T>>) -> Vec<T> {
+    nested.into_iter().flatten().collect()
 }
 
 impl<F: PrimeField> Into<ArkPoseidonParameters<F>> for PoseidonParameters<F> {
