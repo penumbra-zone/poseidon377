@@ -113,13 +113,6 @@ impl<F: PrimeField> PoseidonParameters<F> {
         let rounds = rounds::RoundNumbers::from_rounds(r_F, r_P);
         let mds = mds::MdsMatrix::new(t, t, flatten(mds_elements));
         let arc = round_constants::ArcMatrix::new(r_P + r_F, t, flatten(arc_elements));
-        dbg!("MDS!");
-        for elem in mds.elements().into_iter() {
-            // We use the BigUint type here since the Display of the field element
-            // is not in decimal: see https://github.com/arkworks-rs/algebra/issues/320
-            let elem_bigint: BigUint = (*elem).into();
-            dbg!("{} ", elem_bigint.to_string());
-        }
         let optimized_mds = mds::OptimizedMdsMatrices::generate(&mds, t, &rounds);
         let optimized_arc =
             round_constants::OptimizedArcMatrix::generate(&arc, &optimized_mds, &rounds);
