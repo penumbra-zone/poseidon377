@@ -167,6 +167,12 @@ impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<F> {
     }
 }
 
+impl<F: PrimeField> Into<Vec<F>> for MdsMatrix<F> {
+    fn into(self) -> Vec<F> {
+        self.0.elements().to_vec()
+    }
+}
+
 /// Represents an optimized MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OptimizedMdsMatrices<F: PrimeField> {

@@ -24,6 +24,9 @@ mod rounds;
 mod transcript;
 mod utils;
 
+/// For generating parameters at build time.
+pub mod poseidon_build;
+
 pub use alpha::Alpha;
 pub use input::InputParameters;
 pub use matrix::{
@@ -40,6 +43,7 @@ use ark_sponge::poseidon::Parameters as ArkPoseidonParameters;
 /// A set of Poseidon parameters for a given set of input parameters.
 #[derive(Clone, Debug)]
 pub struct PoseidonParameters<F: PrimeField> {
+    // Input parameters.
     /// Security level.
     pub M: usize,
     /// Width of desired hash function, e.g. $t=3$ corresponds to a 2-to-1 hash.
