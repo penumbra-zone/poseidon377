@@ -4,7 +4,7 @@ use merlin::Transcript;
 
 use crate::{
     matrix::mat_mul, transcript::TranscriptProtocol, Alpha, InputParameters, Matrix,
-    MatrixOperations, OptimizedMdsMatrices, RoundNumbers,
+    MatrixOperations, MdsMatrix, RoundNumbers,
 };
 
 /// Represents an matrix of round constants.
@@ -115,14 +115,14 @@ where
     /// Generate the optimized round constants.
     pub fn generate(
         arc: &ArcMatrix<F>,
-        mds: &OptimizedMdsMatrices<F>,
+        mds: &MdsMatrix<F>,
         rounds: &RoundNumbers,
     ) -> OptimizedArcMatrix<F> {
         let n_cols = arc.n_cols();
         let mut constants_temp = arc.clone();
         let r_f = rounds.full() / 2;
         let r_T = rounds.total();
-        let mds_T = mds.M.transpose();
+        let mds_T = mds.transpose();
         let mds_inv = &mds_T.inverse();
 
         // C_i = M^-1 * C_(i+1)
@@ -153,6 +153,11 @@ where
         }
 
         OptimizedArcMatrix(constants_temp)
+    }
+
+    /// Create a `OptimizedArcMatrix` from its elements.
+    pub fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> OptimizedArcMatrix<F> {
+        OptimizedArcMatrix(ArcMatrix::new(n_rows, n_cols, elements))
     }
 }
 
@@ -194,12 +199,11 @@ mod tests {
         let t = 3;
         let alpha = Alpha::Exponent(17);
 
-        let input = InputParameters::new(M, 3, FqParameters::MODULUS, true);
+        let input = InputParameters::new(M, t, FqParameters::MODULUS, true);
         let rounds = RoundNumbers::new(&input, &alpha);
         let mds: MdsMatrix<Fq> = MdsMatrix::generate(&input);
-        let optimized_mds = OptimizedMdsMatrices::generate(&mds, t, &rounds);
         let arc = ArcMatrix::generate(&input, rounds, alpha);
-        let computed_constants = OptimizedArcMatrix::generate(&arc, &optimized_mds, &rounds);
+        let computed_constants = OptimizedArcMatrix::generate(&arc, &mds, &rounds);
 
         // Check of the first three rows, TODO: the rest
         let constants_expected = [

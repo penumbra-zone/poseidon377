@@ -8,9 +8,9 @@ use super::{Alpha, InputParameters};
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct RoundNumbers {
     /// Number of partial rounds.
-    r_P: usize,
+    pub r_P: usize,
     /// Number of full rounds.
-    r_F: usize,
+    pub r_F: usize,
 }
 
 impl RoundNumbers {
@@ -41,16 +41,6 @@ impl RoundNumbers {
         }
 
         choice.unwrap()
-    }
-
-    /// Instantiate round numbers from existing choice.
-    ///
-    /// # Safety
-    ///
-    /// This method does not check the choices are secure. It is the caller's
-    /// responsibility to ensure that the components passed to are secure.
-    pub(crate) fn from_rounds(r_F: usize, r_P: usize) -> Self {
-        RoundNumbers { r_F, r_P }
     }
 
     /// Check if this `RoundNumbers` choice is secure given all known attacks.

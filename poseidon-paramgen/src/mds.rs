@@ -25,6 +25,18 @@ where
         MdsMatrix::fixed_cauchy_matrix(input)
     }
 
+    /// Instantiate an MDS matrix from a list of elements.
+    ///
+    /// # Security
+    ///
+    /// You must ensure this matrix was generated securely,
+    /// using the Cauchy method in `fixed_cauchy_matrix` or
+    /// using the random subsampling method described in the original
+    /// paper.
+    pub fn from_elements(elements: Vec<F>) -> Self {
+        Self(SquareMatrix::from_vec(elements))
+    }
+
     /// Generate a deterministic Cauchy matrix
     ///
     /// The original Poseidon paper describes a method for constructing MDS matrices
@@ -158,8 +170,6 @@ impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<F> {
 /// Represents an optimized MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OptimizedMdsMatrices<F: PrimeField> {
-    /// The t x t MDS matrix of the linear layer.
-    pub M: MdsMatrix<F>,
     /// A (t - 1) x (t - 1) MDS submatrix derived from the MDS matrix.
     pub M_hat: SquareMatrix<F>,
     /// A 1 x (t - 1) (row) vector derived from the MDS matrix.
@@ -240,7 +250,6 @@ where
             OptimizedMdsMatrices::calc_equivalent_matrices(mds, rounds);
 
         OptimizedMdsMatrices {
-            M: mds.clone(),
             M_hat,
             M_hat_inverse,
             v,

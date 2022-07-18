@@ -18,7 +18,7 @@ pub struct Instance<F: PrimeField> {
 impl<F: PrimeField> Instance<F> {
     /// Instantiate a new hash function over GF(p) given `Parameters`.
     pub fn new(parameters: PoseidonParameters<F>) -> Self {
-        let t = parameters.input.t;
+        let t = parameters.t;
         Self {
             parameters,
             state_words: vec![F::zero(); t],
@@ -28,7 +28,7 @@ impl<F: PrimeField> Instance<F> {
     /// Fixed width hash from n:1. Outputs a F given `t` input words.
     pub fn n_to_1_fixed_hash(&mut self, input_words: Vec<F>) -> F {
         // Check input words are `t` elements long
-        if input_words.len() != self.parameters.input.t {
+        if input_words.len() != self.parameters.t {
             panic!("err: input words must be t elements long")
         }
 
@@ -59,7 +59,7 @@ impl<F: PrimeField> Instance<F> {
         // First chunk of full rounds
         for r in 0..R_f {
             // Apply `AddRoundConstants` layer
-            for i in 0..self.parameters.input.t {
+            for i in 0..self.parameters.t {
                 self.state_words[i] += self.parameters.optimized_arc.0.get_element(r, i);
             }
             self.full_sub_words();
@@ -69,7 +69,7 @@ impl<F: PrimeField> Instance<F> {
 
         // Partial rounds
         // First part of `AddRoundConstants` layer
-        for i in 0..self.parameters.input.t {
+        for i in 0..self.parameters.t {
             self.state_words[i] += self
                 .parameters
                 .optimized_arc
@@ -98,7 +98,7 @@ impl<F: PrimeField> Instance<F> {
         // Final full rounds
         for _ in 0..R_f {
             // Apply `AddRoundConstants` layer
-            for i in 0..self.parameters.input.t {
+            for i in 0..self.parameters.t {
                 self.state_words[i] += self
                     .parameters
                     .optimized_arc
@@ -114,7 +114,7 @@ impl<F: PrimeField> Instance<F> {
     /// Fixed width hash from n:1. Outputs a F given `t` input words. Unoptimized.
     pub fn unoptimized_n_to_1_fixed_hash(&mut self, input_words: Vec<F>) -> F {
         // Check input words are `t` elements long
-        if input_words.len() != self.parameters.input.t {
+        if input_words.len() != self.parameters.t {
             panic!("err: input words must be t elements long")
         }
 
@@ -138,7 +138,7 @@ impl<F: PrimeField> Instance<F> {
         let R_f = self.parameters.rounds.full() / 2;
         let R_P = self.parameters.rounds.partial();
         let mut round_constants_counter = 0;
-        let t = self.parameters.input.t;
+        let t = self.parameters.t;
         let round_constants = self.parameters.arc.elements().clone();
 
         // First full rounds
@@ -250,12 +250,11 @@ impl<F: PrimeField> Instance<F> {
             + self.parameters.optimized_mds.w_hat_collection[round_number]
                 .elements()
                 .iter()
-                .zip(self.state_words[1..self.parameters.input.t].iter())
+                .zip(self.state_words[1..self.parameters.t].iter())
                 .map(|(x, y)| *x * *y)
                 .sum::<F>();
 
-        self.state_words[1..self.parameters.input.t]
-            .copy_from_slice(&add_row[..(self.parameters.input.t - 1)]);
+        self.state_words[1..self.parameters.t].copy_from_slice(&add_row[..(self.parameters.t - 1)]);
     }
 }
 

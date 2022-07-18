@@ -197,12 +197,15 @@ def cheap_matrix_mul(state_words, v, w_hat, M_0_0):
 
 def perm(input_words):
     round_constants_field_new = calc_equivalent_constants(round_constants_field)
+    print(round_constants_field_new)
     [M_i, v_collection, w_hat_collection] = calc_equivalent_matrices()
+    # M_i is transpose of Mi
     #print(M_i)
     M_0_0 = MDS_matrix_field[0, 0]
     #print(M_0_0)
+    #print(v_collection)
     #[M_i, test_mat] = calc_equivalent_matrices()
-    
+
     global timer_start, timer_end
 
     timer_start = time.time()
