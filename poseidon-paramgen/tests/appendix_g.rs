@@ -195,10 +195,10 @@ mod tests {
     fn poseidon_bls12_377_instance() {
         let alpha = Alpha::Exponent(17);
 
-        // $t=3$ corresponds to a 2:1 hash
+        // $t=2$ corresponds to a 1:1 hash
         let input = InputParameters::new(128, 2, Fq377Parameters::MODULUS, true);
         let _rounds = RoundNumbers::new(&input, &alpha);
-        // Calling PoseidonParameters::new runs a bunch of assertions to ensure the matrices
+        // Calling PoseidonParameters::new runs a bunch of assertions to ensure the optimized matrices
         // have been property constructed.
         let _params_1_to_1 = PoseidonParameters::<Fq>::new(128, 2, Fq377Parameters::MODULUS, true);
 

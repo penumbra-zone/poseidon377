@@ -6,7 +6,7 @@ This repository contains:
 * [`poseidon-paramgen`](../main/poseidon-paramgen): an independent implementation of Poseidon parameter generation
 * [`poseidon-permutation`](../main/poseidon-permutation): an independent implementation of the Poseidon permutation
 
-*Warning:* Both of these are in active development and have not yet been security audited.
+*Warning:* These are in active development and have not yet been security audited.
 
 ## Benchmarks
 
