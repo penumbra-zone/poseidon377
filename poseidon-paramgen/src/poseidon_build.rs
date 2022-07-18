@@ -27,10 +27,6 @@ use poseidon_paramgen::{Alpha, ArcMatrix, RoundNumbers, SquareMatrix, Matrix, Md
     params_code
 }
 
-// TODO: Add a compile method to create ark_sponge::Parameters. This way paramgen can just be a build dependency
-// if folks are using ark-sponge.
-// For other Poseidon implementations, one could add an compile implementation here.
-
 impl<F: PrimeField> Display for PoseidonParameters<F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let capacity = 1;
