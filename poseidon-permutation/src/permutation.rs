@@ -7,17 +7,17 @@ use poseidon_paramgen::{Alpha, MatrixOperations, PoseidonParameters};
 /// Represents a generic instance of `Poseidon`.
 ///
 /// Intended for generic fixed-width hashing.
-pub struct Instance<F: PrimeField> {
+pub struct Instance<'a, F: PrimeField> {
     /// Parameters for this instance of Poseidon.
-    parameters: PoseidonParameters<F>,
+    parameters: &'a PoseidonParameters<F>,
 
     /// Inner state.
     state_words: Vec<F>,
 }
 
-impl<F: PrimeField> Instance<F> {
+impl<'a, F: PrimeField> Instance<'a, F> {
     /// Instantiate a new hash function over GF(p) given `Parameters`.
-    pub fn new(parameters: PoseidonParameters<F>) -> Self {
+    pub fn new(parameters: &'a PoseidonParameters<F>) -> Self {
         let t = parameters.t;
         Self {
             parameters,
@@ -272,7 +272,7 @@ mod tests {
     #[test]
     fn check_optimized_impl_vs_sage() {
         let params_2_to_1 = PoseidonParameters::<Fq>::new(128, 3, FqParameters::MODULUS, true);
-        let mut our_instance = Instance::new(params_2_to_1);
+        let mut our_instance = Instance::new(&params_2_to_1);
         let hash_output =
             our_instance.n_to_1_fixed_hash(vec![Fq::zero(), Fq::from(1u64), Fq::from(2u64)]);
         let output_words = our_instance.output_words();
@@ -299,7 +299,7 @@ mod tests {
     #[test]
     fn check_unoptimized_impl_vs_sage() {
         let params_2_to_1 = PoseidonParameters::<Fq>::new(128, 3, FqParameters::MODULUS, true);
-        let mut our_instance = Instance::new(params_2_to_1);
+        let mut our_instance = Instance::new(&params_2_to_1);
         let hash_output = our_instance.unoptimized_n_to_1_fixed_hash(vec![
             Fq::zero(),
             Fq::from(1u64),
@@ -348,7 +348,7 @@ mod tests {
             ark_state.permute();
             let ark_result = ark_state[1];
 
-            let mut our_instance = Instance::new(params_4_to_1);
+            let mut our_instance = Instance::new(&params_4_to_1);
             let our_result = our_instance.n_to_1_fixed_hash(vec![elem_1, elem_2, elem_3, elem_4, elem_5]);
 
             assert_eq!(ark_result, our_result);
@@ -359,10 +359,10 @@ mod tests {
             let t = 5;
             let params_4_to_1 = PoseidonParameters::<Fq>::new(128, t, FqParameters::MODULUS, true);
 
-            let mut our_instance = Instance::new(params_4_to_1.clone());
+            let mut our_instance = Instance::new(&params_4_to_1);
             let our_result = our_instance.n_to_1_fixed_hash(vec![elem_1, elem_2, elem_3, elem_4, elem_5]);
 
-            let mut unoptimized_instance = Instance::new(params_4_to_1);
+            let mut unoptimized_instance = Instance::new(&params_4_to_1);
             let unoptimized_result =
                 unoptimized_instance.unoptimized_n_to_1_fixed_hash(vec![elem_1, elem_2, elem_3, elem_4, elem_5]);
 

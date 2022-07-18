@@ -26,12 +26,12 @@ fn hash_4_1_ark_sponge(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
 }
 
 fn hash_4_1_our_impl(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
-    let mut our_instance = Instance::new(PARAMS_4_TO_1.clone());
+    let mut our_instance = Instance::new(&PARAMS_4_TO_1);
     our_instance.n_to_1_fixed_hash(vec![*i, *j, *k, *l, *m])
 }
 
 fn hash_4_1_our_impl_unoptimized(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
-    let mut our_instance = Instance::new(PARAMS_4_TO_1.clone());
+    let mut our_instance = Instance::new(&PARAMS_4_TO_1);
     our_instance.unoptimized_n_to_1_fixed_hash(vec![*i, *j, *k, *l, *m])
 }
 
