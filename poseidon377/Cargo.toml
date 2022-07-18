@@ -27,3 +27,8 @@ rand_chacha = "0.3"
 [[bench]]
 name = "oldhash"
 harness = false
+
+[build-dependencies]
+poseidon-paramgen = { path = "../poseidon-paramgen/" }
+ark-ed-on-bls12-377 = "0.3"
+ark-ff = "0.3"

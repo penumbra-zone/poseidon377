@@ -97,6 +97,20 @@ impl<F: PrimeField> Into<Vec<Vec<F>>> for ArcMatrix<F> {
     }
 }
 
+impl<F: PrimeField> Into<Vec<Vec<F>>> for OptimizedArcMatrix<F> {
+    fn into(self) -> Vec<Vec<F>> {
+        let mut rows = Vec::<Vec<F>>::new();
+        for i in 0..self.0.n_rows() {
+            let mut row = Vec::new();
+            for j in 0..self.0.n_cols() {
+                row.push(self.0.get_element(i, j));
+            }
+            rows.push(row);
+        }
+        rows
+    }
+}
+
 /// Represents an optimized matrix of round constants.
 ///
 /// This modifies the partial rounds in the middle of the permutation,
