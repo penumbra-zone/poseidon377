@@ -4,6 +4,8 @@ use num_bigint::BigUint;
 
 /// Shortest addition chains for small numbers.
 ///
+/// The numbers at each depth are sorted in descending order.
+///
 /// Used for selecting the optimal choice of alpha.
 ///
 /// Courtesy of:
@@ -13,20 +15,29 @@ pub struct ShortestAdditionChains {
     depth_3: [u32; 3],
     depth_4: [u32; 5],
     depth_5: [u32; 9],
+    depth_6: [u32; 15],
+    depth_7: [u32; 26],
 }
 
 const SHORTEST_ADDITION_CHAINS: ShortestAdditionChains = ShortestAdditionChains {
     depth_2: [4, 3],
     depth_3: [8, 6, 5],
-    depth_4: [16, 9, 12, 10, 7],
-    depth_5: [32, 18, 17, 13, 24, 15, 20, 11, 14],
+    depth_4: [16, 12, 10, 9, 7],
+    depth_5: [32, 24, 20, 18, 17, 15, 14, 13, 11],
+    depth_6: [64, 48, 40, 36, 34, 33, 30, 28, 27, 26, 25, 23, 22, 21, 19],
+    depth_7: [
+        128, 96, 80, 72, 68, 66, 65, 60, 56, 54, 52, 51, 50, 49, 46, 45, 44, 43, 42, 41, 39, 38,
+        37, 35, 31, 29,
+    ],
 };
 
 impl ShortestAdditionChains {
     fn depths_in_order(&self) -> Vec<&u32> {
         let mut depths: Vec<&u32> = self.depth_2.iter().chain(self.depth_3.iter()).collect();
         let depths_4_5: Vec<&u32> = self.depth_4.iter().chain(self.depth_5.iter()).collect();
+        let depths_6_7: Vec<&u32> = self.depth_6.iter().chain(self.depth_7.iter()).collect();
         depths.extend(depths_4_5);
+        depths.extend(depths_6_7);
         depths
     }
 }
