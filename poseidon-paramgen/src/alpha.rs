@@ -46,7 +46,7 @@ impl Alpha {
         // Move through the addition chains in increasing depth,
         // picking the leftmost choice that meets the coprime requirement.
         for candidate in SHORTEST_ADDITION_CHAINS.depths_in_order() {
-            if Self::alpha_coprime_to_p_minus_one::<F>(*candidate, p) {
+            if candidate % 2 != 0 && Self::alpha_coprime_to_p_minus_one::<F>(*candidate, p) {
                 return Alpha::Exponent(*candidate);
             }
         }
