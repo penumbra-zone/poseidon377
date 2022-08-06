@@ -1,5 +1,5 @@
 use anyhow::Result;
-use ark_ff::PrimeField;
+use ark_ff::{BigInteger, PrimeField};
 
 use crate::{
     matrix::mat_mul, InputParameters, Matrix, MatrixOperations, RoundNumbers, SquareMatrix,
@@ -48,11 +48,15 @@ where
     /// the Cauchy matrix. If yes, then the MDS matrix must be thrown away, and the process
     /// must begin again for another random choice of $x_i$, $y_j$ until a secure choice is found.
     ///
-    /// However, Section 5.4 of [Keller and Rosemarin 2020](https://eprint.iacr.org/2020/179.pdf)
-    /// describes how the MDS matrix can be constructed in a deterministic fashion
-    /// where infinitely long subspace trails cannot be constructed. This method constructs an MDS
-    /// matrix using that deterministic method, avoiding the need to implement Algorithms 1-3.
+    /// However, here we use a deterministic method for creating Cauchy matrices that has
+    /// been empirically checked to be safe using the three algorithms above over `decaf377` for t=1-100.
     pub fn fixed_cauchy_matrix(input: &InputParameters<F::BigInt>) -> Self {
+        // We explicitly check for small fields where the deterministic procedure can fail.
+        // In these cases, the full algorithms 1-3 should be implemented.
+        if input.p.num_bits() < 128 {
+            panic!("field too small to use deterministic MDS matrix generation")
+        }
+
         let xs: Vec<F> = (0..input.t as u64).map(F::from).collect();
         let ys: Vec<F> = (input.t as u64..2 * input.t as u64).map(F::from).collect();
 
