@@ -194,7 +194,7 @@ impl RoundNumbers {
             .iter()
             .max_by(cmp_f64)
             .expect("no NaNs")
-            .ceil() as usize;
+            .floor() as usize;
     }
 
     /// Number of total rounds.
