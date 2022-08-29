@@ -47,3 +47,18 @@ pub fn hash_5(domain_separator: &Fq, value: (Fq, Fq, Fq, Fq, Fq)) -> Fq {
         value.4,
     ])
 }
+
+/// Hash six [`Fq`] elements with the provided `domain_separator`.
+pub fn hash_6(domain_separator: &Fq, value: (Fq, Fq, Fq, Fq, Fq, Fq)) -> Fq {
+    let params = &crate::RATE_6_PARAMS;
+    let mut state = Instance::new(params);
+    state.n_to_1_fixed_hash(vec![
+        domain_separator.clone(),
+        value.0,
+        value.1,
+        value.2,
+        value.3,
+        value.4,
+        value.5,
+    ])
+}
