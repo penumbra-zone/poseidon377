@@ -15,7 +15,7 @@ fn main() {
 
     let security_level = 128;
     // Recall t = rate + capacity, so t=2 is rate=1, capacity=1 (i.e. 1:1 hash)
-    let t_values = vec![2, 3, 4, 5, 6];
+    let t_values = vec![2, 3, 4, 5, 6, 7];
     let params_codegen =
         poseidon_build::compile::<Fq>(security_level, t_values, FqParameters::MODULUS, true);
 
