@@ -1,6 +1,9 @@
 use ark_ed_on_bls12_377::Fq;
 use ark_ff::PrimeField;
-use ark_sponge::poseidon::{Parameters, State};
+use ark_sponge::{
+    poseidon::{PoseidonParameters, PoseidonSponge},
+    CryptographicSponge,
+};
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use rand_chacha::ChaChaRng;
 use rand_core::{RngCore, SeedableRng};
@@ -8,17 +11,9 @@ use rand_core::{RngCore, SeedableRng};
 use poseidon377::hash_4;
 
 fn hash_4_1_ark_sponge(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
-    let mut state = State::from(rate_5());
-
-    // Use the domain separator as the sponge's capacity element
-    state[0] = *i;
-    state[1] = *j;
-    state[2] = *k;
-    state[3] = *l;
-    state[4] = *m;
-
-    state.permute();
-    state[1]
+    let mut poseidon_instance: PoseidonSponge<Fq> = PoseidonSponge::new(&rate_5());
+    poseidon_instance.absorb(&vec![i, j, k, l, m]);
+    poseidon_instance.squeeze_field_elements(1)[0]
 }
 
 fn hash_4_1_our_impl(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
@@ -75,7 +70,7 @@ criterion_main!(benches);
 /// Parameters for the rate-5 instance of Poseidon.
 ///
 /// Note: `F` must be the BLS12-377 scalar field.
-pub fn rate_5<F: PrimeField>() -> Parameters<F> {
+pub fn rate_5<F: PrimeField>() -> PoseidonParameters<F> {
     let mds = vec![
         vec![
             F::from_str(
@@ -1265,13 +1260,18 @@ pub fn rate_5<F: PrimeField>() -> Parameters<F> {
         ],
     ];
 
-    Parameters {
-        full_rounds: 8,
-        partial_rounds: 23,
-        alpha: 17,
+    let rate = 5;
+    let capacity = 1;
+    let full_rounds = 8;
+    let partial_rounds = 23;
+    let alpha = 17;
+    PoseidonParameters {
+        full_rounds,
+        partial_rounds,
+        alpha,
         ark,
         mds,
-        rate: 5,
-        capacity: 1,
+        rate,
+        capacity,
     }
 }

@@ -1,6 +1,9 @@
 use ark_ed_on_bls12_377::{Fq, FqParameters};
 use ark_ff::{FpParameters, PrimeField};
-use ark_sponge::poseidon::{Parameters, State};
+use ark_sponge::{
+    poseidon::{PoseidonParameters as Parameters, PoseidonSponge},
+    CryptographicSponge,
+};
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use once_cell::sync::Lazy;
 use rand_chacha::ChaChaRng;
@@ -14,15 +17,10 @@ static PARAMS_4_TO_1: Lazy<PoseidonParameters<Fq>> =
 
 fn hash_4_1_ark_sponge(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
     let params_ark: Parameters<Fq> = (PARAMS_4_TO_1.clone()).into();
-    let mut ark_state = State::from(params_ark);
-    ark_state[0] = *i;
-    ark_state[1] = *j;
-    ark_state[2] = *k;
-    ark_state[3] = *l;
-    ark_state[4] = *m;
-    ark_state.permute();
 
-    ark_state[1]
+    let mut poseidon_instance: PoseidonSponge<Fq> = PoseidonSponge::new(&params_ark);
+    poseidon_instance.absorb(&vec![i, j, k, l, m]);
+    poseidon_instance.squeeze_field_elements(1)[0]
 }
 
 fn hash_4_1_our_impl(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {

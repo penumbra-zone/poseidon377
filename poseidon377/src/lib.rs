@@ -27,3 +27,6 @@ pub static RATE_7_PARAMS: Lazy<PoseidonParameters<Fq>> = Lazy::new(params::rate_
 pub use ark_ed_on_bls12_377::Fq;
 pub use poseidon_paramgen::PoseidonParameters;
 pub use poseidon_permutation::Instance;
+
+#[cfg(feature = "r1cs")]
+pub mod r1cs;

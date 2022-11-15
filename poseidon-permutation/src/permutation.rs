@@ -266,7 +266,10 @@ mod tests {
     use ark_ed_on_bls12_377::{Fq, FqParameters};
     use ark_ff::FpParameters;
     use ark_ff::{PrimeField, Zero};
-    use ark_sponge::poseidon::{Parameters, State};
+    use ark_sponge::{
+        poseidon::{PoseidonParameters as Parameters, PoseidonSponge},
+        CryptographicSponge,
+    };
     use poseidon_paramgen::PoseidonParameters;
 
     #[test]
@@ -339,14 +342,10 @@ mod tests {
             let params_4_to_1 = PoseidonParameters::<Fq>::new(128, t, FqParameters::MODULUS, true);
 
             let params_ark: Parameters<Fq> = params_4_to_1.clone().into();
-            let mut ark_state = State::from(params_ark);
-            ark_state[0] = elem_1;
-            ark_state[1] = elem_2;
-            ark_state[2] = elem_3;
-            ark_state[3] = elem_4;
-            ark_state[4] = elem_5;
-            ark_state.permute();
-            let ark_result = ark_state[1];
+
+            let mut poseidon_instance: PoseidonSponge<Fq> = PoseidonSponge::new(&params_ark);
+            poseidon_instance.absorb(&vec![elem_1, elem_2, elem_3, elem_4, elem_5]);
+            let ark_result: Fq = poseidon_instance.squeeze_field_elements(1)[0];
 
             let mut our_instance = Instance::new(&params_4_to_1);
             let our_result = our_instance.n_to_1_fixed_hash(vec![elem_1, elem_2, elem_3, elem_4, elem_5]);
