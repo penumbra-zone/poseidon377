@@ -38,7 +38,7 @@ pub use rounds::RoundNumbers;
 pub use utils::log2;
 
 use ark_ff::PrimeField;
-use ark_sponge::poseidon::Parameters as ArkPoseidonParameters;
+use ark_sponge::poseidon::PoseidonParameters as ArkPoseidonParameters;
 
 /// A set of Poseidon parameters for a given set of input parameters.
 #[derive(Clone, Debug)]
@@ -107,10 +107,12 @@ impl<F: PrimeField> Into<ArkPoseidonParameters<F>> for PoseidonParameters<F> {
         // TODO: let user specify different capacity choices
         let capacity = 1;
         let rate = self.t - capacity;
+        let full_rounds = self.rounds.full();
+        let partial_rounds = self.rounds.partial();
 
         ArkPoseidonParameters {
-            full_rounds: self.rounds.full(),
-            partial_rounds: self.rounds.partial(),
+            full_rounds,
+            partial_rounds,
             alpha,
             ark: self.arc.into(),
             mds: self.mds.into(),
