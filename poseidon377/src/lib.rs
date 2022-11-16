@@ -24,7 +24,7 @@ pub static RATE_6_PARAMS: Lazy<PoseidonParameters<Fq>> = Lazy::new(params::rate_
 /// Parameters for the rate-7 instance of Poseidon.
 pub static RATE_7_PARAMS: Lazy<PoseidonParameters<Fq>> = Lazy::new(params::rate_7);
 
-pub use ark_ed_on_bls12_377::Fq;
+pub use decaf377::Fq;
 pub use poseidon_paramgen::PoseidonParameters;
 pub use poseidon_permutation::Instance;
 
