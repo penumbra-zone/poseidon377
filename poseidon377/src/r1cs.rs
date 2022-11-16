@@ -109,3 +109,26 @@ pub fn hash_6(
     let output = poseidon_instance.squeeze_field_elements(1)?;
     Ok(output[0].clone())
 }
+
+pub fn hash_7(
+    cs: ConstraintSystemRef<Fq>,
+    domain_separator: &FqVar,
+    value: (FqVar, FqVar, FqVar, FqVar, FqVar, FqVar, FqVar),
+) -> Result<FqVar, SynthesisError> {
+    let params = (*crate::RATE_7_PARAMS).clone();
+    let ark_params = (params).into();
+
+    let mut poseidon_instance: PoseidonSpongeVar<Fq> = PoseidonSpongeVar::new(cs, &ark_params);
+    poseidon_instance.absorb(&vec![
+        domain_separator,
+        &value.0,
+        &value.1,
+        &value.2,
+        &value.3,
+        &value.4,
+        &value.5,
+        &value.6,
+    ])?;
+    let output = poseidon_instance.squeeze_field_elements(1)?;
+    Ok(output[0].clone())
+}
