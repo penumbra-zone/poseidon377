@@ -1,10 +1,10 @@
-use ark_ed_on_bls12_377::Fq;
 use ark_ff::PrimeField;
 use ark_sponge::{
     poseidon::{PoseidonParameters, PoseidonSponge},
     CryptographicSponge,
 };
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use decaf377::Fq;
 use rand_chacha::ChaChaRng;
 use rand_core::{RngCore, SeedableRng};
 

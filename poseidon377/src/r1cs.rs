@@ -1,7 +1,7 @@
 use ark_relations::r1cs::{ConstraintSystemRef, SynthesisError};
 use ark_sponge::{constraints::CryptographicSpongeVar, poseidon::constraints::PoseidonSpongeVar};
 
-use ark_ed_on_bls12_377::constraints::FqVar;
+use decaf377::r1cs::FqVar;
 
 use crate::Fq;
 
