@@ -63,6 +63,22 @@ pub fn hash_6(domain_separator: &Fq, value: (Fq, Fq, Fq, Fq, Fq, Fq)) -> Fq {
     ])
 }
 
+/// Hash seven [`Fq`] elements with the provided `domain_separator`.
+pub fn hash_7(domain_separator: &Fq, value: (Fq, Fq, Fq, Fq, Fq, Fq, Fq)) -> Fq {
+    let params = &crate::RATE_7_PARAMS;
+    let mut state = Instance::new(params);
+    state.n_to_1_fixed_hash(vec![
+        domain_separator.clone(),
+        value.0,
+        value.1,
+        value.2,
+        value.3,
+        value.4,
+        value.5,
+        value.6,
+    ])
+}
+
 #[cfg(test)]
 mod test {
     use ark_ff::PrimeField;
