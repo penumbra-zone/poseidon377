@@ -6,7 +6,9 @@ This repository contains:
 * [`poseidon-paramgen`](../main/poseidon-paramgen): an independent implementation of Poseidon parameter generation
 * [`poseidon-permutation`](../main/poseidon-permutation): an independent implementation of the Poseidon permutation
 
-*Warning:* These are in active development and have not yet been security audited.
+## Audits
+
+`poseidon-paramgen` [was audited](https://research.nccgroup.com/2022/09/12/public-report-penumbra-labs-decaf377-implementation-and-poseidon-parameter-selection-review/) by NCC Group in Summer 2022.
 
 ## Benchmarks
 
