@@ -3,6 +3,13 @@
 use once_cell::sync::Lazy;
 
 mod hash;
+
+// We want the full parameters to be available in the documentation.
+#[cfg(doc)]
+pub mod params {
+    include!(concat!(env!("OUT_DIR"), "/params.rs"));
+}
+#[cfg(not(doc))]
 mod params {
     include!(concat!(env!("OUT_DIR"), "/params.rs"));
 }
