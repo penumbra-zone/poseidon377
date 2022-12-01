@@ -2,7 +2,7 @@
 name = "poseidon377"
 version = "0.1.0"
 edition = "2018"
-authors = ["Penumbra <crates@penumbra.zone>"]
+authors = ["Penumbra <crates@penumbra.zone>", "redshiftzero <jen@penumbra.zone>"]
 description = "An instantiation of the Poseidon hash for use with decaf377."
 license = "MIT OR Apache-2.0"
 
@@ -15,7 +15,7 @@ poseidon-paramgen = { version="0.1", path= "../poseidon-paramgen" }
 poseidon-permutation = { version="0.1", path= "../poseidon-permutation" }
 ark-relations = { version="0.3", optional=true }
 ark-sponge = { version="0.3", git = "https://github.com/penumbra-zone/sponge", branch = "r1cs" }
-decaf377 = {  version="0.1", git = "https://github.com/penumbra-zone/decaf377", features = ["r1cs"] }
+decaf377 = {  version="0.1", features = ["r1cs"] }
 num-bigint = "0.4.3"
 ark-groth16 = { version = "0.3", optional=true }
 ark-snark = { version = "0.3", optional=true }
