@@ -4,6 +4,7 @@ members = [
     "poseidon377",
     "poseidon-paramgen",
     "poseidon-permutation",
+    "poseidon-consistency",
 ]
 
 [profile.release]

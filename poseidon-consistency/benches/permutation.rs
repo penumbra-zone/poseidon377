@@ -9,6 +9,7 @@ use once_cell::sync::Lazy;
 use rand_chacha::ChaChaRng;
 use rand_core::{RngCore, SeedableRng};
 
+use poseidon_consistency::convert_to_ark_sponge_parameters;
 use poseidon_paramgen::PoseidonParameters;
 use poseidon_permutation::Instance;
 
@@ -16,7 +17,7 @@ static PARAMS_4_TO_1: Lazy<PoseidonParameters<Fq>> =
     Lazy::new(|| PoseidonParameters::<Fq>::new(128, 5, FqParameters::MODULUS, true));
 
 fn hash_4_1_ark_sponge(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
-    let params_ark: Parameters<Fq> = (PARAMS_4_TO_1.clone()).into();
+    let params_ark: Parameters<Fq> = convert_to_ark_sponge_parameters(PARAMS_4_TO_1.clone());
 
     let mut poseidon_instance: PoseidonSponge<Fq> = PoseidonSponge::new(&params_ark);
     poseidon_instance.absorb(&vec![i, j, k, l, m]);

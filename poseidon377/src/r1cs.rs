@@ -1,9 +1,35 @@
 use ark_relations::r1cs::{ConstraintSystemRef, SynthesisError};
-use ark_sponge::{constraints::CryptographicSpongeVar, poseidon::constraints::PoseidonSpongeVar};
+use ark_sponge::{
+    constraints::CryptographicSpongeVar, poseidon::constraints::PoseidonSpongeVar,
+    poseidon::PoseidonParameters as ArkPoseidonParameters,
+};
+use poseidon_paramgen::{Alpha, PoseidonParameters};
 
 use decaf377::r1cs::FqVar;
 
 use crate::Fq;
+
+fn convert_to_ark_sponge_parameters(params: PoseidonParameters<Fq>) -> ArkPoseidonParameters<Fq> {
+    let alpha = match params.alpha {
+        Alpha::Exponent(exp) => exp as u64,
+        Alpha::Inverse => panic!("ark-sponge does not allow inverse alpha"),
+    };
+    // TODO: let user specify different capacity choices
+    let capacity = 1;
+    let rate = params.t - capacity;
+    let full_rounds = params.rounds.full();
+    let partial_rounds = params.rounds.partial();
+
+    ArkPoseidonParameters {
+        full_rounds,
+        partial_rounds,
+        alpha,
+        ark: params.arc.into(),
+        mds: params.mds.into(),
+        rate,
+        capacity,
+    }
+}
 
 pub fn hash_1(
     cs: ConstraintSystemRef<Fq>,
@@ -11,7 +37,7 @@ pub fn hash_1(
     value: FqVar,
 ) -> Result<FqVar, SynthesisError> {
     let params = (*crate::RATE_1_PARAMS).clone();
-    let ark_params = (params).into();
+    let ark_params = convert_to_ark_sponge_parameters(params);
 
     let mut poseidon_instance: PoseidonSpongeVar<Fq> = PoseidonSpongeVar::new(cs, &ark_params);
     poseidon_instance.absorb(&vec![domain_separator, &value])?;
@@ -25,7 +51,7 @@ pub fn hash_2(
     value: (FqVar, FqVar),
 ) -> Result<FqVar, SynthesisError> {
     let params = (*crate::RATE_2_PARAMS).clone();
-    let ark_params = (params).into();
+    let ark_params = convert_to_ark_sponge_parameters(params);
 
     let mut poseidon_instance: PoseidonSpongeVar<Fq> = PoseidonSpongeVar::new(cs, &ark_params);
     poseidon_instance.absorb(&vec![domain_separator, &value.0, &value.1])?;
@@ -39,7 +65,7 @@ pub fn hash_3(
     value: (FqVar, FqVar, FqVar),
 ) -> Result<FqVar, SynthesisError> {
     let params = (*crate::RATE_3_PARAMS).clone();
-    let ark_params = (params).into();
+    let ark_params = convert_to_ark_sponge_parameters(params);
 
     let mut poseidon_instance: PoseidonSpongeVar<Fq> = PoseidonSpongeVar::new(cs, &ark_params);
     poseidon_instance.absorb(&vec![domain_separator, &value.0, &value.1, &value.2])?;
@@ -53,7 +79,7 @@ pub fn hash_4(
     value: (FqVar, FqVar, FqVar, FqVar),
 ) -> Result<FqVar, SynthesisError> {
     let params = (*crate::RATE_4_PARAMS).clone();
-    let ark_params = (params).into();
+    let ark_params = convert_to_ark_sponge_parameters(params);
 
     let mut poseidon_instance: PoseidonSpongeVar<Fq> = PoseidonSpongeVar::new(cs, &ark_params);
     poseidon_instance.absorb(&vec![
@@ -73,7 +99,7 @@ pub fn hash_5(
     value: (FqVar, FqVar, FqVar, FqVar, FqVar),
 ) -> Result<FqVar, SynthesisError> {
     let params = (*crate::RATE_5_PARAMS).clone();
-    let ark_params = (params).into();
+    let ark_params = convert_to_ark_sponge_parameters(params);
 
     let mut poseidon_instance: PoseidonSpongeVar<Fq> = PoseidonSpongeVar::new(cs, &ark_params);
     poseidon_instance.absorb(&vec![
@@ -94,7 +120,7 @@ pub fn hash_6(
     value: (FqVar, FqVar, FqVar, FqVar, FqVar, FqVar),
 ) -> Result<FqVar, SynthesisError> {
     let params = (*crate::RATE_6_PARAMS).clone();
-    let ark_params = (params).into();
+    let ark_params = convert_to_ark_sponge_parameters(params);
 
     let mut poseidon_instance: PoseidonSpongeVar<Fq> = PoseidonSpongeVar::new(cs, &ark_params);
     poseidon_instance.absorb(&vec![
@@ -116,7 +142,7 @@ pub fn hash_7(
     value: (FqVar, FqVar, FqVar, FqVar, FqVar, FqVar, FqVar),
 ) -> Result<FqVar, SynthesisError> {
     let params = (*crate::RATE_7_PARAMS).clone();
-    let ark_params = (params).into();
+    let ark_params = convert_to_ark_sponge_parameters(params);
 
     let mut poseidon_instance: PoseidonSpongeVar<Fq> = PoseidonSpongeVar::new(cs, &ark_params);
     poseidon_instance.absorb(&vec![
