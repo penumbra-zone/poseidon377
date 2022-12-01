@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-poseidon-paramgen = { version="0.1", path = "../poseidon-paramgen/" }
+poseidon-paramgen = { version="0.1" }
 poseidon-permutation = {version= "0.1", path="../poseidon-permutation/"}
 ark-sponge = { version="0.3", git = "https://github.com/penumbra-zone/sponge", branch = "r1cs" }
 decaf377 = "0.1"
