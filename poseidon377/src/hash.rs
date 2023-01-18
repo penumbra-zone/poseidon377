@@ -1,3 +1,5 @@
+use ark_ff::vec;
+
 use crate::{Fq, Instance};
 
 /// Hash a single [`Fq`] element with the provided `domain_separator`.
@@ -81,8 +83,9 @@ pub fn hash_7(domain_separator: &Fq, value: (Fq, Fq, Fq, Fq, Fq, Fq, Fq)) -> Fq 
 
 #[cfg(test)]
 mod test {
-    use ark_ff::PrimeField;
     use std::str::FromStr;
+
+    use ark_ff::PrimeField;
 
     use super::*;
 

@@ -6,8 +6,6 @@ authors = ["Penumbra <crates@penumbra.zone>", "redshiftzero <jen@penumbra.zone>"
 description = "Checks consistency between Penumbra and Ark-sponge implementation"
 license = "MIT OR Apache-2.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 poseidon-paramgen = { path = "../poseidon-paramgen", default-features = false }
 poseidon-permutation = { path="../poseidon-permutation", default-features = false }

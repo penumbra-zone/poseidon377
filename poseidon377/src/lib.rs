@@ -1,4 +1,5 @@
 //! An instantiation of Poseidon for the BLS12-377 scalar field.
+#![cfg_attr(not(feature = "std"), no_std)]
 
 use once_cell::sync::Lazy;
 
@@ -7,10 +8,12 @@ mod hash;
 // We want the full parameters to be available in the documentation.
 #[cfg(doc)]
 pub mod params {
+    use ark_ff::vec;
     include!(concat!(env!("OUT_DIR"), "/params.rs"));
 }
 #[cfg(not(doc))]
 mod params {
+    use ark_ff::vec;
     include!(concat!(env!("OUT_DIR"), "/params.rs"));
 }
 
