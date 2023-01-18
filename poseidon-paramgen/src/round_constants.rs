@@ -1,5 +1,6 @@
 use anyhow::Result;
 use ark_ff::PrimeField;
+use ark_std::{vec, vec::Vec};
 use merlin::Transcript;
 
 use crate::{
@@ -177,9 +178,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use ark_ed_on_bls12_377::Fq;
+
+    use super::*;
 
     #[test]
     fn convert_from_arc_to_vec_of_vecs() {

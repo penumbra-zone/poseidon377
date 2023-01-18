@@ -1,4 +1,5 @@
 use ark_ff::{BigInteger, PrimeField};
+use ark_std::vec;
 use merlin::Transcript;
 
 use crate::{Alpha, InputParameters, RoundNumbers};

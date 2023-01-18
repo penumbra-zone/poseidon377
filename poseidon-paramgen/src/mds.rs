@@ -1,5 +1,6 @@
 use anyhow::Result;
 use ark_ff::{BigInteger, PrimeField};
+use ark_std::vec::Vec;
 
 use crate::{
     matrix::mat_mul, InputParameters, Matrix, MatrixOperations, RoundNumbers, SquareMatrix,
@@ -356,13 +357,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::Alpha;
-
-    use super::*;
-
     use ark_ed_on_bls12_377::{Fq as Fq377, FqParameters as Fq377Parameters};
     use ark_ed_on_bls12_381::{Fq, FqParameters as Fq381Parameters};
     use ark_ff::{fields::FpParameters, One, Zero};
+
+    use super::*;
+    use crate::Alpha;
 
     #[test]
     fn convert_from_mds_to_vec_of_vecs() {

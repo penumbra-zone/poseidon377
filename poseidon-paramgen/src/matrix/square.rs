@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use ark_ff::PrimeField;
+use ark_std::{vec, vec::Vec};
 
 use crate::{mat_mul, Matrix, MatrixOperations, SquareMatrixOperations};
 

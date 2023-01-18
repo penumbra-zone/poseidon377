@@ -1,3 +1,4 @@
+#![cfg_attr(not(feature = "std"), no_std)]
 #![allow(non_snake_case)]
 #![deny(missing_docs)]
 //! Module for generating parameters for the Poseidon SNARK-friendly hash function.
@@ -15,6 +16,9 @@
 //!
 //! [Poseidon paper]: https://eprint.iacr.org/2019/458.pdf
 
+#[cfg(not(feature = "std"))]
+extern crate alloc;
+
 mod alpha;
 mod input;
 mod matrix;
@@ -25,9 +29,11 @@ mod transcript;
 mod utils;
 
 /// For generating parameters at build time.
+#[cfg(feature = "std")]
 pub mod poseidon_build;
 
 pub use alpha::Alpha;
+use ark_ff::PrimeField;
 pub use input::InputParameters;
 pub use matrix::{
     dot_product, mat_mul, Matrix, MatrixOperations, SquareMatrix, SquareMatrixOperations,
@@ -36,8 +42,6 @@ pub use mds::{MdsMatrix, OptimizedMdsMatrices};
 pub use round_constants::{ArcMatrix, OptimizedArcMatrix};
 pub use rounds::RoundNumbers;
 pub use utils::log2;
-
-use ark_ff::PrimeField;
 
 /// A set of Poseidon parameters for a given set of input parameters.
 #[derive(Clone, Debug)]

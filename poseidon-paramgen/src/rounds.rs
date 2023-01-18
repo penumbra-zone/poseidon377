@@ -1,6 +1,5 @@
-use std::cmp::{Ordering, PartialOrd};
-
 use ark_ff::BigInteger;
+use ark_std::cmp::{Ordering, PartialOrd};
 
 use super::{Alpha, InputParameters};
 
