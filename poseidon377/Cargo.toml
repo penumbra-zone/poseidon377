@@ -1,25 +1,25 @@
 [package]
 name = "poseidon377"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2018"
 authors = ["Penumbra <crates@penumbra.zone>", "redshiftzero <jen@penumbra.zone>"]
 description = "An instantiation of the Poseidon hash for use with decaf377."
 license = "MIT OR Apache-2.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-once_cell = "1.8"
-ark-ff = "0.3"
-poseidon-paramgen = { version="0.1" }
-poseidon-permutation = { version="0.1", path= "../poseidon-permutation" }
-ark-relations = { version="0.3", optional=true }
-ark-sponge = { git = "https://github.com/penumbra-zone/sponge", branch = "r1cs" }
-decaf377 = {  version="0.1", features = ["r1cs"] }
-num-bigint = "0.4.3"
-ark-groth16 = { version = "0.3", optional=true }
-ark-snark = { version = "0.3", optional=true }
-ark-r1cs-std = {version = "0.3", optional=true }
+ark-ff = { version = "0.3", default-features = false }
+ark-groth16 = { version = "0.3", default-features = false, optional=true }
+ark-r1cs-std = {version = "0.3", default-features = false, optional=true }
+ark-relations = { version="0.3", default-features = false, optional=true }
+ark-snark = { version = "0.3", default-features = false, optional=true }
+decaf377 = { version="0.1", features = ["r1cs"] }
+num-bigint = { version = "0.4.3", default-features = false }
+once_cell = { version = "1.8", default-features = false }
+
+ark-sponge = { git = "https://github.com/penumbra-zone/sponge", default-features = false, branch = "r1cs" }
+
+poseidon-paramgen = { path = "../poseidon-paramgen", default-features = false }
+poseidon-permutation = { path = "../poseidon-permutation", default-features = false }
 
 [dev-dependencies]
 ark-ed-on-bls12-381 = "0.3"
@@ -29,7 +29,15 @@ rand_core = { version = "0.6.3", features = ["getrandom"] }
 rand_chacha = "0.3"
 
 [features]
-default = []
+default = ["std"]
+std = [
+    "ark-ff/std",
+    "ark-groth16/std",
+    "ark-r1cs-std",
+    "ark-relations/std",
+    "num-bigint/std",
+    "once_cell/std",
+]
 r1cs = ["ark-groth16", "ark-relations", "ark-snark", "ark-r1cs-std"]
 
 [[bench]]
@@ -37,7 +45,7 @@ name = "oldhash"
 harness = false
 
 [build-dependencies]
-poseidon-paramgen = { version="0.1" }
+poseidon-paramgen = { path = "../poseidon-paramgen" }
 ark-ed-on-bls12-377 = "0.3"
 ark-ff = "0.3"
 
