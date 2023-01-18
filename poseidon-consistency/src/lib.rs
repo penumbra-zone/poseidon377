@@ -1,3 +1,5 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+
 use ark_sponge::poseidon::PoseidonParameters as ArkPoseidonParameters;
 use decaf377::Fq;
 use poseidon_paramgen::{Alpha, PoseidonParameters};
@@ -28,18 +30,17 @@ pub fn convert_to_ark_sponge_parameters(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use poseidon_permutation::Instance;
-    use proptest::prelude::*;
-
     use ark_ed_on_bls12_377::{Fq, FqParameters};
-    use ark_ff::FpParameters;
-    use ark_ff::{PrimeField, Zero};
+    use ark_ff::{FpParameters, PrimeField, Zero};
     use ark_sponge::{
         poseidon::{PoseidonParameters as Parameters, PoseidonSponge},
         CryptographicSponge,
     };
     use poseidon_paramgen::PoseidonParameters;
+    use poseidon_permutation::Instance;
+    use proptest::prelude::*;
+
+    use super::*;
 
     #[test]
     fn check_optimized_impl_vs_sage() {
