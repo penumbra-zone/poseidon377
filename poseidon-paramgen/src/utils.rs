@@ -1,6 +1,5 @@
-use std::convert::TryInto;
-
 use ark_ff::BigInteger;
+use ark_std::convert::TryInto;
 use num_bigint::BigUint;
 
 /// Computes the binary log of a `BigInteger`
@@ -32,10 +31,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use ark_ed_on_bls12_381::FqParameters as Fq381Parameters;
     use ark_ff::{BigInteger256, FpParameters};
+
+    use super::*;
 
     #[test]
     fn log2_bigint() {

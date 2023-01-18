@@ -1,15 +1,12 @@
 #[allow(non_snake_case)]
 #[cfg(test)]
 mod tests {
-    use poseidon_paramgen::PoseidonParameters;
-    use poseidon_paramgen::{Alpha, InputParameters, RoundNumbers};
     use std::convert::TryFrom;
 
+    use ark_ed_on_bls12_377::{Fq, FqParameters as Fq377Parameters};
     use ark_ff::{fields::FpParameters, BigInteger768};
-
-    use ark_ed_on_bls12_377::Fq;
-    use ark_ed_on_bls12_377::FqParameters as Fq377Parameters;
     use num_bigint::BigUint;
+    use poseidon_paramgen::{Alpha, InputParameters, PoseidonParameters, RoundNumbers};
 
     /// Represents a row in Table 7-9 in Appendix G of the paper.
     #[allow(dead_code)]

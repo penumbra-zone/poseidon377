@@ -1,7 +1,6 @@
-use std::ops::Mul;
-
 use anyhow::{anyhow, Result};
 use ark_ff::PrimeField;
+use ark_std::{ops::Mul, vec::Vec};
 
 use crate::{Matrix, MatrixOperations, SquareMatrix};
 

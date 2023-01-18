@@ -1,6 +1,7 @@
-use std::slice::Chunks;
+use core::slice::Chunks;
 
 use anyhow::Result;
+use ark_std::vec::Vec;
 
 /// Basic matrix operations all matrices should implement.
 pub trait MatrixOperations<F> {

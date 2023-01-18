@@ -1,4 +1,5 @@
 use ark_ff::PrimeField;
+use ark_std::vec::Vec;
 use num::integer::gcd;
 use num_bigint::BigUint;
 
@@ -88,13 +89,13 @@ impl Alpha {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use ark_bn254::{Fq as Fq254, FqParameters as FqParameters254};
     use ark_ed_on_bls12_377::{Fq as Fq377, FqParameters as FqParameters377};
     use ark_ed_on_bls12_381::{Fq as Fq381, FqParameters as FqParameters381};
     use ark_ff::FpParameters;
     use num_bigint::BigInt;
+
+    use super::*;
 
     #[test]
     fn test_gcd() {

@@ -21,11 +21,11 @@ pub use traits::{MatrixOperations, SquareMatrixOperations};
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use proptest::prelude::*;
-
     use ark_ed_on_bls12_377::Fq;
     use ark_ff::{One, PrimeField, Zero};
+    use proptest::prelude::*;
+
+    use super::*;
 
     #[test]
     fn identity_matrix() {
