@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 
-use ark_ff::PrimeField;
-
+use ark_ff::{vec, vec::Vec, PrimeField};
 use poseidon_paramgen::{Alpha, MatrixOperations, PoseidonParameters};
 
 /// Represents a generic instance of `Poseidon`.
