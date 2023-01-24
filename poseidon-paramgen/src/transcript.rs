@@ -2,14 +2,14 @@ use ark_ff::{BigInteger, PrimeField};
 use ark_std::vec;
 use merlin::Transcript;
 
-use crate::{Alpha, InputParameters, RoundNumbers};
+use crate::{Alpha, RoundNumbers};
 
 pub(crate) trait TranscriptProtocol {
     fn domain_sep<F: PrimeField>(
         &mut self,
-        input: &InputParameters<F::BigInt>,
-        round_numbers: RoundNumbers<poseidon_parameters::RoundNumbers>,
-        alpha: Alpha<poseidon_parameters::Alpha>,
+        input: &poseidon_parameters::InputParameters<F::BigInt>,
+        round_numbers: poseidon_parameters::RoundNumbers,
+        alpha: poseidon_parameters::Alpha,
     );
     fn round_constant<F: PrimeField>(&mut self) -> F;
 }
@@ -17,15 +17,18 @@ pub(crate) trait TranscriptProtocol {
 impl TranscriptProtocol for Transcript {
     fn domain_sep<F: PrimeField>(
         &mut self,
-        input: &InputParameters<F::BigInt>,
-        round_numbers: RoundNumbers<poseidon_parameters::RoundNumbers>,
-        alpha: Alpha<poseidon_parameters::Alpha>,
+        input: &poseidon_parameters::InputParameters<F::BigInt>,
+        round_numbers: poseidon_parameters::RoundNumbers,
+        alpha: poseidon_parameters::Alpha,
     ) {
         self.append_message(b"dom-sep", b"poseidon-paramgen");
         // Bind transcript to input parameter choices
         self.append_message(b"t", &input.t.to_le_bytes());
         self.append_message(b"M", &input.M.to_le_bytes());
         self.append_message(b"p", &input.p.to_bytes_le());
+
+        let round_numbers = RoundNumbers(round_numbers);
+        let alpha = Alpha(alpha);
 
         // Bind transcript also to specific instance as done with the Grain LFSR
         // in Appendix F of the Poseidon paper.
