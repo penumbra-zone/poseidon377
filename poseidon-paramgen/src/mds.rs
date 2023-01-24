@@ -7,9 +7,11 @@ use crate::{
     SquareMatrixOperations,
 };
 
-/// Represents an MDS (maximum distance separable) matrix.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct MdsMatrix<F: PrimeField>(pub SquareMatrix<F>);
+// /// Represents an MDS (maximum distance separable) matrix.
+// #[derive(Clone, Debug, PartialEq, Eq)]
+// pub struct MdsMatrix<F: PrimeField>(pub SquareMatrix<F>);
+
+pub struct MdsMatrix<T>(pub T);
 
 impl<F> MdsMatrix<F>
 where
@@ -213,7 +215,7 @@ where
     pub fn generate(
         mds: &MdsMatrix<F>,
         t: usize,
-        rounds: &RoundNumbers,
+        rounds: &RoundNumbers<poseidon_parameters::RoundNumbers>,
     ) -> OptimizedMdsMatrices<F> {
         let M_hat = mds.hat();
         let M_hat_inverse = M_hat
@@ -277,7 +279,7 @@ where
 
     pub(crate) fn calc_equivalent_matrices(
         mds: &MdsMatrix<F>,
-        rounds: &RoundNumbers,
+        rounds: &RoundNumbers<poseidon_parameters::RoundNumbers>,
     ) -> (Matrix<F>, Vec<Matrix<F>>, Vec<Matrix<F>>) {
         let r_P = rounds.partial();
         let mut w_hat_collection = Vec::with_capacity(rounds.partial());
@@ -397,7 +399,7 @@ mod tests {
         let M = 128;
 
         let input = InputParameters::new(M, 3, Fq377Parameters::MODULUS, true);
-        let rounds = RoundNumbers::new(&input, &Alpha::Exponent(17));
+        let rounds = RoundNumbers::new(&input, &Alpha(poseidon_parameters::Alpha::Exponent(17)));
         let mds: MdsMatrix<Fq377> = MdsMatrix::generate(&input);
         let M_00 = mds.get_element(0, 0);
         // Sanity check

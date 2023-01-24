@@ -19,8 +19,8 @@ where
     /// Generate round constants.
     pub fn generate(
         input: &InputParameters<F::BigInt>,
-        round_numbers: RoundNumbers,
-        alpha: Alpha,
+        round_numbers: RoundNumbers<poseidon_parameters::RoundNumbers>,
+        alpha: Alpha<poseidon_parameters::Alpha>,
     ) -> ArcMatrix<F> {
         let mut transcript = Transcript::new(b"round-constants");
         transcript.domain_sep::<F>(input, round_numbers, alpha);
@@ -131,7 +131,7 @@ where
     pub fn generate(
         arc: &ArcMatrix<F>,
         mds: &MdsMatrix<F>,
-        rounds: &RoundNumbers,
+        rounds: &RoundNumbers<poseidon_parameters::RoundNumbers>,
     ) -> OptimizedArcMatrix<F> {
         let n_cols = arc.n_cols();
         let mut constants_temp = arc.clone();

@@ -43,28 +43,33 @@ impl ShortestAdditionChains {
     }
 }
 
-/// The exponent in `Sbox(x) = x^\alpha`.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Alpha {
-    /// A positive exponent $x^{alpha}$.
-    Exponent(u32),
-    /// 1/x
-    Inverse,
-}
+// /// The exponent in `Sbox(x) = x^\alpha`.
+// #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+// pub enum Alpha {
+//     /// A positive exponent $x^{alpha}$.
+//     Exponent(u32),
+//     /// 1/x
+//     Inverse,
+// }
 
-impl Alpha {
+pub struct Alpha<T>(pub T);
+
+impl Alpha<poseidon_parameters::Alpha> {
     /// Select the best choice of `Alpha` given the parameters.
-    pub fn generate<F: PrimeField>(p: F::BigInt, allow_inverse: bool) -> Self {
+    pub fn generate<F: PrimeField>(
+        p: F::BigInt,
+        allow_inverse: bool,
+    ) -> poseidon_parameters::Alpha {
         // Move through the addition chains in increasing depth,
         // picking the leftmost choice that meets the coprime requirement.
         for candidate in SHORTEST_ADDITION_CHAINS.depths_in_order() {
             if candidate % 2 != 0 && Self::alpha_coprime_to_p_minus_one::<F>(*candidate, p) {
-                return Alpha::Exponent(*candidate);
+                return poseidon_parameters::Alpha::Exponent(*candidate);
             }
         }
 
         if allow_inverse {
-            Alpha::Inverse
+            poseidon_parameters::Alpha::Inverse
         } else {
             panic!("could not find a small positive exponent and allow_inverse was not enabled")
         }
@@ -80,9 +85,9 @@ impl Alpha {
 
     /// Return the memory representation of alpha as a byte array in little-endian byte order.
     pub fn to_bytes_le(&self) -> [u8; 4] {
-        match self {
-            Alpha::Exponent(exp) => exp.to_le_bytes(),
-            Alpha::Inverse => (-1i32).to_le_bytes(),
+        match self.0 {
+            poseidon_parameters::Alpha::Exponent(exp) => exp.to_le_bytes(),
+            poseidon_parameters::Alpha::Inverse => (-1i32).to_le_bytes(),
         }
     }
 }
@@ -118,16 +123,25 @@ mod tests {
         // We know from the Poseidon paper that we should get an alpha of 5 for
         // BLS12-381 and BN254 (see Table 2)
         let p = FqParameters381::MODULUS;
-        assert_eq!(Alpha::generate::<Fq381>(p, true), Alpha::Exponent(5));
+        assert_eq!(
+            Alpha::generate::<Fq381>(p, true),
+            poseidon_parameters::Alpha::Exponent(5)
+        );
 
         let p = FqParameters254::MODULUS;
-        assert_eq!(Alpha::generate::<Fq254>(p, true), Alpha::Exponent(5));
+        assert_eq!(
+            Alpha::generate::<Fq254>(p, true),
+            poseidon_parameters::Alpha::Exponent(5)
+        );
     }
 
     #[test]
     fn check_alpha_17() {
         // For Poseidon377, we should get an alpha of 17 (from our own work).
         let p = FqParameters377::MODULUS;
-        assert_eq!(Alpha::generate::<Fq377>(p, true), Alpha::Exponent(17));
+        assert_eq!(
+            Alpha::generate::<Fq377>(p, true),
+            poseidon_parameters::Alpha::Exponent(17)
+        );
     }
 }

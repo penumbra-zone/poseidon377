@@ -3,18 +3,23 @@ use ark_std::cmp::{Ordering, PartialOrd};
 
 use super::{Alpha, InputParameters};
 
-/// `RoundNumbers` required for security based on known attacks.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct RoundNumbers {
-    /// Number of partial rounds.
-    pub r_P: usize,
-    /// Number of full rounds.
-    pub r_F: usize,
-}
+// /// `RoundNumbers` required for security based on known attacks.
+// #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+// pub struct RoundNumbers {
+//     /// Number of partial rounds.
+//     pub r_P: usize,
+//     /// Number of full rounds.
+//     pub r_F: usize,
+// }
 
-impl RoundNumbers {
+pub struct RoundNumbers<T>(pub T);
+
+impl RoundNumbers<poseidon_parameters::RoundNumbers> {
     /// Generate round numbers.
-    pub fn new<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> Self {
+    pub fn new<T: BigInteger>(
+        input: &poseidon_parameters::InputParameters<T>,
+        alpha: &poseidon_parameters::Alpha,
+    ) -> poseidon_parameters::RoundNumbers {
         let mut choice: Option<RoundNumbers> = None;
         let mut cost = usize::MAX;
         let mut cost_rf = usize::MAX;
@@ -22,7 +27,7 @@ impl RoundNumbers {
         // Loop through choices of r_F, r_P
         for r_P in 1..400 {
             for r_F in 4..100 {
-                let mut candidate = RoundNumbers { r_F, r_P };
+                let mut candidate = RoundNumbers(poseidon_parameters::RoundNumbers { r_F, r_P });
                 if !candidate.is_secure(input, alpha) {
                     continue;
                 }
@@ -43,16 +48,20 @@ impl RoundNumbers {
     }
 
     /// Check if this `RoundNumbers` choice is secure given all known attacks.
-    fn is_secure<T: BigInteger>(&self, input: &InputParameters<T>, alpha: &Alpha) -> bool {
+    fn is_secure<T: BigInteger>(
+        &self,
+        input: &poseidon_parameters::InputParameters<T>,
+        alpha: &poseidon_parameters::Alpha,
+    ) -> bool {
         // Check if the number of full rounds are sufficient.
-        if self.r_F < RoundNumbers::statistical_attack_full_rounds(input, alpha) {
+        if self.0.r_F < RoundNumbers::statistical_attack_full_rounds(input, alpha) {
             return false;
         }
 
         match alpha {
             // For positive alpha, the interpolation and Grobner bounds are on the total
             // number of rounds.
-            Alpha::Exponent(_) => {
+            poseidon_parameters::Alpha::Exponent(_) => {
                 if self.total() <= RoundNumbers::algebraic_attack_interpolation(input, alpha) {
                     return false;
                 }
@@ -62,7 +71,7 @@ impl RoundNumbers {
             }
             // For inverse alpha, the interpolation and Grobner bounds are on r_F scaled
             // by the binary log of `t` plus r_P. See Eqn 4.
-            Alpha::Inverse => {
+            poseidon_parameters::Alpha::Inverse => {
                 if (self.r_F as f64 * (input.t as f64).log2()).floor() as usize + self.r_P
                     <= RoundNumbers::algebraic_attack_interpolation(input, alpha)
                 {
@@ -96,8 +105,8 @@ impl RoundNumbers {
     /// These are the differential/linear distinguisher attacks described
     /// in Section 5.5.1 of the paper.
     fn statistical_attack_full_rounds<T: BigInteger>(
-        input: &InputParameters<T>,
-        alpha: &Alpha,
+        input: &poseidon_parameters::InputParameters<T>,
+        alpha: &poseidon_parameters::Alpha,
     ) -> usize {
         // C is defined in Section 5.5.1, p.10.
         let C = match alpha {
@@ -123,17 +132,17 @@ impl RoundNumbers {
     /// For positive alpha, we use Eqn 3.
     /// For negative alpha, we use Eqn 4.
     fn algebraic_attack_interpolation<T: BigInteger>(
-        input: &InputParameters<T>,
-        alpha: &Alpha,
+        input: &poseidon_parameters::InputParameters<T>,
+        alpha: &poseidon_parameters::Alpha,
     ) -> usize {
         let min_args = [input.M as f64, input.log_2_p];
         match alpha {
-            Alpha::Inverse => {
+            poseidon_parameters::Alpha::Inverse => {
                 return (((input.t as f64).log2()).ceil()
                     + (0.5 * min_args.iter().min_by(cmp_f64).expect("no NaNs")).ceil())
                     as usize;
             }
-            Alpha::Exponent(exp) => {
+            poseidon_parameters::Alpha::Exponent(exp) => {
                 return ((2f64.log(*exp as f64) * min_args.iter().min_by(cmp_f64).expect("no NaNs"))
                     .ceil()
                     + (input.t as f64).log(*exp as f64))
@@ -150,14 +159,14 @@ impl RoundNumbers {
     /// eliding the third since if the first condition is satisfied, then
     /// the third will be also.
     fn algebraic_attack_grobner_basis<T: BigInteger>(
-        input: &InputParameters<T>,
-        alpha: &Alpha,
+        input: &poseidon_parameters::InputParameters<T>,
+        alpha: &poseidon_parameters::Alpha,
     ) -> usize {
         let grobner_1: f64;
         let grobner_2: f64;
 
         match alpha {
-            Alpha::Inverse => {
+            poseidon_parameters::Alpha::Inverse => {
                 // First Grobner constraint
                 let grobner_1_min_args = [input.M as f64, (input.log_2_p as f64)];
                 grobner_1 = (0.5f64 * grobner_1_min_args.iter().min_by(cmp_f64).expect("no NaNs"))
@@ -172,7 +181,7 @@ impl RoundNumbers {
                     + ((input.t as f64).log2()).ceil()
                     + grobner_2_min_args.iter().min_by(cmp_f64).expect("no NaNs");
             }
-            Alpha::Exponent(exp) => {
+            poseidon_parameters::Alpha::Exponent(exp) => {
                 // First Grobner constraint
                 let grobner_1_min_args = [(input.M as f64 / 3.0), (input.log_2_p / 2.0)];
                 grobner_1 = 2f64.log(*exp as f64)
@@ -198,17 +207,17 @@ impl RoundNumbers {
 
     /// Number of total rounds.
     pub fn total(&self) -> usize {
-        self.r_P + self.r_F
+        self.0.r_P + self.0.r_F
     }
 
     /// Number of partial rounds.
     pub fn partial(&self) -> usize {
-        self.r_P
+        self.0.r_P
     }
 
     /// Number of full rounds.
     pub fn full(&self) -> usize {
-        self.r_F
+        self.0.r_F
     }
 }
 
