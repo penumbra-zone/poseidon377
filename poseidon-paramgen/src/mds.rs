@@ -306,10 +306,10 @@ where
         let mut M_i = OptimizedMdsMatrices::prime(&M_mul.0);
 
         for _ in (0..r_P).rev() {
-            let M_hat = M_mul.hat();
-            let w = M_mul.w();
+            let M_hat = MdsMatrix(M_mul).hat();
+            let w = MdsMatrix(M_mul).w();
 
-            let v = M_mul.v();
+            let v = MdsMatrix(M_mul).v();
             v_collection.push(v);
             let w_hat = mat_mul(&M_hat.inverse().expect("can invert Mhat").0, &w)
                 .expect("can compute w_hat");
@@ -318,12 +318,9 @@ where
             // Now we compute M' and M * M' for the previous round
             M_i = OptimizedMdsMatrices::prime(&M_hat);
 
-            //
-            // let m_t: &poseidon_parameters::SquareMatrix<F> = &M_T.0;
-            // let m_i: &poseidon_parameters::SquareMatrix<F> = &M_i;
-            //
-
-            M_mul = MdsMatrix(mat_mul(&M_T.0, &M_i).expect("mds and M_i have same dimensions"));
+            M_mul = poseidon_parameters::MdsMatrix(
+                mat_mul(&M_T.0, &M_i).expect("mds and M_i have same dimensions"),
+            );
         }
 
         (M_i.0.transpose(), v_collection, w_hat_collection)
@@ -357,7 +354,7 @@ where
     ) -> poseidon_parameters::SquareMatrix<F> {
         let dim = M_hat_inverse.n_cols() + 1;
         let mut new_elements = Vec::with_capacity(dim * dim);
-        let identity = SquareMatrix::identity(dim - 1);
+        let identity = poseidon_parameters::SquareMatrix::identity(dim - 1);
         let w_hat =
             mat_mul(&M_hat_inverse.0, w).expect("matrix multiplication should always exist");
 
@@ -386,17 +383,16 @@ mod tests {
     use ark_ff::{fields::FpParameters, One, Zero};
 
     use super::*;
-    use crate::Alpha;
 
     #[test]
     fn convert_from_mds_to_vec_of_vecs() {
-        let MDS_matrix = MdsMatrix(SquareMatrix::from_vec(vec![
+        let MDS_matrix = poseidon_parameters::MdsMatrix(SquareMatrix::from_vec(vec![
             Fq::from(1u32),
             Fq::from(2u32),
             Fq::from(3u32),
             Fq::from(4u32),
         ]));
-        let vec_of_vecs: Vec<Vec<Fq>> = MDS_matrix.into();
+        let vec_of_vecs: Vec<Vec<Fq>> = MdsMatrix(MDS_matrix).into();
         assert_eq!(vec_of_vecs[0][0], Fq::from(1u32));
         assert_eq!(vec_of_vecs[0][1], Fq::from(2u32));
         assert_eq!(vec_of_vecs[1][0], Fq::from(3u32));
@@ -409,7 +405,7 @@ mod tests {
         let t = 3;
 
         let input = InputParameters::new(M, 3, Fq381Parameters::MODULUS, true);
-        let MDS_matrix: MdsMatrix<Fq> = MdsMatrix::generate(&input);
+        let MDS_matrix: poseidon_parameters::MdsMatrix<Fq> = MdsMatrix::generate(&input);
 
         assert!(MDS_matrix.0.determinant() != Fq::zero());
         assert_eq!(MDS_matrix.n_rows(), t);
@@ -421,8 +417,8 @@ mod tests {
         let M = 128;
 
         let input = InputParameters::new(M, 3, Fq377Parameters::MODULUS, true);
-        let rounds = RoundNumbers::new(&input, &Alpha(poseidon_parameters::Alpha::Exponent(17)));
-        let mds: MdsMatrix<Fq377> = MdsMatrix::generate(&input);
+        let rounds = RoundNumbers::new(&input, &poseidon_parameters::Alpha::Exponent(17));
+        let mds: poseidon_parameters::MdsMatrix<Fq377> = MdsMatrix::generate(&input);
         let M_00 = mds.get_element(0, 0);
         // Sanity check
         assert_eq!(
