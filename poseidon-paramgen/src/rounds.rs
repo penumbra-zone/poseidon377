@@ -20,7 +20,7 @@ impl RoundNumbers<poseidon_parameters::RoundNumbers> {
         input: &poseidon_parameters::InputParameters<T>,
         alpha: &poseidon_parameters::Alpha,
     ) -> poseidon_parameters::RoundNumbers {
-        let mut choice: Option<RoundNumbers> = None;
+        let mut choice: Option<poseidon_parameters::RoundNumbers> = None;
         let mut cost = usize::MAX;
         let mut cost_rf = usize::MAX;
 
@@ -39,7 +39,7 @@ impl RoundNumbers<poseidon_parameters::RoundNumbers> {
                 if (candidate_cost < cost) || ((candidate_cost == cost) && (r_F < cost_rf)) {
                     cost = candidate_cost;
                     cost_rf = r_F;
-                    choice = Some(candidate);
+                    choice = Some(candidate.0);
                 }
             }
         }
@@ -72,12 +72,12 @@ impl RoundNumbers<poseidon_parameters::RoundNumbers> {
             // For inverse alpha, the interpolation and Grobner bounds are on r_F scaled
             // by the binary log of `t` plus r_P. See Eqn 4.
             poseidon_parameters::Alpha::Inverse => {
-                if (self.r_F as f64 * (input.t as f64).log2()).floor() as usize + self.r_P
+                if (self.0.r_F as f64 * (input.t as f64).log2()).floor() as usize + self.0.r_P
                     <= RoundNumbers::algebraic_attack_interpolation(input, alpha)
                 {
                     return false;
                 }
-                if (self.r_F as f64 * (input.t as f64).log2()).floor() as usize + self.r_P
+                if (self.0.r_F as f64 * (input.t as f64).log2()).floor() as usize + self.0.r_P
                     <= RoundNumbers::algebraic_attack_grobner_basis(input, alpha)
                 {
                     return false;
@@ -90,14 +90,14 @@ impl RoundNumbers<poseidon_parameters::RoundNumbers> {
 
     /// Get the number of SBoxes for these `RoundNumbers` on a permutation of width `t`.
     pub(crate) fn sbox_count(&self, t: usize) -> usize {
-        t * self.r_F + self.r_P
+        t * self.0.r_F + self.0.r_P
     }
 
     /// Add suggested security margin of +2 R_F and +7.5% R_P.
     /// Ref: Section 5.4.
     fn apply_security_margin(&mut self) {
-        self.r_F += 2;
-        self.r_P = (1.075 * (self.r_P as f64)).ceil() as usize;
+        self.0.r_F += 2;
+        self.0.r_P = (1.075 * (self.0.r_P as f64)).ceil() as usize;
     }
 
     /// Number of full rounds required to defend against statistical attacks.
@@ -110,8 +110,8 @@ impl RoundNumbers<poseidon_parameters::RoundNumbers> {
     ) -> usize {
         // C is defined in Section 5.5.1, p.10.
         let C = match alpha {
-            Alpha::Inverse => 2.0,
-            Alpha::Exponent(exp) => (*exp as f64 - 1.0).log2(),
+            poseidon_parameters::Alpha::Inverse => 2.0,
+            poseidon_parameters::Alpha::Exponent(exp) => (*exp as f64 - 1.0).log2(),
         };
 
         // Statistical attacks require at least 6 full rounds.
