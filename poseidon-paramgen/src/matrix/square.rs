@@ -48,9 +48,7 @@ impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::SquareMatrix<F>
 
     /// Hadamard (element-wise) matrix product
     fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
-        Ok(poseidon_parameters::SquareMatrix(
-            self.0.hadamard_product(&rhs.0)?,
-        ))
+        Ok(Self(self.0.hadamard_product(&rhs.0)?))
     }
 }
 
@@ -89,7 +87,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMat
             .hadamard_product(&cofactor_matrix)
             .expect("minor and cofactor matrix have correct dimensions");
         let adj = signed_minors.transpose();
-        let matrix_inverse = adj * (F::one() / determinant);
+        let matrix_inverse = SquareMatrix(adj) * (F::one() / determinant);
 
         debug_assert_eq!(
             mat_mul(self, &matrix_inverse)

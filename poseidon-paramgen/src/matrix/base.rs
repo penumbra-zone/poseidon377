@@ -21,11 +21,11 @@ use crate::MatrixOperations;
 pub struct Matrix<T>(pub T);
 
 impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::Matrix<F> {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> poseidon_parameters::Matrix<F> {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
         if elements.len() != n_rows * n_cols {
             panic!("Matrix has insufficient elements")
         }
-        poseidon_parameters::Matrix {
+        Self {
             elements,
             n_cols,
             n_rows,
@@ -65,11 +65,11 @@ impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::Matrix<F> {
                 transposed_elements.push(self.get_element(i, j))
             }
         }
-        poseidon_parameters::Matrix::new(self.n_cols, self.n_rows, transposed_elements)
+        Self::new(self.n_cols, self.n_rows, transposed_elements)
     }
 
     /// Hadamard (element-wise) matrix product
-    fn hadamard_product(&self, rhs: &poseidon_parameters::Matrix<F>) -> Result<Self> {
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
         if self.n_rows != rhs.n_rows || self.n_cols != rhs.n_cols {
             return Err(anyhow!("Hadamard product requires same shape matrices"));
         }
@@ -81,11 +81,7 @@ impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::Matrix<F> {
             }
         }
 
-        Ok(poseidon_parameters::Matrix::new(
-            self.n_rows,
-            self.n_cols,
-            new_elements,
-        ))
+        Ok(Self::new(self.n_rows, self.n_cols, new_elements))
     }
 }
 

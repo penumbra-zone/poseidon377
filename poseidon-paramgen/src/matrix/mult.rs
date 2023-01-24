@@ -39,22 +39,23 @@ pub fn mat_mul<F: PrimeField, M: MatrixOperations<F>>(lhs: &M, rhs: &M) -> Resul
 }
 
 /// Multiply scalar by Matrix
-impl<F: PrimeField> Mul<F> for Matrix<F> {
-    type Output = Matrix<F>;
+impl<F: PrimeField> Mul<F> for Matrix<poseidon_parameters::Matrix<F>> {
+    // type Output = Matrix<F>;
+    type Output = poseidon_parameters::Matrix<F>;
 
     fn mul(self, rhs: F) -> Self::Output {
-        let elements = self.elements();
+        let elements = self.0.elements();
         let new_elements: Vec<F> = elements.iter().map(|element| *element * rhs).collect();
-        Matrix::new(self.n_rows, self.n_cols, new_elements)
+        poseidon_parameters::Matrix::new(self.0.n_rows, self.0.n_cols, new_elements)
     }
 }
 
 /// Multiply scalar by SquareMatrix
-impl<F: PrimeField> Mul<F> for SquareMatrix<F> {
-    type Output = SquareMatrix<F>;
+impl<F: PrimeField> Mul<F> for SquareMatrix<poseidon_parameters::SquareMatrix<F>> {
+    type Output = poseidon_parameters::SquareMatrix<F>;
 
     fn mul(self, rhs: F) -> Self::Output {
-        let elements = self.elements();
+        let elements = self.0.elements();
         let new_elements: Vec<F> = elements.iter().map(|element| *element * rhs).collect();
         SquareMatrix::from_vec(new_elements)
     }
