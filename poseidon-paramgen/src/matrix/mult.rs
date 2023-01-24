@@ -40,7 +40,6 @@ pub fn mat_mul<F: PrimeField, M: MatrixOperations<F>>(lhs: &M, rhs: &M) -> Resul
 
 /// Multiply scalar by Matrix
 impl<F: PrimeField> Mul<F> for Matrix<poseidon_parameters::Matrix<F>> {
-    // type Output = Matrix<F>;
     type Output = poseidon_parameters::Matrix<F>;
 
     fn mul(self, rhs: F) -> Self::Output {

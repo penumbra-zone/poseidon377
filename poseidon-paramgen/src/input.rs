@@ -24,7 +24,7 @@ use crate::log2;
 
 pub struct InputParameters<T>(pub T);
 
-impl<T: BigInteger> InputParameters<T> {
+impl<T: BigInteger> InputParameters<poseidon_parameters::InputParameters<T>> {
     /// Create a new set of input parameters for a new Poseidon instance.
     pub fn new(
         M: usize,

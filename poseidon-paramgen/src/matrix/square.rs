@@ -11,10 +11,8 @@ use crate::{mat_mul, Matrix, MatrixOperations, SquareMatrixOperations};
 pub struct SquareMatrix<T>(pub T);
 
 impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::SquareMatrix<F> {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> poseidon_parameters::SquareMatrix<F> {
-        poseidon_parameters::SquareMatrix(poseidon_parameters::Matrix::new(
-            n_rows, n_cols, elements,
-        ))
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
+        Self(poseidon_parameters::Matrix::new(n_rows, n_cols, elements))
     }
 
     fn elements(&self) -> &Vec<F> {
