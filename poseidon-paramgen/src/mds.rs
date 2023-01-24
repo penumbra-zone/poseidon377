@@ -3,8 +3,8 @@ use ark_ff::{BigInteger, PrimeField};
 use ark_std::vec::Vec;
 
 use crate::{
-    matrix::mat_mul, InputParameters, Matrix, MatrixOperations, RoundNumbers, SquareMatrix,
-    SquareMatrixOperations,
+    matrix::mat_mul, InputParameters, Matrix, MatrixOperations, PoseidonParameters, RoundNumbers,
+    SquareMatrix, SquareMatrixOperations,
 };
 
 // /// Represents an MDS (maximum distance separable) matrix.
@@ -226,12 +226,12 @@ where
         t: usize,
         rounds: &poseidon_parameters::RoundNumbers,
     ) -> poseidon_parameters::OptimizedMdsMatrices<F> {
-        let M_hat = mds.hat();
+        let M_hat = MdsMatrix(*mds).hat();
         let M_hat_inverse = M_hat
             .inverse()
             .expect("all well-formed MDS matrices should have inverses");
-        let v = mds.v();
-        let w = mds.w();
+        let v = MdsMatrix(*mds).v();
+        let w = MdsMatrix(*mds).w();
         let M_prime = OptimizedMdsMatrices::prime(&M_hat);
         let M_00 = mds.get_element(0, 0);
         let M_doubleprime = OptimizedMdsMatrices::doubleprime(&M_hat_inverse, &w, &v, M_00);
@@ -271,7 +271,9 @@ where
         let (M_i, v_collection, w_hat_collection) =
             OptimizedMdsMatrices::calc_equivalent_matrices(mds, rounds);
 
-        OptimizedMdsMatrices {
+        let mds: MdsMatrix<poseidon_parameters::MdsMatrix<F>> = MdsMatrix(*mds);
+
+        poseidon_parameters::OptimizedMdsMatrices {
             M_hat,
             M_hat_inverse,
             v,
@@ -287,9 +289,14 @@ where
     }
 
     pub(crate) fn calc_equivalent_matrices(
-        mds: &MdsMatrix<F>,
-        rounds: &RoundNumbers<poseidon_parameters::RoundNumbers>,
-    ) -> (Matrix<F>, Vec<Matrix<F>>, Vec<Matrix<F>>) {
+        mds: &poseidon_parameters::MdsMatrix<F>,
+        rounds: &poseidon_parameters::RoundNumbers,
+    ) -> (
+        poseidon_parameters::Matrix<F>,
+        Vec<poseidon_parameters::Matrix<F>>,
+        Vec<poseidon_parameters::Matrix<F>>,
+    ) {
+        let rounds: RoundNumbers<poseidon_parameters::RoundNumbers> = RoundNumbers(*rounds);
         let r_P = rounds.partial();
         let mut w_hat_collection = Vec::with_capacity(rounds.partial());
         let mut v_collection = Vec::with_capacity(rounds.partial());
@@ -310,13 +317,19 @@ where
 
             // Now we compute M' and M * M' for the previous round
             M_i = OptimizedMdsMatrices::prime(&M_hat);
+
+            //
+            // let m_t: &poseidon_parameters::SquareMatrix<F> = &M_T.0;
+            // let m_i: &poseidon_parameters::SquareMatrix<F> = &M_i;
+            //
+
             M_mul = MdsMatrix(mat_mul(&M_T.0, &M_i).expect("mds and M_i have same dimensions"));
         }
 
         (M_i.0.transpose(), v_collection, w_hat_collection)
     }
 
-    fn prime(M_hat: &SquareMatrix<F>) -> SquareMatrix<F> {
+    fn prime(M_hat: &poseidon_parameters::SquareMatrix<F>) -> poseidon_parameters::SquareMatrix<F> {
         let dim = M_hat.n_cols() + 1;
         let mut new_elements = Vec::with_capacity(dim * dim);
 
@@ -337,11 +350,11 @@ where
     }
 
     fn doubleprime(
-        M_hat_inverse: &SquareMatrix<F>,
-        w: &Matrix<F>,
-        v: &Matrix<F>,
+        M_hat_inverse: &poseidon_parameters::SquareMatrix<F>,
+        w: &poseidon_parameters::Matrix<F>,
+        v: &poseidon_parameters::Matrix<F>,
         M_00: F,
-    ) -> SquareMatrix<F> {
+    ) -> poseidon_parameters::SquareMatrix<F> {
         let dim = M_hat_inverse.n_cols() + 1;
         let mut new_elements = Vec::with_capacity(dim * dim);
         let identity = SquareMatrix::identity(dim - 1);
