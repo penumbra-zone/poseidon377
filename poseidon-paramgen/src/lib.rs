@@ -106,7 +106,5 @@ impl<F: PrimeField> PoseidonParameters<poseidon_parameters::PoseidonParameters<F
             optimized_mds,
             optimized_arc,
         }
-
-        // Self(instance)
     }
 }
