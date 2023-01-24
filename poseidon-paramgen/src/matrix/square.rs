@@ -4,13 +4,17 @@ use ark_std::{vec, vec::Vec};
 
 use crate::{mat_mul, Matrix, MatrixOperations, SquareMatrixOperations};
 
-/// Represents a square matrix over `PrimeField` elements
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SquareMatrix<F: PrimeField>(pub Matrix<F>);
+// /// Represents a square matrix over `PrimeField` elements
+// #[derive(Clone, Debug, PartialEq, Eq)]
+// pub struct SquareMatrix<F: PrimeField>(pub Matrix<F>);
 
-impl<F: PrimeField> MatrixOperations<F> for SquareMatrix<F> {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> SquareMatrix<F> {
-        SquareMatrix(Matrix::new(n_rows, n_cols, elements))
+pub struct SquareMatrix<T>(pub T);
+
+impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::SquareMatrix<F> {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> poseidon_parameters::SquareMatrix<F> {
+        poseidon_parameters::SquareMatrix(poseidon_parameters::Matrix::new(
+            n_rows, n_cols, elements,
+        ))
     }
 
     fn elements(&self) -> &Vec<F> {
@@ -38,19 +42,21 @@ impl<F: PrimeField> MatrixOperations<F> for SquareMatrix<F> {
     }
 
     /// Take transpose of the matrix
-    fn transpose(&self) -> SquareMatrix<F> {
-        SquareMatrix(self.0.transpose())
+    fn transpose(&self) -> Self {
+        Self(self.0.transpose())
     }
 
     /// Hadamard (element-wise) matrix product
-    fn hadamard_product(&self, rhs: &SquareMatrix<F>) -> Result<SquareMatrix<F>> {
-        Ok(SquareMatrix(self.0.hadamard_product(&rhs.0)?))
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
+        Ok(poseidon_parameters::SquareMatrix(
+            self.0.hadamard_product(&rhs.0)?,
+        ))
     }
 }
 
-impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
+impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMatrix<F> {
     /// Construct a dim x dim identity matrix
-    fn identity(dim: usize) -> SquareMatrix<F> {
+    fn identity(dim: usize) -> Self {
         let mut m = SquareMatrix::from_vec(vec![F::zero(); dim * dim]);
 
         // Set diagonals to 1
@@ -62,8 +68,8 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
     }
 
     /// Compute the inverse of the matrix
-    fn inverse(&self) -> Result<SquareMatrix<F>> {
-        let identity: SquareMatrix<F> = SquareMatrix::identity(self.n_rows());
+    fn inverse(&self) -> Result<Self> {
+        let identity = Self::identity(self.n_rows());
 
         if self.n_rows() == 1 {
             return Ok(SquareMatrix::from_vec(vec![self
@@ -94,7 +100,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
     }
 
     /// Compute the (unsigned) minors of this matrix
-    fn minors(&self) -> SquareMatrix<F> {
+    fn minors(&self) -> Self {
         match self.0.n_cols {
             0 => panic!("matrix has no elements!"),
             1 => SquareMatrix::from_vec(vec![self.get_element(0, 0)]),
@@ -137,7 +143,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
     }
 
     /// Compute the cofactor matrix, i.e. $C_{ij} = (-1)^{i+j}$
-    fn cofactors(&self) -> SquareMatrix<F> {
+    fn cofactors(&self) -> Self {
         let dim = self.n_rows();
         let mut elements = Vec::with_capacity(dim);
         for i in 0..dim {
@@ -208,25 +214,24 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
     }
 }
 
-impl<F: PrimeField> SquareMatrix<F> {
+impl<F: PrimeField> SquareMatrix<poseidon_parameters::SquareMatrix<F>> {
     /// Create a `SquareMatrix` from a vector of elements.
-    pub fn from_vec(elements: Vec<F>) -> Self {
+    pub fn from_vec(elements: Vec<F>) -> poseidon_parameters::SquareMatrix<F> {
         if (elements.len() as f64).sqrt().fract() != 0.0 {
             panic!("SquareMatrix must be square")
         }
-
         let dim = (elements.len() as f64).sqrt() as usize;
-
-        SquareMatrix(Matrix::new(dim, dim, elements))
+        poseidon_parameters::SquareMatrix(poseidon_parameters::Matrix::new(dim, dim, elements))
     }
 
     /// Get row vector at a specified row index.
-    pub fn row_vector(&self, i: usize) -> Matrix<F> {
-        self.0.row_vector(i)
+    pub fn row_vector(&self, i: usize) -> poseidon_parameters::Matrix<F> {
+        let m = Matrix(self.0 .0);
+        m.row_vector(i)
     }
 
     /// Create a 2x2 `SquareMatrix` from four elements.
-    pub fn new_2x2(a: F, b: F, c: F, d: F) -> Self {
+    pub fn new_2x2(a: F, b: F, c: F, d: F) -> poseidon_parameters::SquareMatrix<F> {
         SquareMatrix::from_vec(vec![a, b, c, d])
     }
 }

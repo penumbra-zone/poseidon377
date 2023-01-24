@@ -13,12 +13,14 @@ use crate::{
 
 pub struct MdsMatrix<T>(pub T);
 
-impl<F> MdsMatrix<F>
+impl<F> MdsMatrix<poseidon_parameters::MdsMatrix<F>>
 where
     F: PrimeField,
 {
     /// Generate the MDS matrix.
-    pub fn generate(input: &InputParameters<F::BigInt>) -> Self {
+    pub fn generate(
+        input: &poseidon_parameters::InputParameters<F::BigInt>,
+    ) -> poseidon_parameters::MdsMatrix<F> {
         // A t x t MDS matrix only exists if: 2t + 1 <= p
         let two_times_t_bigint: F::BigInt = (2 * input.t as u64).into();
         if two_times_t_bigint > input.p {
@@ -36,8 +38,8 @@ where
     /// using the Cauchy method in `fixed_cauchy_matrix` or
     /// using the random subsampling method described in the original
     /// paper.
-    pub fn from_elements(elements: Vec<F>) -> Self {
-        Self(SquareMatrix::from_vec(elements))
+    pub fn from_elements(elements: Vec<F>) -> poseidon_parameters::MdsMatrix<F> {
+        poseidon_parameters::MdsMatrix::<F>(SquareMatrix::from_vec(elements))
     }
 
     /// Generate a deterministic Cauchy matrix
@@ -53,7 +55,9 @@ where
     ///
     /// However, here we use a deterministic method for creating Cauchy matrices that has
     /// been empirically checked to be safe using the three algorithms above over `decaf377` for t=1-100.
-    pub fn fixed_cauchy_matrix(input: &InputParameters<F::BigInt>) -> Self {
+    pub fn fixed_cauchy_matrix(
+        input: &poseidon_parameters::InputParameters<F::BigInt>,
+    ) -> poseidon_parameters::MdsMatrix<F> {
         // We explicitly check for small fields where the deterministic procedure can fail.
         // In these cases, the full algorithms 1-3 should be implemented.
         if input.p.num_bits() < 128 {
@@ -123,8 +127,8 @@ where
     }
 }
 
-impl<F: PrimeField> MatrixOperations<F> for MdsMatrix<F> {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> MdsMatrix<F> {
+impl<F: PrimeField> MatrixOperations<F> for MdsMatrix<poseidon_parameters::MdsMatrix<F>> {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> poseidon_parameters::MdsMatrix<F> {
         MdsMatrix(SquareMatrix::new(n_rows, n_cols, elements))
     }
 

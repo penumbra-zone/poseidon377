@@ -100,7 +100,7 @@ impl<F: PrimeField> PoseidonParameters<poseidon_parameters::PoseidonParameters<F
             M: input.M,
             t: input.t,
             alpha,
-            rounds: rounds.0,
+            rounds,
             mds,
             arc,
             optimized_mds,

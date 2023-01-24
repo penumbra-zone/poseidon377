@@ -8,47 +8,56 @@ use crate::{
     MatrixOperations, MdsMatrix, RoundNumbers,
 };
 
-/// Represents an matrix of round constants.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ArcMatrix<F: PrimeField>(pub Matrix<F>);
+// /// Represents an matrix of round constants.
+// #[derive(Clone, Debug, PartialEq, Eq)]
+// pub struct ArcMatrix<F: PrimeField>(pub Matrix<F>);
 
-impl<F> ArcMatrix<F>
+pub struct ArcMatrix<T>(pub T);
+
+impl<F> ArcMatrix<poseidon_parameters::ArcMatrix<F>>
 where
     F: PrimeField,
 {
     /// Generate round constants.
     pub fn generate(
-        input: &InputParameters<F::BigInt>,
-        round_numbers: RoundNumbers<poseidon_parameters::RoundNumbers>,
-        alpha: Alpha<poseidon_parameters::Alpha>,
-    ) -> ArcMatrix<F> {
+        input: &poseidon_parameters::InputParameters<F::BigInt>,
+        round_numbers: poseidon_parameters::RoundNumbers,
+        alpha: poseidon_parameters::Alpha,
+    ) -> poseidon_parameters::ArcMatrix<F> {
         let mut transcript = Transcript::new(b"round-constants");
         transcript.domain_sep::<F>(input, round_numbers, alpha);
 
+        let round_numbers = RoundNumbers(round_numbers);
         let num_total_rounds = round_numbers.total();
         let elements = (0..num_total_rounds * input.t)
             .map(|_| transcript.round_constant())
             .collect();
-        ArcMatrix(Matrix::new(num_total_rounds, input.t, elements))
+        poseidon_parameters::ArcMatrix(poseidon_parameters::Matrix::new(
+            num_total_rounds,
+            input.t,
+            elements,
+        ))
     }
 
     /// Get row vector of constants by round
-    pub fn constants_by_round(&self, r: usize) -> Matrix<F> {
-        self.0.row_vector(r)
+    pub fn constants_by_round(&self, r: usize) -> poseidon_parameters::Matrix<F> {
+        let m: Matrix<poseidon_parameters::Matrix<F>> = Matrix(self.0 .0);
+        m.row_vector(r).0
     }
 
     /// Set row vector of constants by round
     pub(crate) fn set_constants_by_round(&mut self, r: usize, constants: Vec<F>) {
-        assert_eq!(constants.len(), self.n_cols());
+        assert_eq!(constants.len(), self.0.n_cols());
         for (j, value) in constants.into_iter().enumerate() {
-            self.set_element(r, j, value);
+            self.0.set_element(r, j, value);
         }
     }
 }
 
-impl<F: PrimeField> MatrixOperations<F> for ArcMatrix<F> {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> ArcMatrix<F> {
-        ArcMatrix(Matrix::new(n_rows, n_cols, elements))
+impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::ArcMatrix<F> {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> poseidon_parameters::ArcMatrix<F> {
+        let m = poseidon_parameters::Matrix::new(n_rows, n_cols, elements);
+        poseidon_parameters::ArcMatrix(m)
     }
 
     fn elements(&self) -> &Vec<F> {
@@ -76,21 +85,30 @@ impl<F: PrimeField> MatrixOperations<F> for ArcMatrix<F> {
     }
 
     fn transpose(&self) -> Self {
-        ArcMatrix(self.0.transpose())
+        poseidon_parameters::ArcMatrix(self.0.transpose())
     }
 
-    fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
-        Ok(ArcMatrix(self.0.hadamard_product(&rhs.0)?))
+    fn hadamard_product(
+        &self,
+        rhs: &poseidon_parameters::ArcMatrix<F>,
+    ) -> Result<poseidon_parameters::ArcMatrix<F>> {
+        Ok(poseidon_parameters::ArcMatrix(
+            self.0.hadamard_product(&rhs.0)?,
+        ))
     }
 }
 
-impl<F: PrimeField> Into<Vec<Vec<F>>> for ArcMatrix<F> {
+impl<F: PrimeField> Into<Vec<Vec<F>>> for ArcMatrix<poseidon_parameters::ArcMatrix<F>> {
     fn into(self) -> Vec<Vec<F>> {
         let mut rows = Vec::<Vec<F>>::new();
-        for i in 0..self.n_rows() {
+
+        let arc: poseidon_parameters::ArcMatrix<F> = self.0;
+        let m: poseidon_parameters::Matrix<F> = arc.0;
+
+        for i in 0..arc.n_rows() {
             let mut row = Vec::new();
-            for j in 0..self.n_cols() {
-                row.push(self.0.get_element(i, j));
+            for j in 0..arc.n_cols() {
+                row.push(m.get_element(i, j));
             }
             rows.push(row);
         }
@@ -98,13 +116,18 @@ impl<F: PrimeField> Into<Vec<Vec<F>>> for ArcMatrix<F> {
     }
 }
 
-impl<F: PrimeField> Into<Vec<Vec<F>>> for OptimizedArcMatrix<F> {
+impl<F: PrimeField> Into<Vec<Vec<F>>>
+    for OptimizedArcMatrix<poseidon_parameters::OptimizedArcMatrix<F>>
+{
     fn into(self) -> Vec<Vec<F>> {
         let mut rows = Vec::<Vec<F>>::new();
-        for i in 0..self.0.n_rows() {
+
+        let arc: poseidon_parameters::ArcMatrix<F> = self.0 .0;
+
+        for i in 0..arc.n_rows() {
             let mut row = Vec::new();
-            for j in 0..self.0.n_cols() {
-                row.push(self.0.get_element(i, j));
+            for j in 0..arc.n_cols() {
+                row.push(arc.get_element(i, j));
             }
             rows.push(row);
         }
@@ -112,16 +135,18 @@ impl<F: PrimeField> Into<Vec<Vec<F>>> for OptimizedArcMatrix<F> {
     }
 }
 
-/// Represents an optimized matrix of round constants.
-///
-/// This modifies the partial rounds in the middle of the permutation,
-/// wherein you add constants _first_ before iterating through the partial
-/// rounds.
-///
-/// This method follows `calc_equivalent_constants` from Appendix B's
-/// `poseidonperm_x3_64_24_optimized.sage`.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct OptimizedArcMatrix<F: PrimeField>(pub ArcMatrix<F>);
+// /// Represents an optimized matrix of round constants.
+// ///
+// /// This modifies the partial rounds in the middle of the permutation,
+// /// wherein you add constants _first_ before iterating through the partial
+// /// rounds.
+// ///
+// /// This method follows `calc_equivalent_constants` from Appendix B's
+// /// `poseidonperm_x3_64_24_optimized.sage`.
+// #[derive(Clone, Debug, PartialEq, Eq)]
+// pub struct OptimizedArcMatrix<F: PrimeField>(pub ArcMatrix<F>);
+
+pub struct OptimizedArcMatrix<T>(pub T);
 
 impl<F> OptimizedArcMatrix<F>
 where
@@ -129,10 +154,10 @@ where
 {
     /// Generate the optimized round constants.
     pub fn generate(
-        arc: &ArcMatrix<F>,
-        mds: &MdsMatrix<F>,
+        arc: &poseidon_parameters::ArcMatrix<F>,
+        mds: &poseidon_parameters::MdsMatrix<F>,
         rounds: &RoundNumbers<poseidon_parameters::RoundNumbers>,
-    ) -> OptimizedArcMatrix<F> {
+    ) -> OptimizedArcMatrix<poseidon_parameters::OptimizedArcMatrix<F>> {
         let n_cols = arc.n_cols();
         let mut constants_temp = arc.clone();
         let r_f = rounds.full() / 2;
@@ -171,8 +196,14 @@ where
     }
 
     /// Create a `OptimizedArcMatrix` from its elements.
-    pub fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> OptimizedArcMatrix<F> {
-        OptimizedArcMatrix(ArcMatrix::new(n_rows, n_cols, elements))
+    pub fn new(
+        n_rows: usize,
+        n_cols: usize,
+        elements: Vec<F>,
+    ) -> poseidon_parameters::OptimizedArcMatrix<F> {
+        poseidon_parameters::OptimizedArcMatrix(poseidon_parameters::ArcMatrix::new(
+            n_rows, n_cols, elements,
+        ))
     }
 }
 
@@ -184,7 +215,7 @@ mod tests {
 
     #[test]
     fn convert_from_arc_to_vec_of_vecs() {
-        let arc_matrix = ArcMatrix(Matrix::new(
+        let arc_matrix = ArcMatrix(poseidon_parameters::Matrix::new(
             2,
             3,
             vec![
