@@ -46,6 +46,10 @@ impl<F: PrimeField> Display for PoseidonParameters<poseidon_parameters::Poseidon
         let r_F = rounds.full();
 
         let arc = ArcMatrix(this.arc);
+        let mds = MdsMatrix(this.mds);
+        let alpha = Alpha(this.alpha);
+        let optimized_mds = OptimizedMdsMatrices(this.optimized_mds);
+        let optimized_arc = OptimizedArcMatrix(this.optimized_arc);
 
         write!(
             f,
@@ -63,7 +67,7 @@ pub fn rate_{rate}<F: PrimeField>() -> PoseidonParameters<F> {{
     }}
 }}
 ",
-            this.M, this.t, arc, this.mds, this.alpha, this.optimized_mds, this.optimized_arc
+            this.M, this.t, arc, mds, alpha, optimized_mds, optimized_arc
         )
     }
 }
