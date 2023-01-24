@@ -80,12 +80,13 @@ where
         // Sanity check: All Cauchy matrices should be invertible
         assert!(cauchy_matrix.determinant() != F::zero());
 
-        Self(cauchy_matrix)
+        poseidon_parameters::MdsMatrix(cauchy_matrix)
     }
 
     /// Compute inverse of MDS matrix
-    pub fn inverse(&self) -> SquareMatrix<F> {
+    pub fn inverse(&self) -> poseidon_parameters::SquareMatrix<F> {
         self.0
+             .0
             .inverse()
             .expect("all well-formed MDS matrices should have inverses")
     }
@@ -95,12 +96,12 @@ where
     /// This is simply the MDS matrix with the first row and column removed
     ///
     /// Ref: p.20 of the Poseidon paper
-    pub fn hat(&self) -> SquareMatrix<F> {
-        let dim = self.n_rows();
+    pub fn hat(&self) -> poseidon_parameters::SquareMatrix<F> {
+        let dim = self.0.n_rows();
         let mut mhat_elements = Vec::with_capacity((dim - 1) * (dim - 1));
         for i in 1..dim {
             for j in 1..dim {
-                mhat_elements.push(self.get_element(i, j))
+                mhat_elements.push(self.0.get_element(i, j))
             }
         }
 
@@ -110,26 +111,28 @@ where
     /// Return the elements M_{0,1} .. M_{0,t} from the first row
     ///
     /// Ref: p.20 of the Poseidon paper
-    pub fn v(&self) -> Matrix<F> {
-        let elements: Vec<F> = self.0.elements()[1..self.n_rows()].to_vec();
-        Matrix::new(1, self.n_rows() - 1, elements)
+    pub fn v(&self) -> poseidon_parameters::Matrix<F> {
+        let elements: Vec<F> = self.0 .0.elements()[1..self.0 .0.n_rows()].to_vec();
+        poseidon_parameters::Matrix::new(1, self.0.n_rows() - 1, elements)
     }
 
     /// Return the elements M_{1,0} .. M_{t,0}from the first column
     ///
     /// Ref: p.20 of the Poseidon paper
-    pub fn w(&self) -> Matrix<F> {
-        let mut elements = Vec::with_capacity(self.n_rows() - 1);
-        for i in 1..self.n_rows() {
-            elements.push(self.get_element(i, 0))
+    pub fn w(&self) -> poseidon_parameters::Matrix<F> {
+        let mut elements = Vec::with_capacity(self.0.n_rows() - 1);
+        for i in 1..self.0.n_rows() {
+            elements.push(self.0.get_element(i, 0))
         }
-        Matrix::new(self.n_rows() - 1, 1, elements)
+        poseidon_parameters::Matrix::new(self.0.n_rows() - 1, 1, elements)
     }
 }
 
-impl<F: PrimeField> MatrixOperations<F> for MdsMatrix<poseidon_parameters::MdsMatrix<F>> {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> poseidon_parameters::MdsMatrix<F> {
-        MdsMatrix(SquareMatrix::new(n_rows, n_cols, elements))
+impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::MdsMatrix<F> {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
+        Self(poseidon_parameters::SquareMatrix::new(
+            n_rows, n_cols, elements,
+        ))
     }
 
     fn elements(&self) -> &Vec<F> {
@@ -156,21 +159,21 @@ impl<F: PrimeField> MatrixOperations<F> for MdsMatrix<poseidon_parameters::MdsMa
     }
 
     fn transpose(&self) -> Self {
-        MdsMatrix(self.0.transpose())
+        Self(self.0.transpose())
     }
 
     fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
-        Ok(MdsMatrix(self.0.hadamard_product(&rhs.0)?))
+        Ok(Self(self.0.hadamard_product(&rhs.0)?))
     }
 }
 
-impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<F> {
+impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<poseidon_parameters::MdsMatrix<F>> {
     fn into(self) -> Vec<Vec<F>> {
         let mut rows = Vec::<Vec<F>>::new();
-        for i in 0..self.n_rows() {
+        for i in 0..self.0.n_rows() {
             let mut row = Vec::new();
-            for j in 0..self.n_rows() {
-                row.push(self.0.get_element(i, j));
+            for j in 0..self.0.n_rows() {
+                row.push(self.0 .0.get_element(i, j));
             }
             rows.push(row);
         }
@@ -178,49 +181,51 @@ impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<F> {
     }
 }
 
-impl<F: PrimeField> Into<Vec<F>> for MdsMatrix<F> {
+impl<F: PrimeField> Into<Vec<F>> for MdsMatrix<poseidon_parameters::MdsMatrix<F>> {
     fn into(self) -> Vec<F> {
-        self.0.elements().to_vec()
+        self.0 .0.elements().to_vec()
     }
 }
 
-/// Represents an optimized MDS (maximum distance separable) matrix.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct OptimizedMdsMatrices<F: PrimeField> {
-    /// A (t - 1) x (t - 1) MDS submatrix derived from the MDS matrix.
-    pub M_hat: SquareMatrix<F>,
-    /// A 1 x (t - 1) (row) vector derived from the MDS matrix.
-    pub v: Matrix<F>,
-    /// A (t - 1) x 1 (column) vector derived from the MDS matrix.
-    pub w: Matrix<F>,
-    /// A matrix formed from Mhat (an MDS submatrix of the MDS matrix).
-    pub M_prime: SquareMatrix<F>,
-    /// A sparse matrix formed from M,
-    pub M_doubleprime: SquareMatrix<F>,
-    /// The inverse of the t x t MDS matrix (needed to compute round constants).
-    pub M_inverse: SquareMatrix<F>,
-    /// The inverse of the (t - 1) x (t - 1) Mhat matrix.
-    pub M_hat_inverse: SquareMatrix<F>,
-    /// Element at M00
-    pub M_00: F,
-    /// M_i
-    pub M_i: Matrix<F>,
-    /// v_collection: one per round.
-    pub v_collection: Vec<Matrix<F>>,
-    /// w_hat_collection: one per round
-    pub w_hat_collection: Vec<Matrix<F>>,
-}
+// /// Represents an optimized MDS (maximum distance separable) matrix.
+// #[derive(Clone, Debug, PartialEq, Eq)]
+// pub struct OptimizedMdsMatrices<F: PrimeField> {
+//     /// A (t - 1) x (t - 1) MDS submatrix derived from the MDS matrix.
+//     pub M_hat: SquareMatrix<F>,
+//     /// A 1 x (t - 1) (row) vector derived from the MDS matrix.
+//     pub v: Matrix<F>,
+//     /// A (t - 1) x 1 (column) vector derived from the MDS matrix.
+//     pub w: Matrix<F>,
+//     /// A matrix formed from Mhat (an MDS submatrix of the MDS matrix).
+//     pub M_prime: SquareMatrix<F>,
+//     /// A sparse matrix formed from M,
+//     pub M_doubleprime: SquareMatrix<F>,
+//     /// The inverse of the t x t MDS matrix (needed to compute round constants).
+//     pub M_inverse: SquareMatrix<F>,
+//     /// The inverse of the (t - 1) x (t - 1) Mhat matrix.
+//     pub M_hat_inverse: SquareMatrix<F>,
+//     /// Element at M00
+//     pub M_00: F,
+//     /// M_i
+//     pub M_i: Matrix<F>,
+//     /// v_collection: one per round.
+//     pub v_collection: Vec<Matrix<F>>,
+//     /// w_hat_collection: one per round
+//     pub w_hat_collection: Vec<Matrix<F>>,
+// }
 
-impl<F> OptimizedMdsMatrices<F>
+pub struct OptimizedMdsMatrices<T>(pub T);
+
+impl<F> OptimizedMdsMatrices<poseidon_parameters::OptimizedMdsMatrices<F>>
 where
     F: PrimeField,
 {
     /// Generate the optimized MDS matrices.
     pub fn generate(
-        mds: &MdsMatrix<F>,
+        mds: &poseidon_parameters::MdsMatrix<F>,
         t: usize,
-        rounds: &RoundNumbers<poseidon_parameters::RoundNumbers>,
-    ) -> OptimizedMdsMatrices<F> {
+        rounds: &poseidon_parameters::RoundNumbers,
+    ) -> poseidon_parameters::OptimizedMdsMatrices<F> {
         let M_hat = mds.hat();
         let M_hat_inverse = M_hat
             .inverse()
