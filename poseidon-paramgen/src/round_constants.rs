@@ -42,7 +42,7 @@ where
     /// Get row vector of constants by round
     pub fn constants_by_round(&self, r: usize) -> poseidon_parameters::Matrix<F> {
         let m: Matrix<poseidon_parameters::Matrix<F>> = Matrix(self.0 .0);
-        m.row_vector(r).0
+        m.row_vector(r)
     }
 
     /// Set row vector of constants by round
@@ -148,7 +148,7 @@ impl<F: PrimeField> Into<Vec<Vec<F>>>
 
 pub struct OptimizedArcMatrix<T>(pub T);
 
-impl<F> OptimizedArcMatrix<F>
+impl<F> OptimizedArcMatrix<poseidon_parameters::OptimizedArcMatrix<F>>
 where
     F: PrimeField,
 {
@@ -156,18 +156,22 @@ where
     pub fn generate(
         arc: &poseidon_parameters::ArcMatrix<F>,
         mds: &poseidon_parameters::MdsMatrix<F>,
-        rounds: &RoundNumbers<poseidon_parameters::RoundNumbers>,
-    ) -> OptimizedArcMatrix<poseidon_parameters::OptimizedArcMatrix<F>> {
+        rounds: &poseidon_parameters::RoundNumbers,
+    ) -> poseidon_parameters::OptimizedArcMatrix<F> {
         let n_cols = arc.n_cols();
-        let mut constants_temp = arc.clone();
+        let mut constants_temp = ArcMatrix(arc.clone());
+
+        let rounds = RoundNumbers(*rounds);
+
         let r_f = rounds.full() / 2;
         let r_T = rounds.total();
         let mds_T = mds.transpose();
-        let mds_inv = &mds_T.inverse();
+        let mds_inv = &MdsMatrix(mds_T).inverse();
 
         // C_i = M^-1 * C_(i+1)
         for r in ((r_f)..(r_T - 1 - r_f)).rev() {
             // inv_cip1 = list(vector(constants_temp[i+1]) * MDS_matrix_field_transpose.inverse())
+
             let inv_cip1 = mat_mul(&constants_temp.constants_by_round(r + 1), &mds_inv.0).expect(
                 "matrix multiplication of row of ARC matrix and MDS must have correct dimensions",
             );
@@ -181,8 +185,10 @@ where
                 delta_new_constants_r.push(inv_cip1.get_element(0, j));
             }
             for j in 0..n_cols {
-                let curr_element = constants_temp.get_element(r, j);
-                constants_temp.set_element(r, j, curr_element + delta_new_constants_r[j]);
+                let curr_element = constants_temp.0.get_element(r, j);
+                constants_temp
+                    .0
+                    .set_element(r, j, curr_element + delta_new_constants_r[j]);
             }
 
             // constants_temp[i+1] = [inv_cip1[0]] + [0] * (t-1)
@@ -192,7 +198,7 @@ where
             constants_temp.set_constants_by_round(r + 1, new_constants_row_i_plus_1);
         }
 
-        OptimizedArcMatrix(constants_temp)
+        poseidon_parameters::OptimizedArcMatrix(constants_temp.0)
     }
 
     /// Create a `OptimizedArcMatrix` from its elements.
@@ -215,7 +221,7 @@ mod tests {
 
     #[test]
     fn convert_from_arc_to_vec_of_vecs() {
-        let arc_matrix = ArcMatrix(poseidon_parameters::Matrix::new(
+        let arc_matrix = poseidon_parameters::ArcMatrix(poseidon_parameters::Matrix::new(
             2,
             3,
             vec![
@@ -227,7 +233,7 @@ mod tests {
                 Fq::from(6u32),
             ],
         ));
-        let vec_of_vecs: Vec<Vec<Fq>> = arc_matrix.into();
+        let vec_of_vecs: Vec<Vec<Fq>> = ArcMatrix(arc_matrix).into();
         assert_eq!(vec_of_vecs[0][0], Fq::from(1u32));
         assert_eq!(vec_of_vecs[0][1], Fq::from(2u32));
         assert_eq!(vec_of_vecs[0][2], Fq::from(0u32));
