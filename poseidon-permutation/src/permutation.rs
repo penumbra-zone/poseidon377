@@ -1,8 +1,7 @@
 #![allow(non_snake_case)]
 
 use ark_ff::{vec, vec::Vec, PrimeField};
-use poseidon_parameters::{Alpha, PoseidonParameters};
-// use poseidon_paramgen::{Alpha, MatrixOperations, PoseidonParameters};
+use poseidon_parameters::{Alpha, BasicMatrixOperations, PoseidonParameters};
 
 /// Represents a generic instance of `Poseidon`.
 ///
@@ -79,7 +78,7 @@ impl<'a, F: PrimeField> Instance<'a, F> {
         // First full matrix multiplication.
         self.mix_layer_mi();
 
-        for r in 0..self.parameters.rounds.partial() - 1 {
+        for r in 0..self.parameters.rounds.r_P - 1 {
             self.partial_sub_words();
             // Rest of `AddRoundConstants` layer, moved to after the S-box layer
             round_constants_counter += 1;
@@ -88,8 +87,9 @@ impl<'a, F: PrimeField> Instance<'a, F> {
                 .optimized_arc
                 .0
                 .get_element(round_constants_counter, 0);
-            self.sparse_mat_mul(self.parameters.rounds.partial() - r - 1);
+            self.sparse_mat_mul(self.parameters.rounds.r_P - r - 1);
         }
+
         // Last partial round
         self.partial_sub_words();
         self.sparse_mat_mul(0);
@@ -135,8 +135,8 @@ impl<'a, F: PrimeField> Instance<'a, F> {
     /// This implementation is based on the unoptimized Sage implementation
     /// `poseidonperm_x5_254_3.sage` provided in Appendix B of the Poseidon paper.
     fn unoptimized_permute(&mut self) {
-        let R_f = self.parameters.rounds.full() / 2;
-        let R_P = self.parameters.rounds.partial();
+        let R_f = self.parameters.rounds.r_F / 2;
+        let R_P = self.parameters.rounds.r_P;
         let mut round_constants_counter = 0;
         let t = self.parameters.t;
         let round_constants = self.parameters.arc.elements().clone();
@@ -237,7 +237,7 @@ impl<'a, F: PrimeField> Instance<'a, F> {
         // mul_row = [(state_words[0] * v[i]) for i in range(0, t-1)]
         // add_row = [(mul_row[i] + state_words[i+1]) for i in range(0, t-1)]
         let add_row: Vec<F> = self.parameters.optimized_mds.v_collection[round_number]
-            .elements()
+            .elements
             .iter()
             .enumerate()
             .map(|(i, x)| *x * self.state_words[0] + self.state_words[i + 1])
@@ -248,7 +248,7 @@ impl<'a, F: PrimeField> Instance<'a, F> {
         // state_words_new = [state_words_new[0]] + add_row
         self.state_words[0] = self.parameters.optimized_mds.M_00 * self.state_words[0]
             + self.parameters.optimized_mds.w_hat_collection[round_number]
-                .elements()
+                .elements
                 .iter()
                 .zip(self.state_words[1..self.parameters.t].iter())
                 .map(|(x, y)| *x * *y)

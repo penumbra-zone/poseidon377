@@ -1,6 +1,8 @@
 #![no_std]
 #![allow(non_snake_case)]
 
+use core::slice::Chunks;
+
 use ark_ff::BigInteger;
 use ark_ff::PrimeField;
 use ark_std::vec::Vec;
@@ -23,20 +25,6 @@ pub struct InputParameters<T: BigInteger> {
     // The below are derived values, stored for convenience.
     /// log_2(p)
     pub log_2_p: f64,
-}
-
-/// Represents a matrix over `PrimeField` elements.
-///
-/// This matrix can be used to represent row or column
-/// vectors.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Matrix<F: PrimeField> {
-    /// Elements of the matrix.
-    pub elements: Vec<F>,
-    /// Number of columns.
-    pub n_cols: usize,
-    /// Number of rows.
-    pub n_rows: usize,
 }
 
 // impl<F: PrimeField> Matrix<F> {
@@ -70,17 +58,136 @@ pub struct RoundNumbers {
     pub r_F: usize,
 }
 
+pub trait BasicMatrixOperations<F> {
+    /// Create a new matrix
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self;
+    /// Access elements as a vector
+    fn elements(&self) -> &Vec<F>;
+    /// Get element[i,j]
+    fn get_element(&self, i: usize, j: usize) -> F;
+    /// Get rows in chunks
+    fn iter_rows(&self) -> Chunks<F> {
+        self.elements().chunks(self.n_cols())
+    }
+    /// Number of rows
+    fn n_rows(&self) -> usize;
+    /// Number of columns
+    fn n_cols(&self) -> usize;
+}
+
+/// Represents a matrix over `PrimeField` elements.
+///
+/// This matrix can be used to represent row or column
+/// vectors.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Matrix<F: PrimeField> {
+    /// Elements of the matrix.
+    pub elements: Vec<F>,
+    /// Number of columns.
+    pub n_cols: usize,
+    /// Number of rows.
+    pub n_rows: usize,
+}
+
+impl<F: PrimeField> BasicMatrixOperations<F> for Matrix<F> {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
+        todo!()
+    }
+
+    fn elements(&self) -> &Vec<F> {
+        todo!()
+    }
+
+    fn get_element(&self, i: usize, j: usize) -> F {
+        todo!()
+    }
+
+    fn n_rows(&self) -> usize {
+        todo!()
+    }
+
+    fn n_cols(&self) -> usize {
+        todo!()
+    }
+}
+
 /// Represents a square matrix over `PrimeField` elements
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SquareMatrix<F: PrimeField>(pub Matrix<F>);
+
+impl<F: PrimeField> BasicMatrixOperations<F> for SquareMatrix<F> {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
+        todo!()
+    }
+
+    fn elements(&self) -> &Vec<F> {
+        todo!()
+    }
+
+    fn get_element(&self, i: usize, j: usize) -> F {
+        todo!()
+    }
+
+    fn n_rows(&self) -> usize {
+        todo!()
+    }
+
+    fn n_cols(&self) -> usize {
+        todo!()
+    }
+}
 
 /// Represents an MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MdsMatrix<F: PrimeField>(pub SquareMatrix<F>);
 
+impl<F: PrimeField> BasicMatrixOperations<F> for MdsMatrix<F> {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
+        todo!()
+    }
+
+    fn elements(&self) -> &Vec<F> {
+        todo!()
+    }
+
+    fn get_element(&self, i: usize, j: usize) -> F {
+        todo!()
+    }
+
+    fn n_rows(&self) -> usize {
+        todo!()
+    }
+
+    fn n_cols(&self) -> usize {
+        todo!()
+    }
+}
+
 /// Represents an matrix of round constants.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ArcMatrix<F: PrimeField>(pub Matrix<F>);
+
+impl<F: PrimeField> BasicMatrixOperations<F> for ArcMatrix<F> {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
+        todo!()
+    }
+
+    fn elements(&self) -> &Vec<F> {
+        todo!()
+    }
+
+    fn get_element(&self, i: usize, j: usize) -> F {
+        todo!()
+    }
+
+    fn n_rows(&self) -> usize {
+        todo!()
+    }
+
+    fn n_cols(&self) -> usize {
+        todo!()
+    }
+}
 
 /// Represents an optimized matrix of round constants.
 ///
@@ -149,11 +256,10 @@ pub struct PoseidonParameters<F: PrimeField> {
     pub optimized_mds: OptimizedMdsMatrices<F>,
 }
 
-// pub fn meh<F: PrimeField>() {
-//     F::from_str("aa").map_err(|_| ()).unwrap();
-// }
-
-// pub fn meh<F: PrimeField>() {
+// pub fn meh<F: PrimeField>(elements: &Vec<F>) -> Chunks<F> {
+//     // F::from_str("aa").map_err(|_| ()).unwrap();
+//     // let elements: Vec<F> = Vec::new();
+//     elements.chunks(2)
 //     let elements: Vec<F> = Vec::new();
 //     let len = elements.len();
 //     let a = len.sqrt();
