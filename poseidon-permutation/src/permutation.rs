@@ -1,7 +1,8 @@
 #![allow(non_snake_case)]
 
 use ark_ff::{vec, vec::Vec, PrimeField};
-use poseidon_paramgen::{Alpha, MatrixOperations, PoseidonParameters};
+use poseidon_parameters::{Alpha, PoseidonParameters};
+// use poseidon_paramgen::{Alpha, MatrixOperations, PoseidonParameters};
 
 /// Represents a generic instance of `Poseidon`.
 ///
@@ -53,7 +54,7 @@ impl<'a, F: PrimeField> Instance<'a, F> {
     /// This implementation is based on the optimized Sage implementation
     /// `poseidonperm_x3_64_optimized.sage` provided in Appendix B of the Poseidon paper.
     fn permute(&mut self) {
-        let R_f = self.parameters.rounds.full() / 2;
+        let R_f = self.parameters.rounds.r_F / 2;
 
         // First chunk of full rounds
         for r in 0..R_f {

@@ -16,7 +16,8 @@ pub fn compile<F: PrimeField>(
     p: F::BigInt,
     allow_inverse: bool,
 ) -> String {
-    let mut params_code = "use ark_ff::PrimeField;\n\
+    let mut params_code = "#![no_std]\n\
+                           use ark_ff::PrimeField;\n\
                            use ark_std::vec::Vec;\n\
 use poseidon_parameters::{Alpha, ArcMatrix, RoundNumbers, SquareMatrix, Matrix, MdsMatrix, MatrixOperations, OptimizedArcMatrix, OptimizedMdsMatrices, PoseidonParameters};\n\n"
         .to_string();
@@ -48,7 +49,7 @@ impl<F: PrimeField> Display for PoseidonParameters<poseidon_parameters::Poseidon
 
         let arc = ArcMatrix(this.arc.clone());
         let mds = MdsMatrix(this.mds.clone());
-        let alpha = Alpha(this.alpha.clone());
+        let alpha = Alpha(this.alpha);
         let optimized_mds = OptimizedMdsMatrices(this.optimized_mds.clone());
         let optimized_arc = OptimizedArcMatrix(this.optimized_arc.clone());
 
@@ -180,7 +181,7 @@ impl<F: PrimeField> Display for OptimizedMdsMatrices<poseidon_parameters::Optimi
                 M_doubleprime: {},
                 M_inverse: {},
                 M_hat_inverse: {},
-                M_00: {}, 
+                M_00: {},
                 M_i: {},
                 v_collection: {},
                 w_hat_collection: {},

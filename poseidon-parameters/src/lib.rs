@@ -1,4 +1,5 @@
 #![no_std]
+#![allow(non_snake_case)]
 
 use ark_ff::BigInteger;
 use ark_ff::PrimeField;
@@ -37,6 +38,19 @@ pub struct Matrix<F: PrimeField> {
     /// Number of rows.
     pub n_rows: usize,
 }
+
+// impl<F: PrimeField> Matrix<F> {
+//     pub fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
+//         // if elements.len() != n_rows * n_cols {
+//         //     panic!("Matrix has insufficient elements")
+//         // }
+//         Self {
+//             elements,
+//             n_cols,
+//             n_rows,
+//         }
+//     }
+// }
 
 /// The exponent in `Sbox(x) = x^\alpha`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -134,3 +148,13 @@ pub struct PoseidonParameters<F: PrimeField> {
     /// Optimized MDS matrices.
     pub optimized_mds: OptimizedMdsMatrices<F>,
 }
+
+// pub fn meh<F: PrimeField>() {
+//     F::from_str("aa").map_err(|_| ()).unwrap();
+// }
+
+// pub fn meh<F: PrimeField>() {
+//     let elements: Vec<F> = Vec::new();
+//     let len = elements.len();
+//     let a = len.sqrt();
+// }
