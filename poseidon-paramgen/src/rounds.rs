@@ -3,15 +3,7 @@ use ark_std::cmp::{Ordering, PartialOrd};
 
 use super::{Alpha, InputParameters};
 
-// /// `RoundNumbers` required for security based on known attacks.
-// #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-// pub struct RoundNumbers {
-//     /// Number of partial rounds.
-//     pub r_P: usize,
-//     /// Number of full rounds.
-//     pub r_F: usize,
-// }
-
+/// `RoundNumbers` required for security based on known attacks.
 pub struct RoundNumbers<T>(pub T);
 
 impl RoundNumbers<poseidon_parameters::RoundNumbers> {

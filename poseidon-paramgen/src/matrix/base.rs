@@ -4,20 +4,7 @@ use ark_std::vec::Vec;
 
 use crate::MatrixOperations;
 
-// /// Represents a matrix over `PrimeField` elements.
-// ///
-// /// This matrix can be used to represent row or column
-// /// vectors.
-// #[derive(Clone, Debug, PartialEq, Eq)]
-// pub struct Matrix<F: PrimeField> {
-//     /// Elements of the matrix.
-//     pub elements: Vec<F>,
-//     /// Number of columns.
-//     pub n_cols: usize,
-//     /// Number of rows.
-//     pub n_rows: usize,
-// }
-
+/// Represents a matrix over `PrimeField` elements.
 pub struct Matrix<T>(pub T);
 
 impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::Matrix<F> {
@@ -85,7 +72,7 @@ impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::Matrix<F> {
     }
 }
 
-impl<F: PrimeField> Matrix<poseidon_parameters::Matrix<F>> {
+impl<F: PrimeField> Matrix<&poseidon_parameters::Matrix<F>> {
     /// Get row vector at a specified row index
     pub fn row_vector(&self, i: usize) -> poseidon_parameters::Matrix<F> {
         let mut row_elements = Vec::with_capacity(self.0.n_cols);

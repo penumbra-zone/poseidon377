@@ -4,10 +4,7 @@ use ark_std::{vec, vec::Vec};
 
 use crate::{mat_mul, Matrix, MatrixOperations, SquareMatrixOperations};
 
-// /// Represents a square matrix over `PrimeField` elements
-// #[derive(Clone, Debug, PartialEq, Eq)]
-// pub struct SquareMatrix<F: PrimeField>(pub Matrix<F>);
-
+/// Represents a square matrix over `PrimeField` elements
 pub struct SquareMatrix<T>(pub T);
 
 impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::SquareMatrix<F> {
@@ -222,7 +219,7 @@ impl<F: PrimeField> SquareMatrix<poseidon_parameters::SquareMatrix<F>> {
 
     /// Get row vector at a specified row index.
     pub fn row_vector(&self, i: usize) -> poseidon_parameters::Matrix<F> {
-        let m = Matrix(self.0 .0);
+        let m = Matrix(&self.0 .0);
         m.row_vector(i)
     }
 

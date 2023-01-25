@@ -44,35 +44,7 @@ pub use round_constants::{ArcMatrix, OptimizedArcMatrix};
 pub use rounds::RoundNumbers;
 pub use utils::log2;
 
-// /// A set of Poseidon parameters for a given set of input parameters.
-// #[derive(Clone, Debug)]
-// pub struct PoseidonParameters<F: PrimeField> {
-//     // Input parameters.
-//     /// Security level.
-//     pub M: usize,
-//     /// Width of desired hash function, e.g. $t=3$ corresponds to a 2-to-1 hash.
-//     pub t: usize,
-
-//     // Generated parameters.
-//     /// Exponent of the Sbox, i.e. S-box(x) = x^{\alpha} used in the `SubWords` step
-//     pub alpha: Alpha,
-
-//     /// Round numbers
-//     pub rounds: rounds::RoundNumbers,
-
-//     /// `t x t` MDS matrix used in the `MixLayer` step
-//     pub mds: mds::MdsMatrix<F>,
-
-//     /// `num_total_rounds x t` matrix of constants used in the `AddRoundConstant` step
-//     pub arc: round_constants::ArcMatrix<F>,
-
-//     /// Optimized round constants.
-//     pub optimized_arc: round_constants::OptimizedArcMatrix<F>,
-
-//     /// Optimized MDS matrices.
-//     pub optimized_mds: mds::OptimizedMdsMatrices<F>,
-// }
-
+/// A set of Poseidon parameters for a given set of input parameters.
 pub struct PoseidonParameters<T>(pub T);
 
 impl<F: PrimeField> PoseidonParameters<poseidon_parameters::PoseidonParameters<F>> {

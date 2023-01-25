@@ -1,4 +1,3 @@
-// #![cfg_attr(not(feature = "std"), no_std)]
 #![no_std]
 
 use ark_ff::BigInteger;

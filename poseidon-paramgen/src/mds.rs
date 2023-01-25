@@ -7,13 +7,10 @@ use crate::{
     SquareMatrix, SquareMatrixOperations,
 };
 
-// /// Represents an MDS (maximum distance separable) matrix.
-// #[derive(Clone, Debug, PartialEq, Eq)]
-// pub struct MdsMatrix<F: PrimeField>(pub SquareMatrix<F>);
-
+/// Represents an MDS (maximum distance separable) matrix.
 pub struct MdsMatrix<T>(pub T);
 
-impl<F> MdsMatrix<poseidon_parameters::MdsMatrix<F>>
+impl<F> MdsMatrix<&poseidon_parameters::MdsMatrix<F>>
 where
     F: PrimeField,
 {
@@ -167,13 +164,13 @@ impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::MdsMatrix<F> {
     }
 }
 
-impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<poseidon_parameters::MdsMatrix<F>> {
-    fn into(self) -> Vec<Vec<F>> {
+impl<F: PrimeField> From<MdsMatrix<poseidon_parameters::MdsMatrix<F>>> for Vec<Vec<F>> {
+    fn from(val: MdsMatrix<poseidon_parameters::MdsMatrix<F>>) -> Self {
         let mut rows = Vec::<Vec<F>>::new();
-        for i in 0..self.0.n_rows() {
+        for i in 0..val.0.n_rows() {
             let mut row = Vec::new();
-            for j in 0..self.0.n_rows() {
-                row.push(self.0 .0.get_element(i, j));
+            for j in 0..val.0.n_rows() {
+                row.push(val.0 .0.get_element(i, j));
             }
             rows.push(row);
         }
@@ -181,39 +178,14 @@ impl<F: PrimeField> Into<Vec<Vec<F>>> for MdsMatrix<poseidon_parameters::MdsMatr
     }
 }
 
-impl<F: PrimeField> Into<Vec<F>> for MdsMatrix<poseidon_parameters::MdsMatrix<F>> {
-    fn into(self) -> Vec<F> {
-        self.0 .0.elements().to_vec()
+impl<F: PrimeField> From<&MdsMatrix<poseidon_parameters::MdsMatrix<F>>> for Vec<F> {
+    fn from(val: &MdsMatrix<poseidon_parameters::MdsMatrix<F>>) -> Self {
+        let elements = val.0 .0.elements();
+        elements.to_vec()
     }
 }
 
-// /// Represents an optimized MDS (maximum distance separable) matrix.
-// #[derive(Clone, Debug, PartialEq, Eq)]
-// pub struct OptimizedMdsMatrices<F: PrimeField> {
-//     /// A (t - 1) x (t - 1) MDS submatrix derived from the MDS matrix.
-//     pub M_hat: SquareMatrix<F>,
-//     /// A 1 x (t - 1) (row) vector derived from the MDS matrix.
-//     pub v: Matrix<F>,
-//     /// A (t - 1) x 1 (column) vector derived from the MDS matrix.
-//     pub w: Matrix<F>,
-//     /// A matrix formed from Mhat (an MDS submatrix of the MDS matrix).
-//     pub M_prime: SquareMatrix<F>,
-//     /// A sparse matrix formed from M,
-//     pub M_doubleprime: SquareMatrix<F>,
-//     /// The inverse of the t x t MDS matrix (needed to compute round constants).
-//     pub M_inverse: SquareMatrix<F>,
-//     /// The inverse of the (t - 1) x (t - 1) Mhat matrix.
-//     pub M_hat_inverse: SquareMatrix<F>,
-//     /// Element at M00
-//     pub M_00: F,
-//     /// M_i
-//     pub M_i: Matrix<F>,
-//     /// v_collection: one per round.
-//     pub v_collection: Vec<Matrix<F>>,
-//     /// w_hat_collection: one per round
-//     pub w_hat_collection: Vec<Matrix<F>>,
-// }
-
+/// Represents an optimized MDS (maximum distance separable) matrix.
 pub struct OptimizedMdsMatrices<T>(pub T);
 
 impl<F> OptimizedMdsMatrices<poseidon_parameters::OptimizedMdsMatrices<F>>
@@ -226,12 +198,12 @@ where
         t: usize,
         rounds: &poseidon_parameters::RoundNumbers,
     ) -> poseidon_parameters::OptimizedMdsMatrices<F> {
-        let M_hat = MdsMatrix(*mds).hat();
+        let M_hat = MdsMatrix(mds).hat();
         let M_hat_inverse = M_hat
             .inverse()
             .expect("all well-formed MDS matrices should have inverses");
-        let v = MdsMatrix(*mds).v();
-        let w = MdsMatrix(*mds).w();
+        let v = MdsMatrix(mds).v();
+        let w = MdsMatrix(mds).w();
         let M_prime = OptimizedMdsMatrices::prime(&M_hat);
         let M_00 = mds.get_element(0, 0);
         let M_doubleprime = OptimizedMdsMatrices::doubleprime(&M_hat_inverse, &w, &v, M_00);
@@ -271,8 +243,6 @@ where
         let (M_i, v_collection, w_hat_collection) =
             OptimizedMdsMatrices::calc_equivalent_matrices(mds, rounds);
 
-        let mds: MdsMatrix<poseidon_parameters::MdsMatrix<F>> = MdsMatrix(*mds);
-
         poseidon_parameters::OptimizedMdsMatrices {
             M_hat,
             M_hat_inverse,
@@ -280,7 +250,7 @@ where
             w,
             M_prime,
             M_doubleprime,
-            M_inverse: mds.inverse(),
+            M_inverse: MdsMatrix(mds).inverse(),
             M_i,
             v_collection,
             w_hat_collection,
@@ -306,10 +276,10 @@ where
         let mut M_i = OptimizedMdsMatrices::prime(&M_mul.0);
 
         for _ in (0..r_P).rev() {
-            let M_hat = MdsMatrix(M_mul).hat();
-            let w = MdsMatrix(M_mul).w();
+            let M_hat = MdsMatrix(&M_mul).hat();
+            let w = MdsMatrix(&M_mul).w();
 
-            let v = MdsMatrix(M_mul).v();
+            let v = MdsMatrix(&M_mul).v();
             v_collection.push(v);
             let w_hat = mat_mul(&M_hat.inverse().expect("can invert Mhat").0, &w)
                 .expect("can compute w_hat");

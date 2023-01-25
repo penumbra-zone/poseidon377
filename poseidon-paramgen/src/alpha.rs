@@ -43,15 +43,7 @@ impl ShortestAdditionChains {
     }
 }
 
-// /// The exponent in `Sbox(x) = x^\alpha`.
-// #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-// pub enum Alpha {
-//     /// A positive exponent $x^{alpha}$.
-//     Exponent(u32),
-//     /// 1/x
-//     Inverse,
-// }
-
+/// The exponent in `Sbox(x) = x^\alpha`.
 pub struct Alpha<T>(pub T);
 
 impl Alpha<poseidon_parameters::Alpha> {
