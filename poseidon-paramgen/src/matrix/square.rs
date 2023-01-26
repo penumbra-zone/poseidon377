@@ -51,7 +51,7 @@ impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::SquareMatrix<F>
 impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMatrix<F> {
     /// Construct a dim x dim identity matrix
     fn identity(dim: usize) -> Self {
-        let mut m = SquareMatrix::from_vec(vec![F::zero(); dim * dim]);
+        let mut m = poseidon_parameters::SquareMatrix::from_vec(vec![F::zero(); dim * dim]);
 
         // Set diagonals to 1
         for i in 0..dim {
@@ -66,7 +66,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMat
         let identity = Self::identity(self.n_rows());
 
         if self.n_rows() == 1 {
-            return Ok(SquareMatrix::from_vec(vec![self
+            return Ok(poseidon_parameters::SquareMatrix::from_vec(vec![self
                 .get_element(0, 0)
                 .inverse()
                 .expect("inverse of single element must exist for 1x1 matrix")]));
@@ -97,13 +97,13 @@ impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMat
     fn minors(&self) -> Self {
         match self.0.n_cols {
             0 => panic!("matrix has no elements!"),
-            1 => SquareMatrix::from_vec(vec![self.get_element(0, 0)]),
+            1 => poseidon_parameters::SquareMatrix::from_vec(vec![self.get_element(0, 0)]),
             2 => {
                 let a = self.get_element(0, 0);
                 let b = self.get_element(0, 1);
                 let c = self.get_element(1, 0);
                 let d = self.get_element(1, 1);
-                SquareMatrix::from_vec(vec![d, c, b, a])
+                poseidon_parameters::SquareMatrix::from_vec(vec![d, c, b, a])
             }
             _ => {
                 let dim = self.n_rows();
@@ -127,11 +127,11 @@ impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMat
                                 elements.push(self.get_element(k, l))
                             }
                         }
-                        let minor = SquareMatrix::from_vec(elements);
+                        let minor = poseidon_parameters::SquareMatrix::from_vec(elements);
                         minor_matrix_elements.push(minor.determinant());
                     }
                 }
-                SquareMatrix::from_vec(minor_matrix_elements)
+                poseidon_parameters::SquareMatrix::from_vec(minor_matrix_elements)
             }
         }
     }
@@ -142,10 +142,10 @@ impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMat
         let mut elements = Vec::with_capacity(dim);
         for i in 0..dim {
             for j in 0..dim {
-                elements.push((-F::one()).pow(&[(i + j) as u64]))
+                elements.push((-F::one()).pow([(i + j) as u64]))
             }
         }
-        SquareMatrix::from_vec(elements)
+        poseidon_parameters::SquareMatrix::from_vec(elements)
     }
 
     /// Compute the matrix determinant
@@ -193,7 +193,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMat
                             elements.push(self.get_element(k, l))
                         }
                     }
-                    let minor = SquareMatrix::from_vec(elements);
+                    let minor = poseidon_parameters::SquareMatrix::from_vec(elements);
                     if levi_civita {
                         det += self.get_element(i, 0) * minor.determinant();
                     } else {
@@ -209,14 +209,14 @@ impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMat
 }
 
 impl<F: PrimeField> SquareMatrix<poseidon_parameters::SquareMatrix<F>> {
-    /// Create a `SquareMatrix` from a vector of elements.
-    pub fn from_vec(elements: Vec<F>) -> poseidon_parameters::SquareMatrix<F> {
-        if (elements.len() as f64).sqrt().fract() != 0.0 {
-            panic!("SquareMatrix must be square")
-        }
-        let dim = (elements.len() as f64).sqrt() as usize;
-        poseidon_parameters::SquareMatrix(poseidon_parameters::Matrix::new(dim, dim, elements))
-    }
+    // /// Create a `SquareMatrix` from a vector of elements.
+    // pub fn from_vec(elements: Vec<F>) -> poseidon_parameters::SquareMatrix<F> {
+    //     if (elements.len() as f64).sqrt().fract() != 0.0 {
+    //         panic!("SquareMatrix must be square")
+    //     }
+    //     let dim = (elements.len() as f64).sqrt() as usize;
+    //     poseidon_parameters::SquareMatrix(poseidon_parameters::Matrix::new(dim, dim, elements))
+    // }
 
     /// Get row vector at a specified row index.
     pub fn row_vector(&self, i: usize) -> poseidon_parameters::Matrix<F> {
@@ -226,6 +226,6 @@ impl<F: PrimeField> SquareMatrix<poseidon_parameters::SquareMatrix<F>> {
 
     /// Create a 2x2 `SquareMatrix` from four elements.
     pub fn new_2x2(a: F, b: F, c: F, d: F) -> poseidon_parameters::SquareMatrix<F> {
-        SquareMatrix::from_vec(vec![a, b, c, d])
+        poseidon_parameters::SquareMatrix::from_vec(vec![a, b, c, d])
     }
 }

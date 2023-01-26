@@ -28,17 +28,17 @@ where
         MdsMatrix::fixed_cauchy_matrix(input)
     }
 
-    /// Instantiate an MDS matrix from a list of elements.
-    ///
-    /// # Security
-    ///
-    /// You must ensure this matrix was generated securely,
-    /// using the Cauchy method in `fixed_cauchy_matrix` or
-    /// using the random subsampling method described in the original
-    /// paper.
-    pub fn from_elements(elements: Vec<F>) -> poseidon_parameters::MdsMatrix<F> {
-        poseidon_parameters::MdsMatrix::<F>(SquareMatrix::from_vec(elements))
-    }
+    // /// Instantiate an MDS matrix from a list of elements.
+    // ///
+    // /// # Security
+    // ///
+    // /// You must ensure this matrix was generated securely,
+    // /// using the Cauchy method in `fixed_cauchy_matrix` or
+    // /// using the random subsampling method described in the original
+    // /// paper.
+    // pub fn from_elements(elements: Vec<F>) -> poseidon_parameters::MdsMatrix<F> {
+    //     poseidon_parameters::MdsMatrix::<F>(SquareMatrix::from_vec(elements))
+    // }
 
     /// Generate a deterministic Cauchy matrix
     ///
@@ -74,7 +74,7 @@ where
             }
         }
 
-        let cauchy_matrix = SquareMatrix::from_vec(elements);
+        let cauchy_matrix = poseidon_parameters::SquareMatrix::from_vec(elements);
         // Sanity check: All Cauchy matrices should be invertible
         assert!(cauchy_matrix.determinant() != F::zero());
 
@@ -103,7 +103,7 @@ where
             }
         }
 
-        SquareMatrix::from_vec(mhat_elements)
+        poseidon_parameters::SquareMatrix::from_vec(mhat_elements)
     }
 
     /// Return the elements M_{0,1} .. M_{0,t} from the first row
@@ -314,7 +314,7 @@ where
             }
         }
 
-        SquareMatrix::from_vec(new_elements)
+        poseidon_parameters::SquareMatrix::from_vec(new_elements)
     }
 
     fn doubleprime(
@@ -343,7 +343,7 @@ where
             }
         }
 
-        SquareMatrix::from_vec(new_elements)
+        poseidon_parameters::SquareMatrix::from_vec(new_elements)
     }
 }
 
@@ -357,12 +357,13 @@ mod tests {
 
     #[test]
     fn convert_from_mds_to_vec_of_vecs() {
-        let MDS_matrix = poseidon_parameters::MdsMatrix(SquareMatrix::from_vec(vec![
-            Fq::from(1u32),
-            Fq::from(2u32),
-            Fq::from(3u32),
-            Fq::from(4u32),
-        ]));
+        let MDS_matrix =
+            poseidon_parameters::MdsMatrix(poseidon_parameters::SquareMatrix::from_vec(vec![
+                Fq::from(1u32),
+                Fq::from(2u32),
+                Fq::from(3u32),
+                Fq::from(4u32),
+            ]));
         let vec_of_vecs: Vec<Vec<Fq>> = MdsMatrix(MDS_matrix).into();
         assert_eq!(vec_of_vecs[0][0], Fq::from(1u32));
         assert_eq!(vec_of_vecs[0][1], Fq::from(2u32));

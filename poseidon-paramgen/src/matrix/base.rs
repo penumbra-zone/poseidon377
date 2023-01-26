@@ -13,12 +13,11 @@ impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::Matrix<F> {
     //     if elements.len() != n_rows * n_cols {
     //         panic!("Matrix has insufficient elements")
     //     }
-    //     // Self {
-    //     //     elements,
-    //     //     n_cols,
-    //     //     n_rows,
-    //     // }
-    //     poseidon_parameters::Matrix::new(n_rows, n_cols, elements)
+    // Self {
+    //     elements,
+    //     n_cols,
+    //     n_rows,
+    // }
     // }
 
     // fn n_rows(&self) -> usize {

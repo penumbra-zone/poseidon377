@@ -60,6 +60,6 @@ impl<F: PrimeField> Mul<F> for SquareMatrix<poseidon_parameters::SquareMatrix<F>
     fn mul(self, rhs: F) -> Self::Output {
         let elements = self.0.elements();
         let new_elements: Vec<F> = elements.iter().map(|element| *element * rhs).collect();
-        SquareMatrix::from_vec(new_elements)
+        poseidon_parameters::SquareMatrix::from_vec(new_elements)
     }
 }

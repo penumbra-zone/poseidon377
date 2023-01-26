@@ -3,7 +3,6 @@ use core::slice::Chunks;
 use anyhow::Result;
 use ark_std::vec::Vec;
 
-// TODO : remove basic operations covered by the basic trait
 /// Basic matrix operations all matrices should implement.
 pub trait MatrixOperations<F> {
     // /// Create a new matrix

@@ -8,6 +8,7 @@ use ark_ff::BigInteger;
 use ark_ff::PrimeField;
 use ark_std::vec::Vec;
 
+// TODO : define here or in paramgen crate?
 /// Input parameters that are used to generate Poseidon parameters.
 #[derive(Clone, Debug)]
 pub struct InputParameters<T: BigInteger> {
@@ -152,6 +153,17 @@ impl<F: PrimeField> BasicMatrixOperations<F> for SquareMatrix<F> {
     }
 }
 
+impl<F: PrimeField> SquareMatrix<F> {
+    /// Create a `SquareMatrix` from a vector of elements.
+    pub fn from_vec(elements: Vec<F>) -> Self {
+        let dim = elements.len().sqrt();
+        if dim * dim != elements.len() {
+            panic!("SquareMatrix must be square")
+        }
+        Self(Matrix::new(dim, dim, elements))
+    }
+}
+
 /// Represents an MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MdsMatrix<F: PrimeField>(pub SquareMatrix<F>);
@@ -183,6 +195,23 @@ impl<F: PrimeField> BasicMatrixOperations<F> for MdsMatrix<F> {
 
     fn rows(&self) -> Vec<&[F]> {
         self.0.rows()
+    }
+}
+
+impl<F> MdsMatrix<F>
+where
+    F: PrimeField,
+{
+    /// Instantiate an MDS matrix from a list of elements.
+    ///
+    /// # Security
+    ///
+    /// You must ensure this matrix was generated securely,
+    /// using the Cauchy method in `fixed_cauchy_matrix` or
+    /// using the random subsampling method described in the original
+    /// paper.
+    pub fn from_elements(elements: Vec<F>) -> Self {
+        Self(SquareMatrix::from_vec(elements))
     }
 }
 
@@ -285,28 +314,4 @@ pub struct PoseidonParameters<F: PrimeField> {
 
     /// Optimized MDS matrices.
     pub optimized_mds: OptimizedMdsMatrices<F>,
-}
-
-fn meh<F: PrimeField>(elements: &Vec<F>) {
-    // let x: i32 = 12345;
-    // assert_eq!((x * x).sqrt(), x);
-
-    let elements: Vec<F> = Vec::new();
-    let len = elements.len();
-    let res = len.sqrt();
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn meh<F: PrimeField>(elements: &Vec<F>) {
-        // let x: i32 = 12345;
-        // assert_eq!((x * x).sqrt(), x);
-
-        let elements: Vec<F> = Vec::new();
-        let len = elements.len();
-        let res = len.sqrt();
-    }
 }
