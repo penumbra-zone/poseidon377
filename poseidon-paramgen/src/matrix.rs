@@ -23,6 +23,7 @@ pub use traits::{MatrixOperations, SquareMatrixOperations};
 mod tests {
     use ark_ed_on_bls12_377::Fq;
     use ark_ff::{One, PrimeField, Zero};
+    use poseidon_parameters::BasicMatrixOperations;
     use proptest::prelude::*;
 
     use super::*;

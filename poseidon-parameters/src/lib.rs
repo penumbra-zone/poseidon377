@@ -2,6 +2,7 @@
 #![allow(non_snake_case)]
 
 use core::slice::Chunks;
+use num_integer::Roots;
 
 use ark_ff::BigInteger;
 use ark_ff::PrimeField;
@@ -26,19 +27,6 @@ pub struct InputParameters<T: BigInteger> {
     /// log_2(p)
     pub log_2_p: f64,
 }
-
-// impl<F: PrimeField> Matrix<F> {
-//     pub fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
-//         // if elements.len() != n_rows * n_cols {
-//         //     panic!("Matrix has insufficient elements")
-//         // }
-//         Self {
-//             elements,
-//             n_cols,
-//             n_rows,
-//         }
-//     }
-// }
 
 /// The exponent in `Sbox(x) = x^\alpha`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -65,6 +53,10 @@ pub trait BasicMatrixOperations<F> {
     fn elements(&self) -> &Vec<F>;
     /// Get element[i,j]
     fn get_element(&self, i: usize, j: usize) -> F;
+    /// Set element[i,j]
+    fn set_element(&mut self, i: usize, j: usize, val: F);
+    /// Get rows
+    fn rows(&self) -> Vec<&[F]>;
     /// Get rows in chunks
     fn iter_rows(&self) -> Chunks<F> {
         self.elements().chunks(self.n_cols())
@@ -91,23 +83,38 @@ pub struct Matrix<F: PrimeField> {
 
 impl<F: PrimeField> BasicMatrixOperations<F> for Matrix<F> {
     fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
-        todo!()
+        if elements.len() != n_rows * n_cols {
+            panic!("Matrix has an insufficient number of elements")
+        }
+        Self {
+            elements,
+            n_cols,
+            n_rows,
+        }
     }
 
     fn elements(&self) -> &Vec<F> {
-        todo!()
+        &self.elements
+    }
+
+    fn rows(&self) -> Vec<&[F]> {
+        self.elements.chunks(self.n_cols).collect()
     }
 
     fn get_element(&self, i: usize, j: usize) -> F {
-        todo!()
+        self.elements[i * self.n_cols + j]
+    }
+
+    fn set_element(&mut self, i: usize, j: usize, val: F) {
+        self.elements[i * self.n_cols + j] = val
     }
 
     fn n_rows(&self) -> usize {
-        todo!()
+        self.n_rows
     }
 
     fn n_cols(&self) -> usize {
-        todo!()
+        self.n_cols
     }
 }
 
@@ -117,23 +124,31 @@ pub struct SquareMatrix<F: PrimeField>(pub Matrix<F>);
 
 impl<F: PrimeField> BasicMatrixOperations<F> for SquareMatrix<F> {
     fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
-        todo!()
+        Self(Matrix::new(n_rows, n_cols, elements))
     }
 
     fn elements(&self) -> &Vec<F> {
-        todo!()
+        self.0.elements()
     }
 
     fn get_element(&self, i: usize, j: usize) -> F {
-        todo!()
+        self.0.get_element(i, j)
     }
 
     fn n_rows(&self) -> usize {
-        todo!()
+        self.0.n_rows
     }
 
     fn n_cols(&self) -> usize {
-        todo!()
+        self.0.n_cols
+    }
+
+    fn set_element(&mut self, i: usize, j: usize, val: F) {
+        self.0.set_element(i, j, val)
+    }
+
+    fn rows(&self) -> Vec<&[F]> {
+        self.0.rows()
     }
 }
 
@@ -143,23 +158,31 @@ pub struct MdsMatrix<F: PrimeField>(pub SquareMatrix<F>);
 
 impl<F: PrimeField> BasicMatrixOperations<F> for MdsMatrix<F> {
     fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
-        todo!()
+        Self(SquareMatrix::new(n_rows, n_cols, elements))
     }
 
     fn elements(&self) -> &Vec<F> {
-        todo!()
+        self.0.elements()
     }
 
     fn get_element(&self, i: usize, j: usize) -> F {
-        todo!()
+        self.0.get_element(i, j)
     }
 
     fn n_rows(&self) -> usize {
-        todo!()
+        self.0.n_rows()
     }
 
     fn n_cols(&self) -> usize {
-        todo!()
+        self.0.n_cols()
+    }
+
+    fn set_element(&mut self, i: usize, j: usize, val: F) {
+        self.0.set_element(i, j, val)
+    }
+
+    fn rows(&self) -> Vec<&[F]> {
+        self.0.rows()
     }
 }
 
@@ -169,23 +192,31 @@ pub struct ArcMatrix<F: PrimeField>(pub Matrix<F>);
 
 impl<F: PrimeField> BasicMatrixOperations<F> for ArcMatrix<F> {
     fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
-        todo!()
+        Self(Matrix::new(n_rows, n_cols, elements))
     }
 
     fn elements(&self) -> &Vec<F> {
-        todo!()
+        self.0.elements()
     }
 
     fn get_element(&self, i: usize, j: usize) -> F {
-        todo!()
+        self.0.get_element(i, j)
     }
 
     fn n_rows(&self) -> usize {
-        todo!()
+        self.0.n_rows()
     }
 
     fn n_cols(&self) -> usize {
-        todo!()
+        self.0.n_cols()
+    }
+
+    fn set_element(&mut self, i: usize, j: usize, val: F) {
+        self.0.set_element(i, j, val)
+    }
+
+    fn rows(&self) -> Vec<&[F]> {
+        self.0.rows()
     }
 }
 
@@ -256,11 +287,26 @@ pub struct PoseidonParameters<F: PrimeField> {
     pub optimized_mds: OptimizedMdsMatrices<F>,
 }
 
-// pub fn meh<F: PrimeField>(elements: &Vec<F>) -> Chunks<F> {
-//     // F::from_str("aa").map_err(|_| ()).unwrap();
-//     // let elements: Vec<F> = Vec::new();
-//     elements.chunks(2)
-//     let elements: Vec<F> = Vec::new();
-//     let len = elements.len();
-//     let a = len.sqrt();
-// }
+fn meh<F: PrimeField>(elements: &Vec<F>) {
+    // let x: i32 = 12345;
+    // assert_eq!((x * x).sqrt(), x);
+
+    let elements: Vec<F> = Vec::new();
+    let len = elements.len();
+    let res = len.sqrt();
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn meh<F: PrimeField>(elements: &Vec<F>) {
+        // let x: i32 = 12345;
+        // assert_eq!((x * x).sqrt(), x);
+
+        let elements: Vec<F> = Vec::new();
+        let len = elements.len();
+        let res = len.sqrt();
+    }
+}

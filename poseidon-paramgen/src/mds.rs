@@ -1,6 +1,7 @@
 use anyhow::Result;
 use ark_ff::{BigInteger, PrimeField};
 use ark_std::vec::Vec;
+use poseidon_parameters::BasicMatrixOperations;
 
 use crate::{
     matrix::mat_mul, InputParameters, Matrix, MatrixOperations, PoseidonParameters, RoundNumbers,
@@ -126,34 +127,34 @@ where
 }
 
 impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::MdsMatrix<F> {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
-        Self(poseidon_parameters::SquareMatrix::new(
-            n_rows, n_cols, elements,
-        ))
-    }
+    // fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
+    //     Self(poseidon_parameters::SquareMatrix::new(
+    //         n_rows, n_cols, elements,
+    //     ))
+    // }
 
-    fn elements(&self) -> &Vec<F> {
-        self.0.elements()
-    }
+    // fn elements(&self) -> &Vec<F> {
+    //     self.0.elements()
+    // }
 
-    fn n_rows(&self) -> usize {
-        self.0.n_rows()
-    }
+    // fn n_rows(&self) -> usize {
+    //     self.0.n_rows()
+    // }
 
-    fn n_cols(&self) -> usize {
-        self.0.n_cols()
-    }
+    // fn n_cols(&self) -> usize {
+    //     self.0.n_cols()
+    // }
 
-    fn get_element(&self, i: usize, j: usize) -> F {
-        self.0.get_element(i, j)
-    }
+    // fn get_element(&self, i: usize, j: usize) -> F {
+    //     self.0.get_element(i, j)
+    // }
 
-    fn set_element(&mut self, i: usize, j: usize, val: F) {
-        self.0.set_element(i, j, val)
-    }
-    fn rows(&self) -> Vec<&[F]> {
-        self.0.rows()
-    }
+    // fn set_element(&mut self, i: usize, j: usize, val: F) {
+    //     self.0.set_element(i, j, val)
+    // }
+    // fn rows(&self) -> Vec<&[F]> {
+    //     self.0.rows()
+    // }
 
     fn transpose(&self) -> Self {
         Self(self.0.transpose())

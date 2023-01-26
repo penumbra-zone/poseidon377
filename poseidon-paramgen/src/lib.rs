@@ -39,7 +39,6 @@ pub use matrix::{
     dot_product, mat_mul, Matrix, MatrixOperations, SquareMatrix, SquareMatrixOperations,
 };
 pub use mds::{MdsMatrix, OptimizedMdsMatrices};
-// use poseidon_parameters::PoseidonParameters;
 pub use round_constants::{ArcMatrix, OptimizedArcMatrix};
 pub use rounds::RoundNumbers;
 pub use utils::log2;

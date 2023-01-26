@@ -2,6 +2,7 @@ use anyhow::Result;
 use ark_ff::PrimeField;
 use ark_std::{vec, vec::Vec};
 use merlin::Transcript;
+use poseidon_parameters::BasicMatrixOperations;
 
 use crate::{
     matrix::mat_mul, transcript::TranscriptProtocol, Alpha, InputParameters, Matrix,
@@ -52,34 +53,34 @@ where
 }
 
 impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::ArcMatrix<F> {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> poseidon_parameters::ArcMatrix<F> {
-        let m = poseidon_parameters::Matrix::new(n_rows, n_cols, elements);
-        poseidon_parameters::ArcMatrix(m)
-    }
+    // fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> poseidon_parameters::ArcMatrix<F> {
+    //     let m = poseidon_parameters::Matrix::new(n_rows, n_cols, elements);
+    //     poseidon_parameters::ArcMatrix(m)
+    // }
 
-    fn elements(&self) -> &Vec<F> {
-        self.0.elements()
-    }
+    // fn elements(&self) -> &Vec<F> {
+    //     self.0.elements()
+    // }
 
-    fn n_rows(&self) -> usize {
-        self.0.n_rows()
-    }
+    // fn n_rows(&self) -> usize {
+    //     self.0.n_rows()
+    // }
 
-    fn n_cols(&self) -> usize {
-        self.0.n_cols()
-    }
+    // fn n_cols(&self) -> usize {
+    //     self.0.n_cols()
+    // }
 
-    fn get_element(&self, i: usize, j: usize) -> F {
-        self.0.get_element(i, j)
-    }
+    // fn get_element(&self, i: usize, j: usize) -> F {
+    //     self.0.get_element(i, j)
+    // }
 
-    fn set_element(&mut self, i: usize, j: usize, val: F) {
-        self.0.set_element(i, j, val)
-    }
+    // fn set_element(&mut self, i: usize, j: usize, val: F) {
+    //     self.0.set_element(i, j, val)
+    // }
 
-    fn rows(&self) -> Vec<&[F]> {
-        self.0.rows()
-    }
+    // fn rows(&self) -> Vec<&[F]> {
+    //     self.0.rows()
+    // }
 
     fn transpose(&self) -> Self {
         poseidon_parameters::ArcMatrix(self.0.transpose())

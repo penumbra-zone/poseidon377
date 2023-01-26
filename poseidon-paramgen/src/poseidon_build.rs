@@ -3,6 +3,7 @@ use std::fmt::Display;
 use ark_ff::PrimeField;
 use ark_std::vec::Vec;
 use num::BigUint;
+use poseidon_parameters::BasicMatrixOperations;
 
 use crate::{
     Alpha, ArcMatrix, Matrix, MatrixOperations, MdsMatrix, OptimizedArcMatrix,
