@@ -5,15 +5,9 @@ edition = "2018"
 authors = ["Penumbra <crates@penumbra.zone>", "redshiftzero <jen@penumbra.zone>"]
 description = "A crate for Poseidon parameters"
 license = "MIT OR Apache-2.0"
+keywords = ["no_std"]
 
 [dependencies]
 ark-ff = { version = "^0.3.0", default-features = false }
 ark-std = { version = "^0.3.0", default-features = false }
 num-integer = { version = "0.1.45", default-features = false }
-
-# [features]
-# default = ["std"]
-# std = [
-#     "ark-std/std",
-#     "ark-ff/std",
-# ]
