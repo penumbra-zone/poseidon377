@@ -179,7 +179,7 @@ impl<'a, F: PrimeField> Instance<'a, F> {
     /// Applies the partial `SubWords` layer.
     fn partial_sub_words(&mut self) {
         match self.parameters.alpha {
-            Alpha::Exponent(exp) => self.state_words[0] = (self.state_words[0]).pow(&[exp as u64]),
+            Alpha::Exponent(exp) => self.state_words[0] = (self.state_words[0]).pow([exp as u64]),
             Alpha::Inverse => self.state_words[0] = F::one() / self.state_words[0],
         }
     }
@@ -191,7 +191,7 @@ impl<'a, F: PrimeField> Instance<'a, F> {
                 self.state_words = self
                     .state_words
                     .iter()
-                    .map(|x| x.pow(&[exp as u64]))
+                    .map(|x| x.pow([exp as u64]))
                     .collect()
             }
             Alpha::Inverse => {

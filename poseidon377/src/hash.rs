@@ -6,7 +6,7 @@ use crate::{Fq, Instance};
 pub fn hash_1(domain_separator: &Fq, value: Fq) -> Fq {
     let params = &crate::RATE_1_PARAMS;
     let mut state = Instance::new(params);
-    state.n_to_1_fixed_hash(vec![domain_separator.clone(), value])
+    state.n_to_1_fixed_hash(vec![*domain_separator, value])
 }
 
 /// Hash two [`Fq`] elements with the provided `domain_separator`.
