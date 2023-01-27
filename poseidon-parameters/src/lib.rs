@@ -215,6 +215,20 @@ where
     }
 }
 
+impl<F: PrimeField> From<MdsMatrix<F>> for Vec<Vec<F>> {
+    fn from(val: MdsMatrix<F>) -> Self {
+        let mut rows = Vec::<Vec<F>>::new();
+        for i in 0..val.0.n_rows() {
+            let mut row = Vec::new();
+            for j in 0..val.0.n_rows() {
+                row.push(val.0 .0.get_element(i, j));
+            }
+            rows.push(row);
+        }
+        rows
+    }
+}
+
 /// Represents an matrix of round constants.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ArcMatrix<F: PrimeField>(pub Matrix<F>);
@@ -249,6 +263,22 @@ impl<F: PrimeField> BasicMatrixOperations<F> for ArcMatrix<F> {
     }
 }
 
+impl<F: PrimeField> From<ArcMatrix<F>> for Vec<Vec<F>> {
+    fn from(arc: ArcMatrix<F>) -> Self {
+        let mut rows = Vec::<Vec<F>>::new();
+        let m = &arc.0;
+
+        for i in 0..arc.n_rows() {
+            let mut row = Vec::new();
+            for j in 0..arc.n_cols() {
+                row.push(m.get_element(i, j));
+            }
+            rows.push(row);
+        }
+        rows
+    }
+}
+
 /// Represents an optimized matrix of round constants.
 ///
 /// This modifies the partial rounds in the middle of the permutation,
@@ -259,6 +289,37 @@ impl<F: PrimeField> BasicMatrixOperations<F> for ArcMatrix<F> {
 /// `poseidonperm_x3_64_24_optimized.sage`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OptimizedArcMatrix<F: PrimeField>(pub ArcMatrix<F>);
+
+impl<F: PrimeField> BasicMatrixOperations<F> for OptimizedArcMatrix<F> {
+    /// Create a `OptimizedArcMatrix` from its elements.
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
+        Self(ArcMatrix::new(n_rows, n_cols, elements))
+    }
+
+    fn elements(&self) -> &Vec<F> {
+        self.0.elements()
+    }
+
+    fn get_element(&self, i: usize, j: usize) -> F {
+        self.0.get_element(i, j)
+    }
+
+    fn set_element(&mut self, i: usize, j: usize, val: F) {
+        self.0.set_element(i, j, val)
+    }
+
+    fn rows(&self) -> Vec<&[F]> {
+        self.0.rows()
+    }
+
+    fn n_rows(&self) -> usize {
+        self.0.n_rows()
+    }
+
+    fn n_cols(&self) -> usize {
+        self.0.n_cols()
+    }
+}
 
 /// Represents an optimized MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -287,6 +348,7 @@ pub struct OptimizedMdsMatrices<F: PrimeField> {
     pub w_hat_collection: Vec<Matrix<F>>,
 }
 
+// TODO: arc and mds could be vec colls
 /// A set of Poseidon parameters for a given set of input parameters.
 #[derive(Clone, Debug)]
 pub struct PoseidonParameters<F: PrimeField> {

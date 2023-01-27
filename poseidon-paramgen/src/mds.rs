@@ -3,10 +3,7 @@ use ark_ff::{BigInteger, PrimeField};
 use ark_std::vec::Vec;
 use poseidon_parameters::BasicMatrixOperations;
 
-use crate::{
-    matrix::mat_mul, InputParameters, Matrix, MatrixOperations, PoseidonParameters, RoundNumbers,
-    SquareMatrix, SquareMatrixOperations,
-};
+use crate::{matrix::mat_mul, MatrixOperations, RoundNumbers, SquareMatrixOperations};
 
 /// Represents an MDS (maximum distance separable) matrix.
 pub struct MdsMatrix<T>(pub T);
@@ -27,18 +24,6 @@ where
 
         MdsMatrix::fixed_cauchy_matrix(input)
     }
-
-    // /// Instantiate an MDS matrix from a list of elements.
-    // ///
-    // /// # Security
-    // ///
-    // /// You must ensure this matrix was generated securely,
-    // /// using the Cauchy method in `fixed_cauchy_matrix` or
-    // /// using the random subsampling method described in the original
-    // /// paper.
-    // pub fn from_elements(elements: Vec<F>) -> poseidon_parameters::MdsMatrix<F> {
-    //     poseidon_parameters::MdsMatrix::<F>(SquareMatrix::from_vec(elements))
-    // }
 
     /// Generate a deterministic Cauchy matrix
     ///
@@ -127,55 +112,12 @@ where
 }
 
 impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::MdsMatrix<F> {
-    // fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
-    //     Self(poseidon_parameters::SquareMatrix::new(
-    //         n_rows, n_cols, elements,
-    //     ))
-    // }
-
-    // fn elements(&self) -> &Vec<F> {
-    //     self.0.elements()
-    // }
-
-    // fn n_rows(&self) -> usize {
-    //     self.0.n_rows()
-    // }
-
-    // fn n_cols(&self) -> usize {
-    //     self.0.n_cols()
-    // }
-
-    // fn get_element(&self, i: usize, j: usize) -> F {
-    //     self.0.get_element(i, j)
-    // }
-
-    // fn set_element(&mut self, i: usize, j: usize, val: F) {
-    //     self.0.set_element(i, j, val)
-    // }
-    // fn rows(&self) -> Vec<&[F]> {
-    //     self.0.rows()
-    // }
-
     fn transpose(&self) -> Self {
         Self(self.0.transpose())
     }
 
     fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
         Ok(Self(self.0.hadamard_product(&rhs.0)?))
-    }
-}
-
-impl<F: PrimeField> From<MdsMatrix<poseidon_parameters::MdsMatrix<F>>> for Vec<Vec<F>> {
-    fn from(val: MdsMatrix<poseidon_parameters::MdsMatrix<F>>) -> Self {
-        let mut rows = Vec::<Vec<F>>::new();
-        for i in 0..val.0.n_rows() {
-            let mut row = Vec::new();
-            for j in 0..val.0.n_rows() {
-                row.push(val.0 .0.get_element(i, j));
-            }
-            rows.push(row);
-        }
-        rows
     }
 }
 
@@ -353,6 +295,8 @@ mod tests {
     use ark_ed_on_bls12_381::{Fq, FqParameters as Fq381Parameters};
     use ark_ff::{fields::FpParameters, One, Zero};
 
+    use crate::InputParameters;
+
     use super::*;
 
     #[test]
@@ -364,7 +308,7 @@ mod tests {
                 Fq::from(3u32),
                 Fq::from(4u32),
             ]));
-        let vec_of_vecs: Vec<Vec<Fq>> = MdsMatrix(MDS_matrix).into();
+        let vec_of_vecs: Vec<Vec<Fq>> = MDS_matrix.into();
         assert_eq!(vec_of_vecs[0][0], Fq::from(1u32));
         assert_eq!(vec_of_vecs[0][1], Fq::from(2u32));
         assert_eq!(vec_of_vecs[1][0], Fq::from(3u32));

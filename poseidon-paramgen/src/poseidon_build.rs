@@ -6,8 +6,8 @@ use num::BigUint;
 use poseidon_parameters::BasicMatrixOperations;
 
 use crate::{
-    Alpha, ArcMatrix, Matrix, MatrixOperations, MdsMatrix, OptimizedArcMatrix,
-    OptimizedMdsMatrices, PoseidonParameters, RoundNumbers, SquareMatrix,
+    Alpha, ArcMatrix, Matrix, MdsMatrix, OptimizedArcMatrix, OptimizedMdsMatrices,
+    PoseidonParameters, RoundNumbers, SquareMatrix,
 };
 
 /// Create parameter code.
@@ -17,10 +17,9 @@ pub fn compile<F: PrimeField>(
     p: F::BigInt,
     allow_inverse: bool,
 ) -> String {
-    let mut params_code = "#![no_std]\n\
-                           use ark_ff::PrimeField;\n\
+    let mut params_code = "use ark_ff::PrimeField;\n\
                            use ark_std::vec::Vec;\n\
-use poseidon_parameters::{Alpha, ArcMatrix, RoundNumbers, SquareMatrix, Matrix, MdsMatrix, MatrixOperations, OptimizedArcMatrix, OptimizedMdsMatrices, PoseidonParameters};\n\n"
+use poseidon_parameters::{Alpha, ArcMatrix, RoundNumbers, SquareMatrix, Matrix, MdsMatrix, OptimizedArcMatrix, OptimizedMdsMatrices, PoseidonParameters, BasicMatrixOperations};\n\n"
         .to_string();
 
     for t in t_values {
@@ -217,7 +216,9 @@ impl<F: PrimeField> Display for ArcMatrix<poseidon_parameters::ArcMatrix<F>> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let n_rows = self.0.n_rows();
         let n_cols = self.0.n_cols();
-        let elements: Vec<Vec<F>> = self.into();
+
+        let arc = self.0.clone();
+        let elements: Vec<Vec<F>> = arc.into();
 
         let mut arc_str = "ArcMatrix::new(".to_string();
         arc_str.push_str(&n_rows.to_string());

@@ -5,8 +5,8 @@ use merlin::Transcript;
 use poseidon_parameters::BasicMatrixOperations;
 
 use crate::{
-    matrix::mat_mul, transcript::TranscriptProtocol, Alpha, InputParameters, Matrix,
-    MatrixOperations, MdsMatrix, RoundNumbers,
+    matrix::mat_mul, transcript::TranscriptProtocol, Matrix, MatrixOperations, MdsMatrix,
+    RoundNumbers,
 };
 
 /// Represents an matrix of round constants.
@@ -53,35 +53,6 @@ where
 }
 
 impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::ArcMatrix<F> {
-    // fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> poseidon_parameters::ArcMatrix<F> {
-    //     let m = poseidon_parameters::Matrix::new(n_rows, n_cols, elements);
-    //     poseidon_parameters::ArcMatrix(m)
-    // }
-
-    // fn elements(&self) -> &Vec<F> {
-    //     self.0.elements()
-    // }
-
-    // fn n_rows(&self) -> usize {
-    //     self.0.n_rows()
-    // }
-
-    // fn n_cols(&self) -> usize {
-    //     self.0.n_cols()
-    // }
-
-    // fn get_element(&self, i: usize, j: usize) -> F {
-    //     self.0.get_element(i, j)
-    // }
-
-    // fn set_element(&mut self, i: usize, j: usize, val: F) {
-    //     self.0.set_element(i, j, val)
-    // }
-
-    // fn rows(&self) -> Vec<&[F]> {
-    //     self.0.rows()
-    // }
-
     fn transpose(&self) -> Self {
         poseidon_parameters::ArcMatrix(self.0.transpose())
     }
@@ -93,24 +64,6 @@ impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::ArcMatrix<F> {
         Ok(poseidon_parameters::ArcMatrix(
             self.0.hadamard_product(&rhs.0)?,
         ))
-    }
-}
-
-impl<F: PrimeField> From<&ArcMatrix<poseidon_parameters::ArcMatrix<F>>> for Vec<Vec<F>> {
-    fn from(val: &ArcMatrix<poseidon_parameters::ArcMatrix<F>>) -> Self {
-        let mut rows = Vec::<Vec<F>>::new();
-
-        let arc: &poseidon_parameters::ArcMatrix<F> = &val.0;
-        let m: &poseidon_parameters::Matrix<F> = &arc.0;
-
-        for i in 0..arc.n_rows() {
-            let mut row = Vec::new();
-            for j in 0..arc.n_cols() {
-                row.push(m.get_element(i, j));
-            }
-            rows.push(row);
-        }
-        rows
     }
 }
 
@@ -187,17 +140,6 @@ where
 
         poseidon_parameters::OptimizedArcMatrix(constants_temp.0)
     }
-
-    /// Create a `OptimizedArcMatrix` from its elements.
-    pub fn new(
-        n_rows: usize,
-        n_cols: usize,
-        elements: Vec<F>,
-    ) -> poseidon_parameters::OptimizedArcMatrix<F> {
-        poseidon_parameters::OptimizedArcMatrix(poseidon_parameters::ArcMatrix::new(
-            n_rows, n_cols, elements,
-        ))
-    }
 }
 
 #[cfg(test)]
@@ -208,19 +150,17 @@ mod tests {
 
     #[test]
     fn convert_from_arc_to_vec_of_vecs() {
-        let arc_matrix = &ArcMatrix(poseidon_parameters::ArcMatrix(
-            poseidon_parameters::Matrix::new(
-                2,
-                3,
-                vec![
-                    Fq::from(1u32),
-                    Fq::from(2u32),
-                    Fq::from(0u32),
-                    Fq::from(4u32),
-                    Fq::from(5u32),
-                    Fq::from(6u32),
-                ],
-            ),
+        let arc_matrix = poseidon_parameters::ArcMatrix(poseidon_parameters::Matrix::new(
+            2,
+            3,
+            vec![
+                Fq::from(1u32),
+                Fq::from(2u32),
+                Fq::from(0u32),
+                Fq::from(4u32),
+                Fq::from(5u32),
+                Fq::from(6u32),
+            ],
         ));
         let vec_of_vecs: Vec<Vec<Fq>> = arc_matrix.into();
         assert_eq!(vec_of_vecs[0][0], Fq::from(1u32));

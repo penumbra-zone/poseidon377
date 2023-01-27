@@ -1,8 +1,6 @@
 use ark_ff::BigInteger;
 use ark_std::cmp::{Ordering, PartialOrd};
 
-use super::{Alpha, InputParameters};
-
 /// `RoundNumbers` required for security based on known attacks.
 pub struct RoundNumbers<T>(pub T);
 
