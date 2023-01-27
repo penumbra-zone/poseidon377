@@ -6,6 +6,7 @@ pub struct RoundNumbers<T>(pub T);
 
 impl RoundNumbers<poseidon_parameters::RoundNumbers> {
     /// Generate round numbers.
+    #[allow(clippy::new_ret_no_self)]
     pub fn new<T: BigInteger>(
         input: &poseidon_parameters::InputParameters<T>,
         alpha: &poseidon_parameters::Alpha,
@@ -158,7 +159,7 @@ impl RoundNumbers<poseidon_parameters::RoundNumbers> {
         match alpha {
             poseidon_parameters::Alpha::Inverse => {
                 // First Grobner constraint
-                let grobner_1_min_args = [input.M as f64, (input.log_2_p as f64)];
+                let grobner_1_min_args = [input.M as f64, input.log_2_p];
                 grobner_1 = (0.5f64 * grobner_1_min_args.iter().min_by(cmp_f64).expect("no NaNs"))
                     .ceil()
                     + ((input.t as f64).log2()).ceil();

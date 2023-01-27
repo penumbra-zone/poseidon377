@@ -9,41 +9,6 @@ use crate::MatrixOperations;
 pub struct Matrix<T>(pub T);
 
 impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::Matrix<F> {
-    // fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
-    //     if elements.len() != n_rows * n_cols {
-    //         panic!("Matrix has insufficient elements")
-    //     }
-    // Self {
-    //     elements,
-    //     n_cols,
-    //     n_rows,
-    // }
-    // }
-
-    // fn n_rows(&self) -> usize {
-    //     self.n_rows
-    // }
-
-    // fn n_cols(&self) -> usize {
-    //     self.n_cols
-    // }
-
-    // fn elements(&self) -> &Vec<F> {
-    //     &self.elements
-    // }
-
-    // fn get_element(&self, i: usize, j: usize) -> F {
-    //     self.elements[i * self.n_cols + j]
-    // }
-
-    // fn set_element(&mut self, i: usize, j: usize, val: F) {
-    //     self.elements[i * self.n_cols + j] = val
-    // }
-
-    // fn rows(&self) -> Vec<&[F]> {
-    //     self.elements.chunks(self.n_cols).collect()
-    // }
-
     /// Take transpose of the matrix
     fn transpose(&self) -> Self {
         let mut transposed_elements = Vec::with_capacity(self.n_rows * self.n_cols);

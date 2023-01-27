@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use ark_ff::PrimeField;
-// use ark_std::vec::Vec;
+use ark_std::vec::Vec;
 use num::BigUint;
 use poseidon_parameters::BasicMatrixOperations;
 
@@ -17,9 +17,7 @@ pub fn compile<F: PrimeField>(
     p: F::BigInt,
     allow_inverse: bool,
 ) -> String {
-    let mut params_code = "use ark_ff::PrimeField;\n\
-                           #[cfg(not(feature = \"std\"))]\n\
-                           use ark_std::vec;\n\
+    let mut params_code = "use ark_ff::PrimeField;\n
 use poseidon_parameters::{Alpha, ArcMatrix, RoundNumbers, SquareMatrix, Matrix, MdsMatrix, OptimizedArcMatrix, OptimizedMdsMatrices, PoseidonParameters, BasicMatrixOperations};\n\n"
         .to_string();
 
@@ -152,7 +150,7 @@ fn serialize_vec_of_vecs_f<F: PrimeField>(elements: Vec<Vec<F>>) -> String {
 fn serialize_f<F: PrimeField>(single_element: F) -> String {
     let mut new_str = "F::from_str(\"".to_string();
     let elem_bigint: BigUint = single_element.into();
-    new_str.push_str(&format!("{}", elem_bigint).to_string());
+    new_str.push_str(&format!("{}", elem_bigint));
     new_str.push_str("\").map_err(|_| ()).unwrap()");
     new_str
 }
@@ -208,7 +206,7 @@ impl<F: PrimeField> Display for MdsMatrix<poseidon_parameters::MdsMatrix<F>> {
 
         let mut mds_str = "MdsMatrix::from_elements(".to_string();
         mds_str.push_str(&serialize_vec_f(mds_elements));
-        mds_str.push_str(")");
+        mds_str.push(')');
         write!(f, "{}", &mds_str[..])
     }
 }

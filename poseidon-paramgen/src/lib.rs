@@ -53,6 +53,7 @@ impl<F: PrimeField> PoseidonParameters<poseidon_parameters::PoseidonParameters<F
     /// * t, the width of the desired hash function, e.g. $t=3$ corresponds to 2-to-1 hash.
     /// * p, the prime modulus,
     /// * `allow_inverse`, whether or not to allow an inverse alpha.
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(
         M: usize,
         t: usize,
