@@ -47,6 +47,16 @@ pub struct RoundNumbers {
     pub r_F: usize,
 }
 
+impl RoundNumbers {
+    pub fn full(&self) -> usize {
+        self.r_F
+    }
+
+    pub fn partial(&self) -> usize {
+        self.r_P
+    }
+}
+
 pub trait BasicMatrixOperations<F> {
     /// Create a new matrix
     fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self;

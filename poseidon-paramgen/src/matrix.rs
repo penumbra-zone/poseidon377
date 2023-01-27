@@ -43,7 +43,7 @@ mod tests {
         let identity: poseidon_parameters::SquareMatrix<Fq> =
             poseidon_parameters::SquareMatrix::identity(2);
 
-        let matrix_2x2 = SquareMatrix::from_vec(vec![
+        let matrix_2x2 = poseidon_parameters::SquareMatrix::from_vec(vec![
             Fq::one(),
             Fq::from(2u64),
             Fq::from(3u64),
@@ -132,7 +132,7 @@ mod tests {
         assert_eq!(res.get_element(0, 2), Fq::from(5u64));
         assert_eq!(res.get_element(1, 2), Fq::from(6u64));
 
-        let matrix_2x2 = SquareMatrix::from_vec(vec![
+        let matrix_2x2 = poseidon_parameters::SquareMatrix::from_vec(vec![
             Fq::one(),
             Fq::from(2u64),
             Fq::from(3u64),
@@ -149,12 +149,16 @@ mod tests {
     #[test]
     fn cofactors() {
         let identity_1x1 = poseidon_parameters::SquareMatrix::identity(1);
-        let expected_res = SquareMatrix::from_vec(vec![Fq::one()]);
+        let expected_res = poseidon_parameters::SquareMatrix::from_vec(vec![Fq::one()]);
         assert_eq!(identity_1x1.cofactors(), expected_res);
 
         let identity_2x2 = poseidon_parameters::SquareMatrix::identity(2);
-        let expected_res =
-            SquareMatrix::from_vec(vec![Fq::one(), -Fq::one(), -Fq::one(), Fq::one()]);
+        let expected_res = poseidon_parameters::SquareMatrix::from_vec(vec![
+            Fq::one(),
+            -Fq::one(),
+            -Fq::one(),
+            Fq::one(),
+        ]);
         assert_eq!(identity_2x2.cofactors(), expected_res);
     }
 
@@ -167,7 +171,7 @@ mod tests {
     proptest! {
         #[test]
         fn inverse_2x2(a in fq_strategy(), b in fq_strategy(), c in fq_strategy(), d in fq_strategy()) {
-            let matrix_2x2 = SquareMatrix::from_vec(vec![
+            let matrix_2x2 = poseidon_parameters::SquareMatrix::from_vec(vec![
                 a,b,c,d
             ]);
 
@@ -178,14 +182,14 @@ mod tests {
 
     #[test]
     fn inverse() {
-        let matrix_1x1 = SquareMatrix::from_vec(vec![Fq::from(2u64)]);
+        let matrix_1x1 = poseidon_parameters::SquareMatrix::from_vec(vec![Fq::from(2u64)]);
         let res = matrix_1x1.inverse().unwrap();
         assert_eq!(
             mat_mul(&matrix_1x1, &res).unwrap(),
             poseidon_parameters::SquareMatrix::identity(1)
         );
 
-        let matrix_2x2 = SquareMatrix::from_vec(vec![
+        let matrix_2x2 = poseidon_parameters::SquareMatrix::from_vec(vec![
             Fq::one(),
             Fq::from(2u64),
             Fq::from(3u64),
@@ -202,7 +206,7 @@ mod tests {
             poseidon_parameters::SquareMatrix::identity(3);
         assert_eq!(identity_3x3, identity_3x3.inverse().unwrap());
 
-        let matrix_3x3 = SquareMatrix::from_vec(vec![
+        let matrix_3x3 = poseidon_parameters::SquareMatrix::from_vec(vec![
             Fq::from(3u64),
             Fq::from(0u64),
             Fq::from(2u64),
@@ -218,7 +222,7 @@ mod tests {
             mat_mul(&matrix_3x3, &res).unwrap(),
             poseidon_parameters::SquareMatrix::identity(3)
         );
-        let expected_res = SquareMatrix(SquareMatrix::from_vec(vec![
+        let expected_res = SquareMatrix(poseidon_parameters::SquareMatrix::from_vec(vec![
             Fq::from(2u64),
             Fq::from(2u64),
             Fq::from(0u64),
@@ -234,7 +238,7 @@ mod tests {
 
     #[test]
     fn create_matrix_from_vec() {
-        let matrix_2x2 = SquareMatrix::from_vec(vec![
+        let matrix_2x2 = poseidon_parameters::SquareMatrix::from_vec(vec![
             Fq::one(),
             Fq::from(2u64),
             Fq::from(3u64),
@@ -267,14 +271,14 @@ mod tests {
 
     #[test]
     fn determinant() {
-        let matrix_1x1 = SquareMatrix::from_vec(vec![Fq::one()]);
+        let matrix_1x1 = poseidon_parameters::SquareMatrix::from_vec(vec![Fq::one()]);
         assert_eq!(matrix_1x1.determinant(), Fq::one());
 
         let a = Fq::one();
         let b = Fq::one() + Fq::one();
         let c = Fq::from(3u64);
         let d = Fq::from(4u64);
-        let matrix_2x2 = SquareMatrix::from_vec(vec![a, b, c, d]);
+        let matrix_2x2 = poseidon_parameters::SquareMatrix::from_vec(vec![a, b, c, d]);
         assert_eq!(matrix_2x2.determinant(), -Fq::from(2u64));
 
         let e = Fq::from(5u64);
@@ -282,11 +286,12 @@ mod tests {
         let g = Fq::from(7u64);
         let h = Fq::from(8u64);
         let i = Fq::from(9u64);
-        let matrix_3x3 = SquareMatrix::from_vec(vec![a, b, c, d, e, f, g, h, i]);
+        let matrix_3x3 =
+            poseidon_parameters::SquareMatrix::from_vec(vec![a, b, c, d, e, f, g, h, i]);
         assert_eq!(matrix_3x3.determinant(), Fq::from(0u64));
 
         let elem = Fq::from(10u64);
-        let matrix_4x4 = SquareMatrix::from_vec(vec![
+        let matrix_4x4 = poseidon_parameters::SquareMatrix::from_vec(vec![
             a, b, c, d, e, f, g, h, i, elem, elem, elem, elem, elem, elem, elem,
         ]);
         assert_eq!(matrix_4x4.determinant(), Fq::from(0u64));

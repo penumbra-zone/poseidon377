@@ -19,7 +19,7 @@ fn main() {
     let params_codegen =
         poseidon_build::compile::<Fq>(security_level, t_values, FqParameters::MODULUS, true);
 
-    let fh = fs::File::create(&output_location).expect("can create source file");
+    let fh = fs::File::create(output_location).expect("can create source file");
     let mut f = BufWriter::new(fh);
     f.write_all(params_codegen.as_bytes())
         .expect("can write parameters to file");

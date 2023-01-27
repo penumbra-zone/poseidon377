@@ -2,7 +2,7 @@
 
 use ark_sponge::poseidon::PoseidonParameters as ArkPoseidonParameters;
 use decaf377::Fq;
-use poseidon_paramgen::{Alpha, PoseidonParameters};
+use poseidon_parameters::{Alpha, PoseidonParameters};
 
 pub fn convert_to_ark_sponge_parameters(
     params: PoseidonParameters<Fq>,
@@ -36,7 +36,6 @@ mod tests {
         poseidon::{PoseidonParameters as Parameters, PoseidonSponge},
         CryptographicSponge,
     };
-    use poseidon_paramgen::PoseidonParameters;
     use poseidon_permutation::Instance;
     use proptest::prelude::*;
 
@@ -44,7 +43,8 @@ mod tests {
 
     #[test]
     fn check_optimized_impl_vs_sage() {
-        let params_2_to_1 = PoseidonParameters::<Fq>::new(128, 3, FqParameters::MODULUS, true);
+        let params_2_to_1 =
+            poseidon_paramgen::PoseidonParameters::new(128, 3, FqParameters::MODULUS, true);
         let mut our_instance = Instance::new(&params_2_to_1);
         let hash_output =
             our_instance.n_to_1_fixed_hash(vec![Fq::zero(), Fq::from(1u64), Fq::from(2u64)]);
@@ -71,7 +71,8 @@ mod tests {
 
     #[test]
     fn check_unoptimized_impl_vs_sage() {
-        let params_2_to_1 = PoseidonParameters::<Fq>::new(128, 3, FqParameters::MODULUS, true);
+        let params_2_to_1 =
+            poseidon_paramgen::PoseidonParameters::new(128, 3, FqParameters::MODULUS, true);
         let mut our_instance = Instance::new(&params_2_to_1);
         let hash_output = our_instance.unoptimized_n_to_1_fixed_hash(vec![
             Fq::zero(),
@@ -109,7 +110,7 @@ mod tests {
         #[test]
         fn ark_sponge_and_permutation_consistent(elem_1 in fq_strategy(), elem_2 in fq_strategy(), elem_3 in fq_strategy(), elem_4 in fq_strategy(), elem_5 in fq_strategy()) {
             let t = 5;
-            let params_4_to_1 = PoseidonParameters::<Fq>::new(128, t, FqParameters::MODULUS, true);
+            let params_4_to_1 = poseidon_paramgen::PoseidonParameters::new(128, t, FqParameters::MODULUS, true);
 
             let params_ark: Parameters<Fq> = convert_to_ark_sponge_parameters(params_4_to_1.clone());
 
@@ -126,7 +127,7 @@ mod tests {
         #[test]
         fn optimized_and_unoptimized_permutation_consistent(elem_1 in fq_strategy(), elem_2 in fq_strategy(), elem_3 in fq_strategy(), elem_4 in fq_strategy(), elem_5 in fq_strategy()) {
             let t = 5;
-            let params_4_to_1 = PoseidonParameters::<Fq>::new(128, t, FqParameters::MODULUS, true);
+            let params_4_to_1 = poseidon_paramgen::PoseidonParameters::new(128, t, FqParameters::MODULUS, true);
 
             let mut our_instance = Instance::new(&params_4_to_1);
             let our_result = our_instance.n_to_1_fixed_hash(vec![elem_1, elem_2, elem_3, elem_4, elem_5]);

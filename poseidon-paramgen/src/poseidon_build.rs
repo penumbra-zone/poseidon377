@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use ark_ff::PrimeField;
-use ark_std::vec::Vec;
+// use ark_std::vec::Vec;
 use num::BigUint;
 use poseidon_parameters::BasicMatrixOperations;
 
@@ -18,7 +18,8 @@ pub fn compile<F: PrimeField>(
     allow_inverse: bool,
 ) -> String {
     let mut params_code = "use ark_ff::PrimeField;\n\
-                           use ark_std::vec::Vec;\n\
+                           #[cfg(not(feature = \"std\"))]\n\
+                           use ark_std::vec;\n\
 use poseidon_parameters::{Alpha, ArcMatrix, RoundNumbers, SquareMatrix, Matrix, MdsMatrix, OptimizedArcMatrix, OptimizedMdsMatrices, PoseidonParameters, BasicMatrixOperations};\n\n"
         .to_string();
 
