@@ -7,7 +7,10 @@ use poseidon_parameters::{Matrix, MatrixOperations, SquareMatrix};
 
 use crate::{mat_mul, SquareMatrixOperations};
 
+use super::MatrixWrapper;
+
 /// Represents a square matrix over `PrimeField` elements
+#[derive(Debug)]
 pub struct SquareMatrixWrapper<F: PrimeField>(pub SquareMatrix<F>);
 
 impl<F: PrimeField> From<SquareMatrix<F>> for SquareMatrixWrapper<F> {
@@ -171,9 +174,9 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrixWrapper<F> {
                     }
                     let minor = SquareMatrix::from_vec(elements);
                     if levi_civita {
-                        det += self.get_element(i, 0) * minor.determinant();
+                        det += self.get_element(i, 0) * SquareMatrixWrapper(minor).determinant();
                     } else {
-                        det -= self.get_element(i, 0) * minor.determinant();
+                        det -= self.get_element(i, 0) * SquareMatrixWrapper(minor).determinant();
                     }
                     levi_civita = !levi_civita;
                 }
@@ -187,7 +190,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrixWrapper<F> {
 impl<F: PrimeField> SquareMatrixWrapper<F> {
     /// Get row vector at a specified row index.
     pub fn row_vector(&self, i: usize) -> Matrix<F> {
-        self.row_vector(i)
+        MatrixWrapper(self.0 .0.clone()).row_vector(i)
     }
 
     /// Create a 2x2 `SquareMatrix` from four elements.

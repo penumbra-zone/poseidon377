@@ -53,8 +53,7 @@ impl<F: PrimeField> ArcMatrixWrapper<F> {
 
     /// Get row vector of constants by round
     pub fn constants_by_round(&self, r: usize) -> Matrix<F> {
-        let m = &MatrixWrapper(self.0 .0);
-        m.row_vector(r)
+        MatrixWrapper(self.0 .0.clone()).row_vector(r)
     }
 
     /// Set row vector of constants by round
@@ -65,21 +64,6 @@ impl<F: PrimeField> ArcMatrixWrapper<F> {
         }
     }
 }
-
-// impl<F: PrimeField> ExtendedMatrixOperations<F> for poseidon_parameters::ArcMatrix<F> {
-//     fn transpose(&self) -> Self {
-//         poseidon_parameters::ArcMatrix(self.0.transpose())
-//     }
-
-//     fn hadamard_product(
-//         &self,
-//         rhs: &poseidon_parameters::ArcMatrix<F>,
-//     ) -> Result<poseidon_parameters::ArcMatrix<F>> {
-//         Ok(poseidon_parameters::ArcMatrix(
-//             self.0.hadamard_product(&rhs.0)?,
-//         ))
-//     }
-// }
 
 impl<F: PrimeField> From<&OptimizedArcMatrixWrapper<F>> for Vec<Vec<F>> {
     fn from(val: &OptimizedArcMatrixWrapper<F>) -> Self {

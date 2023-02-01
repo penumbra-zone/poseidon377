@@ -76,17 +76,18 @@ impl<F: PrimeField> MdsMatrixWrapper<F> {
 
         let cauchy_matrix = SquareMatrix::from_vec(elements);
         // Sanity check: All Cauchy matrices should be invertible
-        assert!(SquareMatrixWrapper(cauchy_matrix).determinant() != F::zero());
+        assert!(SquareMatrixWrapper(cauchy_matrix.clone()).determinant() != F::zero());
 
         MdsMatrix(cauchy_matrix)
     }
 
     /// Compute inverse of MDS matrix
     pub fn inverse(&self) -> SquareMatrix<F> {
-        let wrapper = SquareMatrixWrapper(self.0 .0);
-        *wrapper
+        let wrapper = SquareMatrixWrapper(self.0 .0.clone());
+        wrapper
             .inverse()
             .expect("all well-formed MDS matrices should have inverses")
+            .0
     }
 
     /// Compute the (t - 1) x (t - 1) Mhat matrix from the MDS matrix
@@ -160,12 +161,12 @@ where
         t: usize,
         rounds: &RoundNumbers,
     ) -> OptimizedMdsMatrices<F> {
-        let M_hat = MdsMatrixWrapper(*mds).hat();
-        let M_hat_inverse = SquareMatrixWrapper(M_hat)
+        let M_hat = MdsMatrixWrapper(mds.clone()).hat();
+        let M_hat_inverse = SquareMatrixWrapper(M_hat.clone())
             .inverse()
             .expect("all well-formed MDS matrices should have inverses");
-        let v = MdsMatrixWrapper(*mds).v();
-        let w = MdsMatrixWrapper(*mds).w();
+        let v = MdsMatrixWrapper(mds.clone()).v();
+        let w = MdsMatrixWrapper(mds.clone()).w();
         let M_prime = OptimizedMdsMatricesWrapper::prime(&M_hat);
         let M_00 = mds.get_element(0, 0);
         let M_doubleprime = OptimizedMdsMatricesWrapper::doubleprime(&M_hat_inverse, &w, &v, M_00);
@@ -207,12 +208,12 @@ where
 
         OptimizedMdsMatrices {
             M_hat,
-            M_hat_inverse: *M_hat_inverse,
+            M_hat_inverse: M_hat_inverse.0,
             v,
             w,
             M_prime,
             M_doubleprime,
-            M_inverse: MdsMatrixWrapper(*mds).inverse(),
+            M_inverse: MdsMatrixWrapper(mds.clone()).inverse(),
             M_i,
             v_collection,
             w_hat_collection,
@@ -234,13 +235,13 @@ where
         let mut M_i = OptimizedMdsMatricesWrapper::prime(&M_mul.0);
 
         for _ in (0..r_P).rev() {
-            let M_hat = MdsMatrixWrapper(M_mul).hat();
-            let w = MdsMatrixWrapper(M_mul).w();
+            let M_hat = MdsMatrixWrapper(M_mul.clone()).hat();
+            let w = MdsMatrixWrapper(M_mul.clone()).w();
 
             let v = MdsMatrixWrapper(M_mul).v();
             v_collection.push(v);
             let w_hat = mat_mul(
-                &SquareMatrixWrapper(M_hat)
+                &SquareMatrixWrapper(M_hat.clone())
                     .inverse()
                     .expect("can invert Mhat")
                     .0,
