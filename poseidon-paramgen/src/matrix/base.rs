@@ -1,42 +1,40 @@
 use anyhow::{anyhow, Result};
 use ark_ff::PrimeField;
 use ark_std::vec::Vec;
-use poseidon_parameters::BasicMatrixOperations;
-
-use crate::MatrixOperations;
+use poseidon_parameters::MatrixOperations;
 
 /// Represents a matrix over `PrimeField` elements.
 pub struct Matrix<T>(pub T);
 
-impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::Matrix<F> {
-    /// Take transpose of the matrix
-    fn transpose(&self) -> Self {
-        let mut transposed_elements = Vec::with_capacity(self.n_rows * self.n_cols);
+// impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::Matrix<F> {
+//     // /// Take transpose of the matrix
+//     // fn transpose(&self) -> Self {
+//     //     let mut transposed_elements = Vec::with_capacity(self.n_rows * self.n_cols);
 
-        for j in 0..self.n_cols {
-            for i in 0..self.n_rows {
-                transposed_elements.push(self.get_element(i, j))
-            }
-        }
-        Self::new(self.n_cols, self.n_rows, transposed_elements)
-    }
+//     //     for j in 0..self.n_cols {
+//     //         for i in 0..self.n_rows {
+//     //             transposed_elements.push(self.get_element(i, j))
+//     //         }
+//     //     }
+//     //     Self::new(self.n_cols, self.n_rows, transposed_elements)
+//     // }
 
-    /// Hadamard (element-wise) matrix product
-    fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
-        if self.n_rows != rhs.n_rows || self.n_cols != rhs.n_cols {
-            return Err(anyhow!("Hadamard product requires same shape matrices"));
-        }
+//     /// Hadamard (element-wise) matrix product
+//     fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
+//         if self.n_rows != rhs.n_rows || self.n_cols != rhs.n_cols {
+//             return Err(anyhow!("Hadamard product requires same shape matrices"));
+//         }
 
-        let mut new_elements = Vec::with_capacity(self.n_rows * self.n_cols);
-        for i in 0..self.n_rows {
-            for j in 0..self.n_cols {
-                new_elements.push(self.get_element(i, j) * rhs.get_element(i, j));
-            }
-        }
+//         let mut new_elements = Vec::with_capacity(self.n_rows * self.n_cols);
+//         for i in 0..self.n_rows {
+//             for j in 0..self.n_cols {
+//                 new_elements.push(self.get_element(i, j) * rhs.get_element(i, j));
+//             }
+//         }
 
-        Ok(Self::new(self.n_rows, self.n_cols, new_elements))
-    }
-}
+//         Ok(Self::new(self.n_rows, self.n_cols, new_elements))
+//     }
+// }
 
 impl<F: PrimeField> Matrix<&poseidon_parameters::Matrix<F>> {
     /// Get row vector at a specified row index

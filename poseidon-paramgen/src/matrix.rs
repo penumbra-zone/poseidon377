@@ -17,13 +17,13 @@ mod traits;
 pub use base::Matrix;
 pub use mult::{dot_product, mat_mul};
 pub use square::SquareMatrix;
-pub use traits::{MatrixOperations, SquareMatrixOperations};
+pub use traits::SquareMatrixOperations;
 
 #[cfg(test)]
 mod tests {
     use ark_ed_on_bls12_377::Fq;
     use ark_ff::{One, PrimeField, Zero};
-    use poseidon_parameters::BasicMatrixOperations;
+    use poseidon_parameters::MatrixOperations;
     use proptest::prelude::*;
 
     use super::*;

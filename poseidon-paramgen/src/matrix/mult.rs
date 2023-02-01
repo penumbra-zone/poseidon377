@@ -1,9 +1,9 @@
 use anyhow::{anyhow, Result};
 use ark_ff::PrimeField;
 use ark_std::{ops::Mul, vec::Vec};
-use poseidon_parameters::BasicMatrixOperations;
+use poseidon_parameters::MatrixOperations;
 
-use crate::{Matrix, MatrixOperations, SquareMatrix};
+use crate::{Matrix, SquareMatrix};
 
 /// Compute vector dot product
 pub fn dot_product<F: PrimeField>(a: &[F], b: &[F]) -> F {
@@ -15,7 +15,7 @@ pub fn dot_product<F: PrimeField>(a: &[F], b: &[F]) -> F {
 }
 
 /// Multiply two matrices
-pub fn mat_mul<F: PrimeField, M: BasicMatrixOperations<F> + MatrixOperations<F>>(
+pub fn mat_mul<F: PrimeField, M: MatrixOperations<F> + MatrixOperations<F>>(
     lhs: &M,
     rhs: &M,
 ) -> Result<M> {

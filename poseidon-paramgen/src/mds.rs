@@ -1,9 +1,9 @@
 use anyhow::Result;
 use ark_ff::{BigInteger, PrimeField};
 use ark_std::vec::Vec;
-use poseidon_parameters::BasicMatrixOperations;
+use poseidon_parameters::MatrixOperations;
 
-use crate::{matrix::mat_mul, MatrixOperations, RoundNumbers, SquareMatrixOperations};
+use crate::{matrix::mat_mul, RoundNumbers, SquareMatrixOperations};
 
 /// Represents an MDS (maximum distance separable) matrix.
 pub struct MdsMatrix<T>(pub T);
@@ -111,15 +111,15 @@ where
     }
 }
 
-impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::MdsMatrix<F> {
-    fn transpose(&self) -> Self {
-        Self(self.0.transpose())
-    }
+// impl<F: PrimeField> ExtendedMatrixOperations<F> for poseidon_parameters::MdsMatrix<F> {
+//     // fn transpose(&self) -> Self {
+//     //     Self(self.0.transpose())
+//     // }
 
-    fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
-        Ok(Self(self.0.hadamard_product(&rhs.0)?))
-    }
-}
+//     fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
+//         Ok(Self(self.0.hadamard_product(&rhs.0)?))
+//     }
+// }
 
 impl<F: PrimeField> From<&MdsMatrix<poseidon_parameters::MdsMatrix<F>>> for Vec<F> {
     fn from(val: &MdsMatrix<poseidon_parameters::MdsMatrix<F>>) -> Self {

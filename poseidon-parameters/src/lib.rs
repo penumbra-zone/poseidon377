@@ -1,6 +1,8 @@
 #![no_std]
 #![allow(non_snake_case)]
 
+use anyhow::anyhow;
+use anyhow::Result;
 use core::slice::Chunks;
 use num_integer::Roots;
 
@@ -57,7 +59,7 @@ impl RoundNumbers {
     }
 }
 
-pub trait BasicMatrixOperations<F> {
+pub trait MatrixOperations<F> {
     /// Create a new matrix
     fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self;
     /// Access elements as a vector
@@ -76,6 +78,12 @@ pub trait BasicMatrixOperations<F> {
     fn n_rows(&self) -> usize;
     /// Number of columns
     fn n_cols(&self) -> usize;
+    /// Take transpose of the matrix    
+    fn transpose(&self) -> Self;
+    /// Compute Hadamard (element-wise) product
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self>
+    where
+        Self: Sized;
 }
 
 /// Represents a matrix over `PrimeField` elements.
@@ -92,7 +100,7 @@ pub struct Matrix<F: PrimeField> {
     pub n_rows: usize,
 }
 
-impl<F: PrimeField> BasicMatrixOperations<F> for Matrix<F> {
+impl<F: PrimeField> MatrixOperations<F> for Matrix<F> {
     fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
         if elements.len() != n_rows * n_cols {
             panic!("Matrix has an insufficient number of elements")
@@ -108,16 +116,16 @@ impl<F: PrimeField> BasicMatrixOperations<F> for Matrix<F> {
         &self.elements
     }
 
-    fn rows(&self) -> Vec<&[F]> {
-        self.elements.chunks(self.n_cols).collect()
-    }
-
     fn get_element(&self, i: usize, j: usize) -> F {
         self.elements[i * self.n_cols + j]
     }
 
     fn set_element(&mut self, i: usize, j: usize, val: F) {
         self.elements[i * self.n_cols + j] = val
+    }
+
+    fn rows(&self) -> Vec<&[F]> {
+        self.elements.chunks(self.n_cols).collect()
     }
 
     fn n_rows(&self) -> usize {
@@ -127,13 +135,42 @@ impl<F: PrimeField> BasicMatrixOperations<F> for Matrix<F> {
     fn n_cols(&self) -> usize {
         self.n_cols
     }
+
+    fn transpose(&self) -> Self {
+        let mut transposed_elements = Vec::with_capacity(self.n_rows * self.n_cols);
+
+        for j in 0..self.n_cols {
+            for i in 0..self.n_rows {
+                transposed_elements.push(self.get_element(i, j))
+            }
+        }
+        Self::new(self.n_cols, self.n_rows, transposed_elements)
+    }
+
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        if self.n_rows != rhs.n_rows || self.n_cols != rhs.n_cols {
+            return Err(anyhow!("Hadamard product requires same shape matrices"));
+        }
+
+        let mut new_elements = Vec::with_capacity(self.n_rows * self.n_cols);
+        for i in 0..self.n_rows {
+            for j in 0..self.n_cols {
+                new_elements.push(self.get_element(i, j) * rhs.get_element(i, j));
+            }
+        }
+
+        Ok(Self::new(self.n_rows, self.n_cols, new_elements))
+    }
 }
 
 /// Represents a square matrix over `PrimeField` elements
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SquareMatrix<F: PrimeField>(pub Matrix<F>);
 
-impl<F: PrimeField> BasicMatrixOperations<F> for SquareMatrix<F> {
+impl<F: PrimeField> MatrixOperations<F> for SquareMatrix<F> {
     fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
         Self(Matrix::new(n_rows, n_cols, elements))
     }
@@ -161,6 +198,17 @@ impl<F: PrimeField> BasicMatrixOperations<F> for SquareMatrix<F> {
     fn rows(&self) -> Vec<&[F]> {
         self.0.rows()
     }
+
+    fn transpose(&self) -> Self {
+        Self(self.0.transpose())
+    }
+
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        Ok(Self(self.0.hadamard_product(&rhs.0)?))
+    }
 }
 
 impl<F: PrimeField> SquareMatrix<F> {
@@ -178,7 +226,7 @@ impl<F: PrimeField> SquareMatrix<F> {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MdsMatrix<F: PrimeField>(pub SquareMatrix<F>);
 
-impl<F: PrimeField> BasicMatrixOperations<F> for MdsMatrix<F> {
+impl<F: PrimeField> MatrixOperations<F> for MdsMatrix<F> {
     fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
         Self(SquareMatrix::new(n_rows, n_cols, elements))
     }
@@ -205,6 +253,17 @@ impl<F: PrimeField> BasicMatrixOperations<F> for MdsMatrix<F> {
 
     fn rows(&self) -> Vec<&[F]> {
         self.0.rows()
+    }
+
+    fn transpose(&self) -> Self {
+        Self(self.0.transpose())
+    }
+
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        Ok(Self(self.0.hadamard_product(&rhs.0)?))
     }
 }
 
@@ -243,7 +302,7 @@ impl<F: PrimeField> From<MdsMatrix<F>> for Vec<Vec<F>> {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ArcMatrix<F: PrimeField>(pub Matrix<F>);
 
-impl<F: PrimeField> BasicMatrixOperations<F> for ArcMatrix<F> {
+impl<F: PrimeField> MatrixOperations<F> for ArcMatrix<F> {
     fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
         Self(Matrix::new(n_rows, n_cols, elements))
     }
@@ -270,6 +329,17 @@ impl<F: PrimeField> BasicMatrixOperations<F> for ArcMatrix<F> {
 
     fn rows(&self) -> Vec<&[F]> {
         self.0.rows()
+    }
+
+    fn transpose(&self) -> Self {
+        Self(self.0.transpose())
+    }
+
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        Ok(Self(self.0.hadamard_product(&rhs.0)?))
     }
 }
 
@@ -300,7 +370,7 @@ impl<F: PrimeField> From<ArcMatrix<F>> for Vec<Vec<F>> {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OptimizedArcMatrix<F: PrimeField>(pub ArcMatrix<F>);
 
-impl<F: PrimeField> BasicMatrixOperations<F> for OptimizedArcMatrix<F> {
+impl<F: PrimeField> MatrixOperations<F> for OptimizedArcMatrix<F> {
     /// Create a `OptimizedArcMatrix` from its elements.
     fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
         Self(ArcMatrix::new(n_rows, n_cols, elements))
@@ -328,6 +398,17 @@ impl<F: PrimeField> BasicMatrixOperations<F> for OptimizedArcMatrix<F> {
 
     fn n_cols(&self) -> usize {
         self.0.n_cols()
+    }
+
+    fn transpose(&self) -> Self {
+        Self(self.0.transpose())
+    }
+
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        Ok(Self(self.0.hadamard_product(&rhs.0)?))
     }
 }
 

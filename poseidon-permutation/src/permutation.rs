@@ -2,7 +2,7 @@
 
 use ark_ff::PrimeField;
 use ark_std::{vec, vec::Vec};
-use poseidon_parameters::{Alpha, BasicMatrixOperations, PoseidonParameters};
+use poseidon_parameters::{Alpha, MatrixOperations, PoseidonParameters};
 
 /// Represents a generic instance of `Poseidon`.
 ///

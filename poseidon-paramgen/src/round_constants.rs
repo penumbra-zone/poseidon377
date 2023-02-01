@@ -2,12 +2,9 @@ use anyhow::Result;
 use ark_ff::PrimeField;
 use ark_std::{vec, vec::Vec};
 use merlin::Transcript;
-use poseidon_parameters::BasicMatrixOperations;
+use poseidon_parameters::MatrixOperations;
 
-use crate::{
-    matrix::mat_mul, transcript::TranscriptProtocol, Matrix, MatrixOperations, MdsMatrix,
-    RoundNumbers,
-};
+use crate::{matrix::mat_mul, transcript::TranscriptProtocol, Matrix, MdsMatrix, RoundNumbers};
 
 /// Represents an matrix of round constants.
 pub struct ArcMatrix<T>(pub T);
@@ -52,20 +49,20 @@ where
     }
 }
 
-impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::ArcMatrix<F> {
-    fn transpose(&self) -> Self {
-        poseidon_parameters::ArcMatrix(self.0.transpose())
-    }
+// impl<F: PrimeField> ExtendedMatrixOperations<F> for poseidon_parameters::ArcMatrix<F> {
+//     fn transpose(&self) -> Self {
+//         poseidon_parameters::ArcMatrix(self.0.transpose())
+//     }
 
-    fn hadamard_product(
-        &self,
-        rhs: &poseidon_parameters::ArcMatrix<F>,
-    ) -> Result<poseidon_parameters::ArcMatrix<F>> {
-        Ok(poseidon_parameters::ArcMatrix(
-            self.0.hadamard_product(&rhs.0)?,
-        ))
-    }
-}
+//     fn hadamard_product(
+//         &self,
+//         rhs: &poseidon_parameters::ArcMatrix<F>,
+//     ) -> Result<poseidon_parameters::ArcMatrix<F>> {
+//         Ok(poseidon_parameters::ArcMatrix(
+//             self.0.hadamard_product(&rhs.0)?,
+//         ))
+//     }
+// }
 
 impl<F: PrimeField> From<&OptimizedArcMatrix<poseidon_parameters::OptimizedArcMatrix<F>>>
     for Vec<Vec<F>>

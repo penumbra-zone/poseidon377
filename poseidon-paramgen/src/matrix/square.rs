@@ -1,24 +1,24 @@
 use anyhow::{anyhow, Result};
 use ark_ff::PrimeField;
 use ark_std::{vec, vec::Vec};
-use poseidon_parameters::BasicMatrixOperations;
+use poseidon_parameters::MatrixOperations;
 
-use crate::{mat_mul, Matrix, MatrixOperations, SquareMatrixOperations};
+use crate::{mat_mul, Matrix, SquareMatrixOperations};
 
 /// Represents a square matrix over `PrimeField` elements
 pub struct SquareMatrix<T>(pub T);
 
-impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::SquareMatrix<F> {
-    /// Take transpose of the matrix
-    fn transpose(&self) -> Self {
-        Self(self.0.transpose())
-    }
+// impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::SquareMatrix<F> {
+//     /// Take transpose of the matrix
+//     fn transpose(&self) -> Self {
+//         Self(self.0.transpose())
+//     }
 
-    /// Hadamard (element-wise) matrix product
-    fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
-        Ok(Self(self.0.hadamard_product(&rhs.0)?))
-    }
-}
+//     /// Hadamard (element-wise) matrix product
+//     fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
+//         Ok(Self(self.0.hadamard_product(&rhs.0)?))
+//     }
+// }
 
 impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMatrix<F> {
     /// Construct a dim x dim identity matrix
