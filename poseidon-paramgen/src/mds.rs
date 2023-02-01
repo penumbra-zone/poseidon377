@@ -1,28 +1,45 @@
+use core::ops::Deref;
+
 use anyhow::Result;
 use ark_ff::{BigInteger, PrimeField};
 use ark_std::vec::Vec;
-use poseidon_parameters::MatrixOperations;
+use poseidon_parameters::{
+    InputParameters, Matrix, MatrixOperations, MdsMatrix, OptimizedMdsMatrices, RoundNumbers,
+    SquareMatrix,
+};
 
-use crate::{matrix::mat_mul, RoundNumbers, SquareMatrixOperations};
+use crate::{
+    matrix::{mat_mul, SquareMatrixWrapper},
+    SquareMatrixOperations,
+};
 
 /// Represents an MDS (maximum distance separable) matrix.
-pub struct MdsMatrix<T>(pub T);
+pub struct MdsMatrixWrapper<F: PrimeField>(pub MdsMatrix<F>);
 
-impl<F> MdsMatrix<&poseidon_parameters::MdsMatrix<F>>
-where
-    F: PrimeField,
-{
+impl<F: PrimeField> From<MdsMatrix<F>> for MdsMatrixWrapper<F> {
+    fn from(value: MdsMatrix<F>) -> Self {
+        Self(value)
+    }
+}
+
+impl<F: PrimeField> Deref for MdsMatrixWrapper<F> {
+    type Target = MdsMatrix<F>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<F: PrimeField> MdsMatrixWrapper<F> {
     /// Generate the MDS matrix.
-    pub fn generate(
-        input: &poseidon_parameters::InputParameters<F::BigInt>,
-    ) -> poseidon_parameters::MdsMatrix<F> {
+    pub fn generate(input: &InputParameters<F::BigInt>) -> MdsMatrix<F> {
         // A t x t MDS matrix only exists if: 2t + 1 <= p
         let two_times_t_bigint: F::BigInt = (2 * input.t as u64).into();
         if two_times_t_bigint > input.p {
             panic!("no MDS matrix exists");
         }
 
-        MdsMatrix::fixed_cauchy_matrix(input)
+        MdsMatrixWrapper::fixed_cauchy_matrix(input)
     }
 
     /// Generate a deterministic Cauchy matrix
@@ -38,9 +55,7 @@ where
     ///
     /// However, here we use a deterministic method for creating Cauchy matrices that has
     /// been empirically checked to be safe using the three algorithms above over `decaf377` for t=1-100.
-    pub fn fixed_cauchy_matrix(
-        input: &poseidon_parameters::InputParameters<F::BigInt>,
-    ) -> poseidon_parameters::MdsMatrix<F> {
+    pub fn fixed_cauchy_matrix(input: &InputParameters<F::BigInt>) -> MdsMatrix<F> {
         // We explicitly check for small fields where the deterministic procedure can fail.
         // In these cases, the full algorithms 1-3 should be implemented.
         if input.p.num_bits() < 128 {
@@ -59,17 +74,17 @@ where
             }
         }
 
-        let cauchy_matrix = poseidon_parameters::SquareMatrix::from_vec(elements);
+        let cauchy_matrix = SquareMatrix::from_vec(elements);
         // Sanity check: All Cauchy matrices should be invertible
-        assert!(cauchy_matrix.determinant() != F::zero());
+        assert!(SquareMatrixWrapper(cauchy_matrix).determinant() != F::zero());
 
-        poseidon_parameters::MdsMatrix(cauchy_matrix)
+        MdsMatrix(cauchy_matrix)
     }
 
     /// Compute inverse of MDS matrix
-    pub fn inverse(&self) -> poseidon_parameters::SquareMatrix<F> {
-        self.0
-             .0
+    pub fn inverse(&self) -> SquareMatrix<F> {
+        let wrapper = SquareMatrixWrapper(self.0 .0);
+        *wrapper
             .inverse()
             .expect("all well-formed MDS matrices should have inverses")
     }
@@ -79,8 +94,8 @@ where
     /// This is simply the MDS matrix with the first row and column removed
     ///
     /// Ref: p.20 of the Poseidon paper
-    pub fn hat(&self) -> poseidon_parameters::SquareMatrix<F> {
-        let dim = self.0.n_rows();
+    pub fn hat(&self) -> SquareMatrix<F> {
+        let dim = self.n_rows();
         let mut mhat_elements = Vec::with_capacity((dim - 1) * (dim - 1));
         for i in 1..dim {
             for j in 1..dim {
@@ -88,68 +103,72 @@ where
             }
         }
 
-        poseidon_parameters::SquareMatrix::from_vec(mhat_elements)
+        SquareMatrix::from_vec(mhat_elements)
     }
 
     /// Return the elements M_{0,1} .. M_{0,t} from the first row
     ///
     /// Ref: p.20 of the Poseidon paper
-    pub fn v(&self) -> poseidon_parameters::Matrix<F> {
+    pub fn v(&self) -> Matrix<F> {
         let elements: Vec<F> = self.0 .0.elements()[1..self.0 .0.n_rows()].to_vec();
-        poseidon_parameters::Matrix::new(1, self.0.n_rows() - 1, elements)
+        Matrix::new(1, self.0.n_rows() - 1, elements)
     }
 
     /// Return the elements M_{1,0} .. M_{t,0}from the first column
     ///
     /// Ref: p.20 of the Poseidon paper
-    pub fn w(&self) -> poseidon_parameters::Matrix<F> {
+    pub fn w(&self) -> Matrix<F> {
         let mut elements = Vec::with_capacity(self.0.n_rows() - 1);
-        for i in 1..self.0.n_rows() {
-            elements.push(self.0.get_element(i, 0))
+        for i in 1..self.n_rows() {
+            elements.push(self.get_element(i, 0))
         }
-        poseidon_parameters::Matrix::new(self.0.n_rows() - 1, 1, elements)
+        Matrix::new(&self.n_rows() - 1, 1, elements)
     }
 }
 
-// impl<F: PrimeField> ExtendedMatrixOperations<F> for poseidon_parameters::MdsMatrix<F> {
-//     // fn transpose(&self) -> Self {
-//     //     Self(self.0.transpose())
-//     // }
-
-//     fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
-//         Ok(Self(self.0.hadamard_product(&rhs.0)?))
-//     }
-// }
-
-impl<F: PrimeField> From<&MdsMatrix<poseidon_parameters::MdsMatrix<F>>> for Vec<F> {
-    fn from(val: &MdsMatrix<poseidon_parameters::MdsMatrix<F>>) -> Self {
+impl<F: PrimeField> From<&MdsMatrixWrapper<F>> for Vec<F> {
+    fn from(val: &MdsMatrixWrapper<F>) -> Self {
         let elements = val.0 .0.elements();
         elements.to_vec()
     }
 }
 
 /// Represents an optimized MDS (maximum distance separable) matrix.
-pub struct OptimizedMdsMatrices<T>(pub T);
+pub struct OptimizedMdsMatricesWrapper<F: PrimeField>(pub OptimizedMdsMatrices<F>);
 
-impl<F> OptimizedMdsMatrices<poseidon_parameters::OptimizedMdsMatrices<F>>
+impl<F: PrimeField> From<OptimizedMdsMatrices<F>> for OptimizedMdsMatricesWrapper<F> {
+    fn from(value: OptimizedMdsMatrices<F>) -> Self {
+        Self(value)
+    }
+}
+
+impl<F: PrimeField> Deref for OptimizedMdsMatricesWrapper<F> {
+    type Target = OptimizedMdsMatrices<F>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<F> OptimizedMdsMatricesWrapper<F>
 where
     F: PrimeField,
 {
     /// Generate the optimized MDS matrices.
     pub fn generate(
-        mds: &poseidon_parameters::MdsMatrix<F>,
+        mds: &MdsMatrix<F>,
         t: usize,
-        rounds: &poseidon_parameters::RoundNumbers,
-    ) -> poseidon_parameters::OptimizedMdsMatrices<F> {
-        let M_hat = MdsMatrix(mds).hat();
-        let M_hat_inverse = M_hat
+        rounds: &RoundNumbers,
+    ) -> OptimizedMdsMatrices<F> {
+        let M_hat = MdsMatrixWrapper(*mds).hat();
+        let M_hat_inverse = SquareMatrixWrapper(M_hat)
             .inverse()
             .expect("all well-formed MDS matrices should have inverses");
-        let v = MdsMatrix(mds).v();
-        let w = MdsMatrix(mds).w();
-        let M_prime = OptimizedMdsMatrices::prime(&M_hat);
+        let v = MdsMatrixWrapper(*mds).v();
+        let w = MdsMatrixWrapper(*mds).w();
+        let M_prime = OptimizedMdsMatricesWrapper::prime(&M_hat);
         let M_00 = mds.get_element(0, 0);
-        let M_doubleprime = OptimizedMdsMatrices::doubleprime(&M_hat_inverse, &w, &v, M_00);
+        let M_doubleprime = OptimizedMdsMatricesWrapper::doubleprime(&M_hat_inverse, &w, &v, M_00);
 
         // Sanity checks
         assert_eq!(M_prime.n_cols(), mds.n_cols());
@@ -184,16 +203,16 @@ where
 
         // From `calc_equivalent_matrices` in `poseidonperm_x3_64_24_optimized.sage`.
         let (M_i, v_collection, w_hat_collection) =
-            OptimizedMdsMatrices::calc_equivalent_matrices(mds, rounds);
+            OptimizedMdsMatricesWrapper::calc_equivalent_matrices(mds, rounds);
 
-        poseidon_parameters::OptimizedMdsMatrices {
+        OptimizedMdsMatrices {
             M_hat,
-            M_hat_inverse,
+            M_hat_inverse: *M_hat_inverse,
             v,
             w,
             M_prime,
             M_doubleprime,
-            M_inverse: MdsMatrix(mds).inverse(),
+            M_inverse: MdsMatrixWrapper(*mds).inverse(),
             M_i,
             v_collection,
             w_hat_collection,
@@ -202,34 +221,36 @@ where
     }
 
     pub(crate) fn calc_equivalent_matrices(
-        mds: &poseidon_parameters::MdsMatrix<F>,
-        rounds: &poseidon_parameters::RoundNumbers,
-    ) -> (
-        poseidon_parameters::Matrix<F>,
-        Vec<poseidon_parameters::Matrix<F>>,
-        Vec<poseidon_parameters::Matrix<F>>,
-    ) {
-        let rounds: RoundNumbers<poseidon_parameters::RoundNumbers> = RoundNumbers(*rounds);
+        mds: &MdsMatrix<F>,
+        rounds: &RoundNumbers,
+    ) -> (Matrix<F>, Vec<Matrix<F>>, Vec<Matrix<F>>) {
+        // let rounds: RoundNumbers<poseidon_parameters::RoundNumbers> = RoundNumbersWrapper(*rounds);
         let r_P = rounds.partial();
         let mut w_hat_collection = Vec::with_capacity(rounds.partial());
         let mut v_collection = Vec::with_capacity(rounds.partial());
 
         let M_T = mds.transpose();
         let mut M_mul = M_T.clone();
-        let mut M_i = OptimizedMdsMatrices::prime(&M_mul.0);
+        let mut M_i = OptimizedMdsMatricesWrapper::prime(&M_mul.0);
 
         for _ in (0..r_P).rev() {
-            let M_hat = MdsMatrix(&M_mul).hat();
-            let w = MdsMatrix(&M_mul).w();
+            let M_hat = MdsMatrixWrapper(M_mul).hat();
+            let w = MdsMatrixWrapper(M_mul).w();
 
-            let v = MdsMatrix(&M_mul).v();
+            let v = MdsMatrixWrapper(M_mul).v();
             v_collection.push(v);
-            let w_hat = mat_mul(&M_hat.inverse().expect("can invert Mhat").0, &w)
-                .expect("can compute w_hat");
-            w_hat_collection.push(w_hat);
+            let w_hat = mat_mul(
+                &SquareMatrixWrapper(M_hat)
+                    .inverse()
+                    .expect("can invert Mhat")
+                    .0,
+                &SquareMatrix(w),
+            )
+            .expect("can compute w_hat");
+            w_hat_collection.push(w_hat.0);
 
             // Now we compute M' and M * M' for the previous round
-            M_i = OptimizedMdsMatrices::prime(&M_hat);
+            M_i = OptimizedMdsMatricesWrapper::prime(&M_hat);
 
             M_mul = poseidon_parameters::MdsMatrix(
                 mat_mul(&M_T.0, &M_i).expect("mds and M_i have same dimensions"),
@@ -239,7 +260,7 @@ where
         (M_i.0.transpose(), v_collection, w_hat_collection)
     }
 
-    fn prime(M_hat: &poseidon_parameters::SquareMatrix<F>) -> poseidon_parameters::SquareMatrix<F> {
+    fn prime(M_hat: &SquareMatrix<F>) -> SquareMatrix<F> {
         let dim = M_hat.n_cols() + 1;
         let mut new_elements = Vec::with_capacity(dim * dim);
 
@@ -256,18 +277,18 @@ where
             }
         }
 
-        poseidon_parameters::SquareMatrix::from_vec(new_elements)
+        SquareMatrix::from_vec(new_elements)
     }
 
     fn doubleprime(
-        M_hat_inverse: &poseidon_parameters::SquareMatrix<F>,
-        w: &poseidon_parameters::Matrix<F>,
-        v: &poseidon_parameters::Matrix<F>,
+        M_hat_inverse: &SquareMatrix<F>,
+        w: &Matrix<F>,
+        v: &Matrix<F>,
         M_00: F,
-    ) -> poseidon_parameters::SquareMatrix<F> {
+    ) -> SquareMatrix<F> {
         let dim = M_hat_inverse.n_cols() + 1;
         let mut new_elements = Vec::with_capacity(dim * dim);
-        let identity = poseidon_parameters::SquareMatrix::identity(dim - 1);
+        let identity = SquareMatrixWrapper::identity(dim - 1);
         let w_hat =
             mat_mul(&M_hat_inverse.0, w).expect("matrix multiplication should always exist");
 
@@ -285,7 +306,7 @@ where
             }
         }
 
-        poseidon_parameters::SquareMatrix::from_vec(new_elements)
+        SquareMatrix::from_vec(new_elements)
     }
 }
 
@@ -295,7 +316,7 @@ mod tests {
     use ark_ed_on_bls12_381::{Fq, FqParameters as Fq381Parameters};
     use ark_ff::{fields::FpParameters, One, Zero};
 
-    use crate::InputParameters;
+    use crate::{input::InputParametersWrapper, rounds::RoundNumbersWrapper, InputParameters};
 
     use super::*;
 
@@ -320,10 +341,10 @@ mod tests {
         let M = 128;
         let t = 3;
 
-        let input = InputParameters::new(M, 3, Fq381Parameters::MODULUS, true);
-        let MDS_matrix: poseidon_parameters::MdsMatrix<Fq> = MdsMatrix::generate(&input);
+        let input = InputParametersWrapper::new(M, 3, Fq381Parameters::MODULUS, true);
+        let MDS_matrix: MdsMatrix<Fq> = MdsMatrixWrapper::generate(&input);
 
-        assert!(MDS_matrix.0.determinant() != Fq::zero());
+        assert!(SquareMatrixWrapper(MDS_matrix.0).determinant() != Fq::zero());
         assert_eq!(MDS_matrix.n_rows(), t);
         assert!(MDS_matrix.0.get_element(0, 0) != Fq::zero());
     }
@@ -332,9 +353,9 @@ mod tests {
     fn check_calc_equivalent_matrices_vs_sage() {
         let M = 128;
 
-        let input = InputParameters::new(M, 3, Fq377Parameters::MODULUS, true);
-        let rounds = RoundNumbers::new(&input, &poseidon_parameters::Alpha::Exponent(17));
-        let mds: poseidon_parameters::MdsMatrix<Fq377> = MdsMatrix::generate(&input);
+        let input = InputParametersWrapper::new(M, 3, Fq377Parameters::MODULUS, true);
+        let rounds = RoundNumbersWrapper::new(&input, &poseidon_parameters::Alpha::Exponent(17));
+        let mds: MdsMatrix<Fq377> = MdsMatrixWrapper::generate(&input);
         let M_00 = mds.get_element(0, 0);
         // Sanity check
         assert_eq!(
@@ -346,7 +367,7 @@ mod tests {
         );
 
         let (M_i, v_collection, w_hat_collection) =
-            OptimizedMdsMatrices::calc_equivalent_matrices(&mds, &rounds);
+            OptimizedMdsMatricesWrapper::calc_equivalent_matrices(&mds, &rounds);
 
         // There are 31 (number of partial rounds) of these, we check the first 2 since it's the same method.
         let v_collection_expected = [

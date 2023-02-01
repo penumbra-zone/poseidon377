@@ -1,9 +1,11 @@
 use anyhow::{anyhow, Result};
 use ark_ff::PrimeField;
 use ark_std::{ops::Mul, vec::Vec};
-use poseidon_parameters::MatrixOperations;
+use poseidon_parameters::{Matrix, MatrixOperations, SquareMatrix};
 
-use crate::{Matrix, SquareMatrix};
+use crate::MatrixWrapper;
+
+use super::square::SquareMatrixWrapper;
 
 /// Compute vector dot product
 pub fn dot_product<F: PrimeField>(a: &[F], b: &[F]) -> F {
@@ -15,10 +17,7 @@ pub fn dot_product<F: PrimeField>(a: &[F], b: &[F]) -> F {
 }
 
 /// Multiply two matrices
-pub fn mat_mul<F: PrimeField, M: MatrixOperations<F> + MatrixOperations<F>>(
-    lhs: &M,
-    rhs: &M,
-) -> Result<M> {
+pub fn mat_mul<F: PrimeField, M: MatrixOperations<F>>(lhs: &M, rhs: &M) -> Result<M> {
     if lhs.n_cols() != rhs.n_rows() {
         return Err(anyhow!(
             "matrix dimensions do not allow matrix multiplication"
@@ -43,19 +42,19 @@ pub fn mat_mul<F: PrimeField, M: MatrixOperations<F> + MatrixOperations<F>>(
 }
 
 /// Multiply scalar by Matrix
-impl<F: PrimeField> Mul<F> for Matrix<poseidon_parameters::Matrix<F>> {
-    type Output = poseidon_parameters::Matrix<F>;
+impl<F: PrimeField> Mul<F> for MatrixWrapper<F> {
+    type Output = Matrix<F>;
 
     fn mul(self, rhs: F) -> Self::Output {
-        let elements = self.0.elements();
+        let elements = self.elements();
         let new_elements: Vec<F> = elements.iter().map(|element| *element * rhs).collect();
-        poseidon_parameters::Matrix::new(self.0.n_rows, self.0.n_cols, new_elements)
+        Matrix::new(self.n_rows(), self.n_cols(), new_elements)
     }
 }
 
 /// Multiply scalar by SquareMatrix
-impl<F: PrimeField> Mul<F> for SquareMatrix<poseidon_parameters::SquareMatrix<F>> {
-    type Output = poseidon_parameters::SquareMatrix<F>;
+impl<F: PrimeField> Mul<F> for SquareMatrixWrapper<F> {
+    type Output = SquareMatrix<F>;
 
     fn mul(self, rhs: F) -> Self::Output {
         let elements = self.0.elements();

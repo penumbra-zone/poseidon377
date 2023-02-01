@@ -10,7 +10,6 @@ use ark_ff::BigInteger;
 use ark_ff::PrimeField;
 use ark_std::vec::Vec;
 
-// TODO : define here or in paramgen crate?
 /// Input parameters that are used to generate Poseidon parameters.
 #[derive(Clone, Debug)]
 pub struct InputParameters<T: BigInteger> {
@@ -50,12 +49,19 @@ pub struct RoundNumbers {
 }
 
 impl RoundNumbers {
+    /// Number of full rounds.    
     pub fn full(&self) -> usize {
         self.r_F
     }
 
+    /// Number of partial rounds.    
     pub fn partial(&self) -> usize {
         self.r_P
+    }
+
+    /// Number of total rounds.
+    pub fn total(&self) -> usize {
+        self.r_P + self.r_F
     }
 }
 

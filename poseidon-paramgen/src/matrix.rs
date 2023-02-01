@@ -14,9 +14,9 @@ mod mult;
 mod square;
 mod traits;
 
-pub use base::Matrix;
+pub use base::MatrixWrapper;
 pub use mult::{dot_product, mat_mul};
-pub use square::SquareMatrix;
+pub use square::SquareMatrixWrapper;
 pub use traits::SquareMatrixOperations;
 
 #[cfg(test)]

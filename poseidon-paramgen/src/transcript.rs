@@ -1,15 +1,16 @@
 use ark_ff::{BigInteger, PrimeField};
 use ark_std::vec;
 use merlin::Transcript;
+use poseidon_parameters::{Alpha, InputParameters, RoundNumbers};
 
-use crate::{Alpha, RoundNumbers};
+use crate::{alpha::AlphaWrapper, rounds::RoundNumbersWrapper};
 
 pub(crate) trait TranscriptProtocol {
     fn domain_sep<F: PrimeField>(
         &mut self,
-        input: &poseidon_parameters::InputParameters<F::BigInt>,
-        round_numbers: poseidon_parameters::RoundNumbers,
-        alpha: poseidon_parameters::Alpha,
+        input: &InputParameters<F::BigInt>,
+        round_numbers: RoundNumbers,
+        alpha: Alpha,
     );
     fn round_constant<F: PrimeField>(&mut self) -> F;
 }
@@ -17,8 +18,8 @@ pub(crate) trait TranscriptProtocol {
 impl TranscriptProtocol for Transcript {
     fn domain_sep<F: PrimeField>(
         &mut self,
-        input: &poseidon_parameters::InputParameters<F::BigInt>,
-        round_numbers: poseidon_parameters::RoundNumbers,
+        input: &InputParameters<F::BigInt>,
+        round_numbers: RoundNumbers,
         alpha: poseidon_parameters::Alpha,
     ) {
         self.append_message(b"dom-sep", b"poseidon-paramgen");
@@ -27,8 +28,7 @@ impl TranscriptProtocol for Transcript {
         self.append_message(b"M", &input.M.to_le_bytes());
         self.append_message(b"p", &input.p.to_bytes_le());
 
-        let round_numbers = RoundNumbers(round_numbers);
-        let alpha = Alpha(alpha);
+        let alpha: AlphaWrapper = alpha.into();
 
         // Bind transcript also to specific instance as done with the Grain LFSR
         // in Appendix F of the Poseidon paper.

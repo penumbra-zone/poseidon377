@@ -32,19 +32,38 @@ mod utils;
 #[cfg(feature = "std")]
 pub mod poseidon_build;
 
-pub use alpha::Alpha;
+
+use core::ops::Deref;
+
+use alpha::AlphaWrapper;
 use ark_ff::PrimeField;
-pub use input::InputParameters;
-pub use matrix::{dot_product, mat_mul, Matrix, SquareMatrix, SquareMatrixOperations};
-pub use mds::{MdsMatrix, OptimizedMdsMatrices};
-pub use round_constants::{ArcMatrix, OptimizedArcMatrix};
-pub use rounds::RoundNumbers;
+use input::InputParametersWrapper;
+use matrix::{dot_product, mat_mul, MatrixWrapper, SquareMatrixOperations};
+use mds::{MdsMatrixWrapper, OptimizedMdsMatricesWrapper};
+use poseidon_parameters::{InputParameters, PoseidonParameters};
+use round_constants::{ArcMatrixWrapper, OptimizedArcMatrixWrapper};
+use rounds::RoundNumbersWrapper;
 pub use utils::log2;
 
 /// A set of Poseidon parameters for a given set of input parameters.
-pub struct PoseidonParameters<T>(pub T);
+pub struct PoseidonParametersWrapper<F: PrimeField>(pub PoseidonParameters<F>);
 
-impl<F: PrimeField> PoseidonParameters<poseidon_parameters::PoseidonParameters<F>> {
+
+impl<F: PrimeField> From<PoseidonParameters<F>> for PoseidonParametersWrapper<F> {
+    fn from(value: PoseidonParameters<F>) -> Self {
+        Self(value)
+    }
+}
+
+impl<F: PrimeField> Deref for PoseidonParametersWrapper<F> {
+    type Target = PoseidonParameters<F>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<F: PrimeField> PoseidonParametersWrapper<F> {
     /// Generate a Poseidon instance mapped over Fp given a choice of:
     ///
     /// * M, the desired security level (in bits),
@@ -52,21 +71,16 @@ impl<F: PrimeField> PoseidonParameters<poseidon_parameters::PoseidonParameters<F
     /// * p, the prime modulus,
     /// * `allow_inverse`, whether or not to allow an inverse alpha.
     #[allow(clippy::new_ret_no_self)]
-    pub fn new(
-        M: usize,
-        t: usize,
-        p: F::BigInt,
-        allow_inverse: bool,
-    ) -> poseidon_parameters::PoseidonParameters<F> {
-        let input = InputParameters::new(M, t, p, allow_inverse);
-        let alpha = alpha::Alpha::generate::<F>(p, allow_inverse);
-        let rounds = rounds::RoundNumbers::new(&input, &alpha);
-        let mds = mds::MdsMatrix::generate(&input);
-        let arc = round_constants::ArcMatrix::generate(&input, rounds, alpha);
-        let optimized_mds = mds::OptimizedMdsMatrices::generate(&mds, t, &rounds);
-        let optimized_arc = round_constants::OptimizedArcMatrix::generate(&arc, &mds, &rounds);
+    pub fn new(M: usize, t: usize, p: F::BigInt, allow_inverse: bool) -> PoseidonParameters<F> {
+        let input = InputParametersWrapper::new(M, t, p, allow_inverse);
+        let alpha = AlphaWrapper::generate::<F>(p, allow_inverse);
+        let rounds = RoundNumbersWrapper::new(&input, &alpha);
+        let mds = MdsMatrixWrapper::generate(&input);
+        let arc = ArcMatrixWrapper::generate(&input, rounds, alpha);
+        let optimized_mds = OptimizedMdsMatricesWrapper::generate(&mds, t, &rounds);
+        let optimized_arc = OptimizedArcMatrixWrapper::generate(&arc, &mds, &rounds);
 
-        poseidon_parameters::PoseidonParameters::<F> {
+        PoseidonParameters::<F> {
             M: input.M,
             t: input.t,
             alpha,

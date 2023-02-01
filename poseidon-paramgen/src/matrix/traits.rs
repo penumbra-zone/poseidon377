@@ -1,15 +1,5 @@
 use anyhow::Result;
 
-// /// Basic matrix operations all matrices should implement.
-// pub trait ExtendedMatrixOperations<F> {
-//     // /// Compute matrix transpose
-//     // fn transpose(&self) -> Self;
-//     /// Compute Hadamard (element-wise) product
-//     fn hadamard_product(&self, rhs: &Self) -> Result<Self>
-//     where
-//         Self: Sized;
-// }
-
 /// Matrix operations that are defined on square matrices.
 pub trait SquareMatrixOperations<F> {
     /// Compute the matrix inverse, if it exists

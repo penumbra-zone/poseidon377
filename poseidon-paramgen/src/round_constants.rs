@@ -1,42 +1,59 @@
+use core::ops::Deref;
+
 use anyhow::Result;
 use ark_ff::PrimeField;
 use ark_std::{vec, vec::Vec};
 use merlin::Transcript;
-use poseidon_parameters::MatrixOperations;
+use poseidon_parameters::{
+    Alpha, ArcMatrix, InputParameters, Matrix, MatrixOperations, MdsMatrix, OptimizedArcMatrix,
+    RoundNumbers,
+};
 
-use crate::{matrix::mat_mul, transcript::TranscriptProtocol, Matrix, MdsMatrix, RoundNumbers};
+use crate::{
+    matrix::{mat_mul, MatrixWrapper},
+    mds::MdsMatrixWrapper,
+    rounds::RoundNumbersWrapper,
+    transcript::TranscriptProtocol,
+};
 
 /// Represents an matrix of round constants.
-pub struct ArcMatrix<T>(pub T);
+pub struct ArcMatrixWrapper<F: PrimeField>(pub ArcMatrix<F>);
 
-impl<F> ArcMatrix<poseidon_parameters::ArcMatrix<F>>
-where
-    F: PrimeField,
-{
+impl<F: PrimeField> From<ArcMatrix<F>> for ArcMatrixWrapper<F> {
+    fn from(value: ArcMatrix<F>) -> Self {
+        Self(value)
+    }
+}
+
+impl<F: PrimeField> Deref for ArcMatrixWrapper<F> {
+    type Target = ArcMatrix<F>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<F: PrimeField> ArcMatrixWrapper<F> {
     /// Generate round constants.
     pub fn generate(
-        input: &poseidon_parameters::InputParameters<F::BigInt>,
-        round_numbers: poseidon_parameters::RoundNumbers,
-        alpha: poseidon_parameters::Alpha,
-    ) -> poseidon_parameters::ArcMatrix<F> {
+        input: &InputParameters<F::BigInt>,
+        round_numbers: RoundNumbers,
+        alpha: Alpha,
+    ) -> ArcMatrix<F> {
         let mut transcript = Transcript::new(b"round-constants");
         transcript.domain_sep::<F>(input, round_numbers, alpha);
 
-        let round_numbers = RoundNumbers(round_numbers);
+        let round_numbers = RoundNumbersWrapper(round_numbers);
         let num_total_rounds = round_numbers.total();
         let elements = (0..num_total_rounds * input.t)
             .map(|_| transcript.round_constant())
             .collect();
-        poseidon_parameters::ArcMatrix(poseidon_parameters::Matrix::new(
-            num_total_rounds,
-            input.t,
-            elements,
-        ))
+        ArcMatrix(Matrix::new(num_total_rounds, input.t, elements))
     }
 
     /// Get row vector of constants by round
-    pub fn constants_by_round(&self, r: usize) -> poseidon_parameters::Matrix<F> {
-        let m = &Matrix(&self.0 .0);
+    pub fn constants_by_round(&self, r: usize) -> Matrix<F> {
+        let m = &MatrixWrapper(self.0 .0);
         m.row_vector(r)
     }
 
@@ -64,12 +81,10 @@ where
 //     }
 // }
 
-impl<F: PrimeField> From<&OptimizedArcMatrix<poseidon_parameters::OptimizedArcMatrix<F>>>
-    for Vec<Vec<F>>
-{
-    fn from(val: &OptimizedArcMatrix<poseidon_parameters::OptimizedArcMatrix<F>>) -> Self {
+impl<F: PrimeField> From<&OptimizedArcMatrixWrapper<F>> for Vec<Vec<F>> {
+    fn from(val: &OptimizedArcMatrixWrapper<F>) -> Self {
         let mut rows = Vec::<Vec<F>>::new();
-        let arc: &poseidon_parameters::ArcMatrix<F> = &val.0 .0;
+        let arc: &ArcMatrix<F> = &val.0 .0;
 
         for i in 0..arc.n_rows() {
             let mut row = Vec::new();
@@ -83,27 +98,38 @@ impl<F: PrimeField> From<&OptimizedArcMatrix<poseidon_parameters::OptimizedArcMa
 }
 
 /// Represents an optimized matrix of round constants.
-pub struct OptimizedArcMatrix<T>(pub T);
+pub struct OptimizedArcMatrixWrapper<F: PrimeField>(pub OptimizedArcMatrix<F>);
 
-impl<F> OptimizedArcMatrix<poseidon_parameters::OptimizedArcMatrix<F>>
-where
-    F: PrimeField,
-{
+impl<F: PrimeField> From<OptimizedArcMatrix<F>> for OptimizedArcMatrixWrapper<F> {
+    fn from(value: OptimizedArcMatrix<F>) -> Self {
+        Self(value)
+    }
+}
+
+impl<F: PrimeField> Deref for OptimizedArcMatrixWrapper<F> {
+    type Target = OptimizedArcMatrix<F>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<F: PrimeField> OptimizedArcMatrixWrapper<F> {
     /// Generate the optimized round constants.
     pub fn generate(
-        arc: &poseidon_parameters::ArcMatrix<F>,
-        mds: &poseidon_parameters::MdsMatrix<F>,
-        rounds: &poseidon_parameters::RoundNumbers,
-    ) -> poseidon_parameters::OptimizedArcMatrix<F> {
+        arc: &ArcMatrix<F>,
+        mds: &MdsMatrix<F>,
+        rounds: &RoundNumbers,
+    ) -> OptimizedArcMatrix<F> {
         let n_cols = arc.n_cols();
-        let mut constants_temp = ArcMatrix(arc.clone());
+        let mut constants_temp = ArcMatrixWrapper(arc.clone());
 
-        let rounds = RoundNumbers(*rounds);
+        // let rounds = RoundNumbersWrapper(*rounds);
 
         let r_f = rounds.full() / 2;
         let r_T = rounds.total();
         let mds_T = mds.transpose();
-        let mds_inv = &MdsMatrix(&mds_T).inverse();
+        let mds_inv = &MdsMatrixWrapper(mds_T.into()).inverse();
 
         // C_i = M^-1 * C_(i+1)
         for r in ((r_f)..(r_T - 1 - r_f)).rev() {
@@ -135,7 +161,7 @@ where
             constants_temp.set_constants_by_round(r + 1, new_constants_row_i_plus_1);
         }
 
-        poseidon_parameters::OptimizedArcMatrix(constants_temp.0)
+        OptimizedArcMatrix(constants_temp.0)
     }
 }
 

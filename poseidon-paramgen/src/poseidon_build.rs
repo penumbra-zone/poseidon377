@@ -3,11 +3,12 @@ use std::fmt::Display;
 use ark_ff::PrimeField;
 use ark_std::vec::Vec;
 use num::BigUint;
-use poseidon_parameters::MatrixOperations;
+use poseidon_parameters::{Alpha, Matrix, MatrixOperations};
 
 use crate::{
-    Alpha, ArcMatrix, Matrix, MdsMatrix, OptimizedArcMatrix, OptimizedMdsMatrices,
-    PoseidonParameters, RoundNumbers, SquareMatrix,
+    matrix::SquareMatrixWrapper, AlphaWrapper, ArcMatrixWrapper, MatrixWrapper, MdsMatrixWrapper,
+    OptimizedArcMatrixWrapper, OptimizedMdsMatricesWrapper, PoseidonParametersWrapper,
+    RoundNumbersWrapper,
 };
 
 /// Create parameter code.
@@ -22,35 +23,31 @@ use poseidon_parameters::{Alpha, ArcMatrix, RoundNumbers, SquareMatrix, Matrix, 
         .to_string();
 
     for t in t_values {
-        let params = PoseidonParameters::<poseidon_parameters::PoseidonParameters<F>>::new(
-            M,
-            t,
-            p,
-            allow_inverse,
-        );
-        params_code.push_str(&format!("{}", PoseidonParameters(params))[..]);
+        let params: PoseidonParametersWrapper<F> =
+            PoseidonParametersWrapper::<F>::new(M, t, p, allow_inverse).into();
+        params_code.push_str(&format!("{}", params)[..]);
     }
 
     params_code
 }
 
-impl<F: PrimeField> Display for PoseidonParameters<poseidon_parameters::PoseidonParameters<F>> {
+impl<F: PrimeField> Display for PoseidonParametersWrapper<F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let this = &self.0;
 
         let capacity = 1;
         let rate = this.t - capacity;
 
-        let rounds = RoundNumbers(this.rounds);
+        let rounds = this.rounds;
 
         let r_P = rounds.partial();
         let r_F = rounds.full();
 
-        let arc = ArcMatrix(this.arc.clone());
-        let mds = MdsMatrix(this.mds.clone());
-        let alpha = Alpha(this.alpha);
-        let optimized_mds = OptimizedMdsMatrices(this.optimized_mds.clone());
-        let optimized_arc = OptimizedArcMatrix(this.optimized_arc.clone());
+        let arc = ArcMatrixWrapper(this.arc.clone());
+        let mds = MdsMatrixWrapper(this.mds.clone());
+        let alpha = AlphaWrapper(this.alpha);
+        let optimized_mds = OptimizedMdsMatricesWrapper(this.optimized_mds.clone());
+        let optimized_arc = OptimizedArcMatrixWrapper(this.optimized_arc.clone());
 
         write!(
             f,
@@ -73,25 +70,25 @@ pub fn rate_{rate}<F: PrimeField>() -> PoseidonParameters<F> {{
     }
 }
 
-impl Display for Alpha<poseidon_parameters::Alpha> {
+impl Display for AlphaWrapper {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.0 {
-            poseidon_parameters::Alpha::Exponent(exp) => write!(f, "Alpha::Exponent({exp})"),
-            poseidon_parameters::Alpha::Inverse => write!(f, "Alpha::Inverse"),
+            Alpha::Exponent(exp) => write!(f, "Alpha::Exponent({exp})"),
+            Alpha::Inverse => write!(f, "Alpha::Inverse"),
         }
     }
 }
 
-impl<F: PrimeField> Display for Matrix<poseidon_parameters::Matrix<F>> {
+impl<F: PrimeField> Display for MatrixWrapper<F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let n_rows = self.0.n_rows();
-        let n_cols = self.0.n_cols();
-        let elements = serialize_vec_f(self.0.elements().to_vec());
+        let n_rows = self.n_rows();
+        let n_cols = self.n_cols();
+        let elements = serialize_vec_f(self.elements().to_vec());
         write!(f, r"Matrix::new({n_rows}, {n_cols}, {elements})",)
     }
 }
 
-impl<F: PrimeField> Display for SquareMatrix<poseidon_parameters::SquareMatrix<F>> {
+impl<F: PrimeField> Display for SquareMatrixWrapper<F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let n_rows = self.0.n_rows();
         let n_cols = self.0.n_cols();
@@ -100,10 +97,10 @@ impl<F: PrimeField> Display for SquareMatrix<poseidon_parameters::SquareMatrix<F
     }
 }
 
-fn serialize_vec_matrix_f<F: PrimeField>(elements: Vec<poseidon_parameters::Matrix<F>>) -> String {
+fn serialize_vec_matrix_f<F: PrimeField>(elements: Vec<Matrix<F>>) -> String {
     let mut new_str = "vec![".to_string();
     for elem in elements {
-        let elem = Matrix(elem);
+        let elem: MatrixWrapper<F> = elem.into();
         new_str.push_str(&format!("{}, ", elem).to_string());
     }
     // Remove the trailing ", "
@@ -155,18 +152,18 @@ fn serialize_f<F: PrimeField>(single_element: F) -> String {
     new_str
 }
 
-impl<F: PrimeField> Display for OptimizedMdsMatrices<poseidon_parameters::OptimizedMdsMatrices<F>> {
+impl<F: PrimeField> Display for OptimizedMdsMatricesWrapper<F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let this = self.0.clone();
 
-        let M_hat = SquareMatrix(this.M_hat);
-        let v = Matrix(this.v);
-        let w = Matrix(this.w);
-        let M_prime = SquareMatrix(this.M_prime);
-        let M_doubleprime = SquareMatrix(this.M_doubleprime);
-        let M_inverse = SquareMatrix(this.M_inverse);
-        let M_hat_inverse = SquareMatrix(this.M_hat_inverse);
-        let M_i = Matrix(this.M_i);
+        let M_hat = SquareMatrixWrapper(this.M_hat);
+        let v: MatrixWrapper<F> = this.v.into();
+        let w: MatrixWrapper<F> = this.w.into();
+        let M_prime = SquareMatrixWrapper(this.M_prime);
+        let M_doubleprime = SquareMatrixWrapper(this.M_doubleprime);
+        let M_inverse = SquareMatrixWrapper(this.M_inverse);
+        let M_hat_inverse = SquareMatrixWrapper(this.M_hat_inverse);
+        let M_i: MatrixWrapper<F> = this.M_i.into();
         let v_collection = this.v_collection.clone();
         let w_hat_collection = this.w_hat_collection.clone();
 
@@ -200,7 +197,7 @@ impl<F: PrimeField> Display for OptimizedMdsMatrices<poseidon_parameters::Optimi
     }
 }
 
-impl<F: PrimeField> Display for MdsMatrix<poseidon_parameters::MdsMatrix<F>> {
+impl<F: PrimeField> Display for MdsMatrixWrapper<F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mds_elements: Vec<F> = self.into();
 
@@ -211,7 +208,7 @@ impl<F: PrimeField> Display for MdsMatrix<poseidon_parameters::MdsMatrix<F>> {
     }
 }
 
-impl<F: PrimeField> Display for ArcMatrix<poseidon_parameters::ArcMatrix<F>> {
+impl<F: PrimeField> Display for ArcMatrixWrapper<F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let n_rows = self.0.n_rows();
         let n_cols = self.0.n_cols();
@@ -230,7 +227,7 @@ impl<F: PrimeField> Display for ArcMatrix<poseidon_parameters::ArcMatrix<F>> {
     }
 }
 
-impl<F: PrimeField> Display for OptimizedArcMatrix<poseidon_parameters::OptimizedArcMatrix<F>> {
+impl<F: PrimeField> Display for OptimizedArcMatrixWrapper<F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let n_rows = self.0 .0.n_rows();
         let n_cols = self.0 .0.n_cols();

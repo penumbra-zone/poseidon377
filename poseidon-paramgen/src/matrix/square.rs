@@ -1,36 +1,40 @@
+use core::ops::Deref;
+
 use anyhow::{anyhow, Result};
 use ark_ff::PrimeField;
 use ark_std::{vec, vec::Vec};
-use poseidon_parameters::MatrixOperations;
+use poseidon_parameters::{Matrix, MatrixOperations, SquareMatrix};
 
-use crate::{mat_mul, Matrix, SquareMatrixOperations};
+use crate::{mat_mul, SquareMatrixOperations};
 
 /// Represents a square matrix over `PrimeField` elements
-pub struct SquareMatrix<T>(pub T);
+pub struct SquareMatrixWrapper<F: PrimeField>(pub SquareMatrix<F>);
 
-// impl<F: PrimeField> MatrixOperations<F> for poseidon_parameters::SquareMatrix<F> {
-//     /// Take transpose of the matrix
-//     fn transpose(&self) -> Self {
-//         Self(self.0.transpose())
-//     }
+impl<F: PrimeField> From<SquareMatrix<F>> for SquareMatrixWrapper<F> {
+    fn from(value: SquareMatrix<F>) -> Self {
+        Self(value)
+    }
+}
 
-//     /// Hadamard (element-wise) matrix product
-//     fn hadamard_product(&self, rhs: &Self) -> Result<Self> {
-//         Ok(Self(self.0.hadamard_product(&rhs.0)?))
-//     }
-// }
+impl<F: PrimeField> Deref for SquareMatrixWrapper<F> {
+    type Target = SquareMatrix<F>;
 
-impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMatrix<F> {
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrixWrapper<F> {
     /// Construct a dim x dim identity matrix
     fn identity(dim: usize) -> Self {
-        let mut m = poseidon_parameters::SquareMatrix::from_vec(vec![F::zero(); dim * dim]);
+        let mut m = SquareMatrix::from_vec(vec![F::zero(); dim * dim]);
 
         // Set diagonals to 1
         for i in 0..dim {
             m.set_element(i, i, F::one());
         }
 
-        m
+        m.into()
     }
 
     /// Compute the inverse of the matrix
@@ -38,10 +42,10 @@ impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMat
         let identity = Self::identity(self.n_rows());
 
         if self.n_rows() == 1 {
-            return Ok(poseidon_parameters::SquareMatrix::from_vec(vec![self
+            return Ok(Self(SquareMatrix::from_vec(vec![self
                 .get_element(0, 0)
                 .inverse()
-                .expect("inverse of single element must exist for 1x1 matrix")]));
+                .expect("inverse of single element must exist for 1x1 matrix")])));
         }
 
         let determinant = self.determinant();
@@ -55,27 +59,27 @@ impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMat
             .hadamard_product(&cofactor_matrix)
             .expect("minor and cofactor matrix have correct dimensions");
         let adj = signed_minors.transpose();
-        let matrix_inverse = SquareMatrix(adj) * (F::one() / determinant);
+        let matrix_inverse = Self(adj) * (F::one() / determinant);
 
         debug_assert_eq!(
-            mat_mul(self, &matrix_inverse)
+            mat_mul(self as &SquareMatrix<F>, &matrix_inverse)
                 .expect("matrix and its inverse should have same dimensions"),
-            identity
+            identity.0
         );
-        Ok(matrix_inverse)
+        Ok(Self(matrix_inverse))
     }
 
     /// Compute the (unsigned) minors of this matrix
     fn minors(&self) -> Self {
-        match self.0.n_cols {
+        match self.n_cols() {
             0 => panic!("matrix has no elements!"),
-            1 => poseidon_parameters::SquareMatrix::from_vec(vec![self.get_element(0, 0)]),
+            1 => SquareMatrix::from_vec(vec![self.get_element(0, 0)]).into(),
             2 => {
                 let a = self.get_element(0, 0);
                 let b = self.get_element(0, 1);
                 let c = self.get_element(1, 0);
                 let d = self.get_element(1, 1);
-                poseidon_parameters::SquareMatrix::from_vec(vec![d, c, b, a])
+                SquareMatrix::from_vec(vec![d, c, b, a]).into()
             }
             _ => {
                 let dim = self.n_rows();
@@ -99,11 +103,11 @@ impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMat
                                 elements.push(self.get_element(k, l))
                             }
                         }
-                        let minor = poseidon_parameters::SquareMatrix::from_vec(elements);
+                        let minor = SquareMatrixWrapper(SquareMatrix::from_vec(elements));
                         minor_matrix_elements.push(minor.determinant());
                     }
                 }
-                poseidon_parameters::SquareMatrix::from_vec(minor_matrix_elements)
+                SquareMatrix::from_vec(minor_matrix_elements).into()
             }
         }
     }
@@ -117,12 +121,12 @@ impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMat
                 elements.push((-F::one()).pow([(i + j) as u64]))
             }
         }
-        poseidon_parameters::SquareMatrix::from_vec(elements)
+        SquareMatrix::from_vec(elements).into()
     }
 
     /// Compute the matrix determinant
     fn determinant(&self) -> F {
-        match self.0.n_cols {
+        match self.n_cols() {
             0 => panic!("matrix has no elements!"),
             1 => self.get_element(0, 0),
             2 => {
@@ -143,9 +147,9 @@ impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMat
                 let a32 = self.get_element(2, 1);
                 let a33 = self.get_element(2, 2);
 
-                a11 * (SquareMatrix::new_2x2(a22, a23, a32, a33).determinant())
-                    - a12 * (SquareMatrix::new_2x2(a21, a23, a31, a33).determinant())
-                    + a13 * (SquareMatrix::new_2x2(a21, a22, a31, a32).determinant())
+                a11 * (Self(SquareMatrixWrapper::new_2x2(a22, a23, a32, a33)).determinant())
+                    - a12 * (Self(SquareMatrixWrapper::new_2x2(a21, a23, a31, a33)).determinant())
+                    + a13 * (Self(SquareMatrixWrapper::new_2x2(a21, a22, a31, a32)).determinant())
             }
             _ => {
                 // Unoptimized, but MDS matrices are fairly small, so we do the naive thing
@@ -165,7 +169,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMat
                             elements.push(self.get_element(k, l))
                         }
                     }
-                    let minor = poseidon_parameters::SquareMatrix::from_vec(elements);
+                    let minor = SquareMatrix::from_vec(elements);
                     if levi_civita {
                         det += self.get_element(i, 0) * minor.determinant();
                     } else {
@@ -180,15 +184,14 @@ impl<F: PrimeField> SquareMatrixOperations<F> for poseidon_parameters::SquareMat
     }
 }
 
-impl<F: PrimeField> SquareMatrix<poseidon_parameters::SquareMatrix<F>> {
+impl<F: PrimeField> SquareMatrixWrapper<F> {
     /// Get row vector at a specified row index.
-    pub fn row_vector(&self, i: usize) -> poseidon_parameters::Matrix<F> {
-        let m = Matrix(&self.0 .0);
-        m.row_vector(i)
+    pub fn row_vector(&self, i: usize) -> Matrix<F> {
+        self.row_vector(i)
     }
 
     /// Create a 2x2 `SquareMatrix` from four elements.
-    pub fn new_2x2(a: F, b: F, c: F, d: F) -> poseidon_parameters::SquareMatrix<F> {
-        poseidon_parameters::SquareMatrix::from_vec(vec![a, b, c, d])
+    pub fn new_2x2(a: F, b: F, c: F, d: F) -> SquareMatrix<F> {
+        SquareMatrix::from_vec(vec![a, b, c, d])
     }
 }
