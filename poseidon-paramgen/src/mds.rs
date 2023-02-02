@@ -1,16 +1,10 @@
 use core::ops::Deref;
 
-use anyhow::Result;
 use ark_ff::{BigInteger, PrimeField};
 use ark_std::vec::Vec;
 use poseidon_parameters::{
-    InputParameters, Matrix, MatrixOperations, MdsMatrix, OptimizedMdsMatrices, RoundNumbers,
-    SquareMatrix,
-};
-
-use crate::{
-    matrix::{mat_mul, SquareMatrixWrapper},
-    SquareMatrixOperations,
+    mat_mul, InputParameters, Matrix, MatrixOperations, MdsMatrix, OptimizedMdsMatrices,
+    RoundNumbers, SquareMatrix, SquareMatrixOperations,
 };
 
 /// Represents an MDS (maximum distance separable) matrix.
@@ -76,18 +70,17 @@ impl<F: PrimeField> MdsMatrixWrapper<F> {
 
         let cauchy_matrix = SquareMatrix::from_vec(elements);
         // Sanity check: All Cauchy matrices should be invertible
-        assert!(SquareMatrixWrapper(cauchy_matrix.clone()).determinant() != F::zero());
+        assert!(cauchy_matrix.determinant() != F::zero());
 
         MdsMatrix(cauchy_matrix)
     }
 
     /// Compute inverse of MDS matrix
     pub fn inverse(&self) -> SquareMatrix<F> {
-        let wrapper = SquareMatrixWrapper(self.0 .0.clone());
-        wrapper
+        self.0
+             .0
             .inverse()
             .expect("all well-formed MDS matrices should have inverses")
-            .0
     }
 
     /// Compute the (t - 1) x (t - 1) Mhat matrix from the MDS matrix
@@ -162,7 +155,7 @@ where
         rounds: &RoundNumbers,
     ) -> OptimizedMdsMatrices<F> {
         let M_hat = MdsMatrixWrapper(mds.clone()).hat();
-        let M_hat_inverse = SquareMatrixWrapper(M_hat.clone())
+        let M_hat_inverse = M_hat
             .inverse()
             .expect("all well-formed MDS matrices should have inverses");
         let v = MdsMatrixWrapper(mds.clone()).v();
@@ -177,7 +170,7 @@ where
 
         // If M' and M'' are well-formed, then M = M' * M'' (Eqn. 7, Appendix B)
         assert_eq!(
-            mds.0.clone(),
+            mds.0,
             mat_mul(&M_prime, &M_doubleprime).expect("M' and M'' must have the same dimensions")
         );
 
@@ -208,7 +201,7 @@ where
 
         OptimizedMdsMatrices {
             M_hat,
-            M_hat_inverse: M_hat_inverse.0,
+            M_hat_inverse,
             v,
             w,
             M_prime,
@@ -240,15 +233,9 @@ where
 
             let v = MdsMatrixWrapper(M_mul).v();
             v_collection.push(v);
-            let w_hat = mat_mul(
-                &SquareMatrixWrapper(M_hat.clone())
-                    .inverse()
-                    .expect("can invert Mhat")
-                    .0,
-                &SquareMatrix(w),
-            )
-            .expect("can compute w_hat");
-            w_hat_collection.push(w_hat.0);
+            let w_hat = mat_mul(&M_hat.clone().inverse().expect("can invert Mhat").0, &w)
+                .expect("can compute w_hat");
+            w_hat_collection.push(w_hat);
 
             // Now we compute M' and M * M' for the previous round
             M_i = OptimizedMdsMatricesWrapper::prime(&M_hat);
@@ -289,7 +276,7 @@ where
     ) -> SquareMatrix<F> {
         let dim = M_hat_inverse.n_cols() + 1;
         let mut new_elements = Vec::with_capacity(dim * dim);
-        let identity = SquareMatrixWrapper::identity(dim - 1);
+        let identity = SquareMatrix::identity(dim - 1);
         let w_hat =
             mat_mul(&M_hat_inverse.0, w).expect("matrix multiplication should always exist");
 
@@ -317,7 +304,7 @@ mod tests {
     use ark_ed_on_bls12_381::{Fq, FqParameters as Fq381Parameters};
     use ark_ff::{fields::FpParameters, One, Zero};
 
-    use crate::{input::InputParametersWrapper, rounds::RoundNumbersWrapper, InputParameters};
+    use crate::{input::InputParametersWrapper, rounds::RoundNumbersWrapper};
 
     use super::*;
 
@@ -345,7 +332,7 @@ mod tests {
         let input = InputParametersWrapper::new(M, 3, Fq381Parameters::MODULUS, true);
         let MDS_matrix: MdsMatrix<Fq> = MdsMatrixWrapper::generate(&input);
 
-        assert!(SquareMatrixWrapper(MDS_matrix.0).determinant() != Fq::zero());
+        assert!(MDS_matrix.0.determinant() != Fq::zero());
         assert_eq!(MDS_matrix.n_rows(), t);
         assert!(MDS_matrix.0.get_element(0, 0) != Fq::zero());
     }

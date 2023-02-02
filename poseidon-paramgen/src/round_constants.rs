@@ -1,20 +1,14 @@
 use core::ops::Deref;
 
-use anyhow::Result;
 use ark_ff::PrimeField;
 use ark_std::{vec, vec::Vec};
 use merlin::Transcript;
 use poseidon_parameters::{
-    Alpha, ArcMatrix, InputParameters, Matrix, MatrixOperations, MdsMatrix, OptimizedArcMatrix,
-    RoundNumbers,
+    mat_mul, Alpha, ArcMatrix, InputParameters, Matrix, MatrixOperations, MdsMatrix,
+    OptimizedArcMatrix, RoundNumbers,
 };
 
-use crate::{
-    matrix::{mat_mul, MatrixWrapper},
-    mds::MdsMatrixWrapper,
-    rounds::RoundNumbersWrapper,
-    transcript::TranscriptProtocol,
-};
+use crate::{mds::MdsMatrixWrapper, rounds::RoundNumbersWrapper, transcript::TranscriptProtocol};
 
 /// Represents an matrix of round constants.
 pub struct ArcMatrixWrapper<F: PrimeField>(pub ArcMatrix<F>);
@@ -53,7 +47,7 @@ impl<F: PrimeField> ArcMatrixWrapper<F> {
 
     /// Get row vector of constants by round
     pub fn constants_by_round(&self, r: usize) -> Matrix<F> {
-        MatrixWrapper(self.0 .0.clone()).row_vector(r)
+        self.0 .0.row_vector(r)
     }
 
     /// Set row vector of constants by round
@@ -108,12 +102,10 @@ impl<F: PrimeField> OptimizedArcMatrixWrapper<F> {
         let n_cols = arc.n_cols();
         let mut constants_temp = ArcMatrixWrapper(arc.clone());
 
-        // let rounds = RoundNumbersWrapper(*rounds);
-
         let r_f = rounds.full() / 2;
         let r_T = rounds.total();
         let mds_T = mds.transpose();
-        let mds_inv = &MdsMatrixWrapper(mds_T.into()).inverse();
+        let mds_inv = &MdsMatrixWrapper(mds_T).inverse();
 
         // C_i = M^-1 * C_(i+1)
         for r in ((r_f)..(r_T - 1 - r_f)).rev() {

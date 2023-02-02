@@ -207,21 +207,6 @@ impl RoundNumbersWrapper {
             .expect("no NaNs")
             .floor() as usize;
     }
-
-    // /// Number of total rounds.
-    // pub fn total(&self) -> usize {
-    //     self.0.r_P + self.0.r_F
-    // }
-
-    // /// Number of partial rounds.
-    // pub fn partial(&self) -> usize {
-    //     self.0.r_P
-    // }
-
-    // /// Number of full rounds.
-    // pub fn full(&self) -> usize {
-    //     self.0.r_F
-    // }
 }
 
 fn cmp_f64(lhs: &&f64, rhs: &&f64) -> Ordering {

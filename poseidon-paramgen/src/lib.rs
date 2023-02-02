@@ -32,22 +32,19 @@ mod utils;
 #[cfg(feature = "std")]
 pub mod poseidon_build;
 
-
 use core::ops::Deref;
 
 use alpha::AlphaWrapper;
 use ark_ff::PrimeField;
 use input::InputParametersWrapper;
-use matrix::{dot_product, mat_mul, MatrixWrapper, SquareMatrixOperations};
 use mds::{MdsMatrixWrapper, OptimizedMdsMatricesWrapper};
-use poseidon_parameters::{InputParameters, PoseidonParameters};
+use poseidon_parameters::PoseidonParameters;
 use round_constants::{ArcMatrixWrapper, OptimizedArcMatrixWrapper};
 use rounds::RoundNumbersWrapper;
 pub use utils::log2;
 
 /// A set of Poseidon parameters for a given set of input parameters.
 pub struct PoseidonParametersWrapper<F: PrimeField>(pub PoseidonParameters<F>);
-
 
 impl<F: PrimeField> From<PoseidonParameters<F>> for PoseidonParametersWrapper<F> {
     fn from(value: PoseidonParameters<F>) -> Self {

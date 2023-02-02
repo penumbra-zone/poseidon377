@@ -6,9 +6,11 @@ use num::BigUint;
 use poseidon_parameters::{Alpha, Matrix, MatrixOperations};
 
 use crate::{
-    matrix::SquareMatrixWrapper, AlphaWrapper, ArcMatrixWrapper, MatrixWrapper, MdsMatrixWrapper,
-    OptimizedArcMatrixWrapper, OptimizedMdsMatricesWrapper, PoseidonParametersWrapper,
-    RoundNumbersWrapper,
+    matrix::{MatrixWrapper, SquareMatrixWrapper},
+    mds::MdsMatrixWrapper,
+    round_constants::ArcMatrixWrapper,
+    AlphaWrapper, OptimizedArcMatrixWrapper, OptimizedMdsMatricesWrapper,
+    PoseidonParametersWrapper,
 };
 
 /// Create parameter code.

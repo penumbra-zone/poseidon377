@@ -1,6 +1,9 @@
 #![no_std]
 #![allow(non_snake_case)]
 
+#[cfg(test)]
+mod tests;
+
 use anyhow::anyhow;
 use anyhow::Result;
 use core::slice::Chunks;
@@ -8,7 +11,7 @@ use num_integer::Roots;
 
 use ark_ff::BigInteger;
 use ark_ff::PrimeField;
-use ark_std::vec::Vec;
+use ark_std::{ops::Mul, vec, vec::Vec};
 
 /// Input parameters that are used to generate Poseidon parameters.
 #[derive(Clone, Debug)]
@@ -92,6 +95,56 @@ pub trait MatrixOperations<F> {
         Self: Sized;
 }
 
+/// Multiply two matrices
+pub fn mat_mul<F: PrimeField, M: MatrixOperations<F>>(lhs: &M, rhs: &M) -> Result<M> {
+    if lhs.n_cols() != rhs.n_rows() {
+        return Err(anyhow!(
+            "matrix dimensions do not allow matrix multiplication"
+        ));
+    }
+
+    let rhs_T = rhs.transpose();
+
+    Ok(M::new(
+        lhs.n_rows(),
+        rhs.n_cols(),
+        lhs.iter_rows()
+            .flat_map(|row| {
+                // Rows of the transposed matrix are the columns of the original matrix
+                rhs_T
+                    .iter_rows()
+                    .map(|column| dot_product(row, column))
+                    .collect::<Vec<F>>()
+            })
+            .collect(),
+    ))
+}
+
+/// Compute vector dot product
+pub fn dot_product<F: PrimeField>(a: &[F], b: &[F]) -> F {
+    if a.len() != b.len() {
+        panic!("vecs not same len")
+    }
+
+    a.iter().zip(b.iter()).map(|(x, y)| *x * *y).sum()
+}
+
+/// Matrix operations that are defined on square matrices.
+pub trait SquareMatrixOperations<F> {
+    /// Compute the matrix inverse, if it exists
+    fn inverse(&self) -> Result<Self>
+    where
+        Self: Sized;
+    /// Construct an n x n identity matrix
+    fn identity(n: usize) -> Self;
+    /// Compute the matrix of minors
+    fn minors(&self) -> Self;
+    /// Compute the matrix of cofactors
+    fn cofactors(&self) -> Self;
+    /// Compute the matrix determinant
+    fn determinant(&self) -> F;
+}
+
 /// Represents a matrix over `PrimeField` elements.
 ///
 /// This matrix can be used to represent row or column
@@ -172,6 +225,28 @@ impl<F: PrimeField> MatrixOperations<F> for Matrix<F> {
     }
 }
 
+/// Multiply scalar by Matrix
+impl<F: PrimeField> Mul<F> for Matrix<F> {
+    type Output = Matrix<F>;
+
+    fn mul(self, rhs: F) -> Self::Output {
+        let elements = self.elements();
+        let new_elements: Vec<F> = elements.iter().map(|element| *element * rhs).collect();
+        Self::new(self.n_rows(), self.n_cols(), new_elements)
+    }
+}
+
+impl<F: PrimeField> Matrix<F> {
+    /// Get row vector at a specified row index
+    pub fn row_vector(&self, i: usize) -> Matrix<F> {
+        let mut row_elements = Vec::with_capacity(self.n_cols);
+        for j in 0..self.n_cols {
+            row_elements.push(self.get_element(i, j));
+        }
+        Matrix::new(1, self.n_cols, row_elements)
+    }
+}
+
 /// Represents a square matrix over `PrimeField` elements
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SquareMatrix<F: PrimeField>(pub Matrix<F>);
@@ -217,6 +292,177 @@ impl<F: PrimeField> MatrixOperations<F> for SquareMatrix<F> {
     }
 }
 
+impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
+    /// Construct a dim x dim identity matrix
+    fn identity(dim: usize) -> Self {
+        let mut m = Self::from_vec(vec![F::zero(); dim * dim]);
+
+        // Set diagonals to 1
+        for i in 0..dim {
+            m.set_element(i, i, F::one());
+        }
+
+        m
+    }
+
+    /// Compute the inverse of the matrix
+    fn inverse(&self) -> Result<Self> {
+        let identity = Self::identity(self.n_rows());
+
+        if self.n_rows() == 1 {
+            return Ok(Self::from_vec(vec![self
+                .get_element(0, 0)
+                .inverse()
+                .expect("inverse of single element must exist for 1x1 matrix")]));
+        }
+
+        let determinant = self.determinant();
+        if determinant == F::zero() {
+            return Err(anyhow!("err: matrix has no inverse"));
+        }
+
+        let minors = self.minors();
+        let cofactor_matrix = self.cofactors();
+        let signed_minors = minors
+            .hadamard_product(&cofactor_matrix)
+            .expect("minor and cofactor matrix have correct dimensions");
+        let adj = signed_minors.transpose();
+        let matrix_inverse = adj * (F::one() / determinant);
+
+        debug_assert_eq!(
+            mat_mul(self, &matrix_inverse)
+                .expect("matrix and its inverse should have same dimensions"),
+            identity
+        );
+        Ok(matrix_inverse)
+    }
+
+    /// Compute the (unsigned) minors of this matrix
+    fn minors(&self) -> Self {
+        match self.n_cols() {
+            0 => panic!("matrix has no elements!"),
+            1 => Self::from_vec(vec![self.get_element(0, 0)]),
+            2 => {
+                let a = self.get_element(0, 0);
+                let b = self.get_element(0, 1);
+                let c = self.get_element(1, 0);
+                let d = self.get_element(1, 1);
+                Self::from_vec(vec![d, c, b, a])
+            }
+            _ => {
+                let dim = self.n_rows();
+                let mut minor_matrix_elements = Vec::with_capacity(dim * dim);
+                for i in 0..dim {
+                    for j in 0..dim {
+                        let mut elements: Vec<F> = Vec::new();
+                        for k in 0..i {
+                            for l in 0..j {
+                                elements.push(self.get_element(k, l))
+                            }
+                            for l in (j + 1)..dim {
+                                elements.push(self.get_element(k, l))
+                            }
+                        }
+                        for k in i + 1..dim {
+                            for l in 0..j {
+                                elements.push(self.get_element(k, l))
+                            }
+                            for l in (j + 1)..dim {
+                                elements.push(self.get_element(k, l))
+                            }
+                        }
+                        let minor = Self::from_vec(elements);
+                        minor_matrix_elements.push(minor.determinant());
+                    }
+                }
+                Self::from_vec(minor_matrix_elements)
+            }
+        }
+    }
+
+    /// Compute the cofactor matrix, i.e. $C_{ij} = (-1)^{i+j}$
+    fn cofactors(&self) -> Self {
+        let dim = self.n_rows();
+        let mut elements = Vec::with_capacity(dim);
+        for i in 0..dim {
+            for j in 0..dim {
+                elements.push((-F::one()).pow([(i + j) as u64]))
+            }
+        }
+        Self::from_vec(elements)
+    }
+
+    /// Compute the matrix determinant
+    fn determinant(&self) -> F {
+        match self.n_cols() {
+            0 => panic!("matrix has no elements!"),
+            1 => self.get_element(0, 0),
+            2 => {
+                let a11 = self.get_element(0, 0);
+                let a12 = self.get_element(0, 1);
+                let a21 = self.get_element(1, 0);
+                let a22 = self.get_element(1, 1);
+                a11 * a22 - a21 * a12
+            }
+            3 => {
+                let a11 = self.get_element(0, 0);
+                let a12 = self.get_element(0, 1);
+                let a13 = self.get_element(0, 2);
+                let a21 = self.get_element(1, 0);
+                let a22 = self.get_element(1, 1);
+                let a23 = self.get_element(1, 2);
+                let a31 = self.get_element(2, 0);
+                let a32 = self.get_element(2, 1);
+                let a33 = self.get_element(2, 2);
+
+                a11 * (Self::new_2x2(a22, a23, a32, a33).determinant())
+                    - a12 * (Self::new_2x2(a21, a23, a31, a33).determinant())
+                    + a13 * (Self::new_2x2(a21, a22, a31, a32).determinant())
+            }
+            _ => {
+                // Unoptimized, but MDS matrices are fairly small, so we do the naive thing
+                let mut det = F::zero();
+                let mut levi_civita = true;
+                let dim = self.n_rows();
+
+                for i in 0..dim {
+                    let mut elements: Vec<F> = Vec::new();
+                    for k in 0..i {
+                        for l in 1..dim {
+                            elements.push(self.get_element(k, l))
+                        }
+                    }
+                    for k in i + 1..dim {
+                        for l in 1..dim {
+                            elements.push(self.get_element(k, l))
+                        }
+                    }
+                    let minor = Self::from_vec(elements);
+                    if levi_civita {
+                        det += self.get_element(i, 0) * minor.determinant();
+                    } else {
+                        det -= self.get_element(i, 0) * minor.determinant();
+                    }
+                    levi_civita = !levi_civita;
+                }
+
+                det
+            }
+        }
+    }
+}
+
+/// Multiply scalar by SquareMatrix
+impl<F: PrimeField> Mul<F> for SquareMatrix<F> {
+    type Output = SquareMatrix<F>;
+
+    fn mul(self, rhs: F) -> Self::Output {
+        let elements = self.0.elements();
+        let new_elements: Vec<F> = elements.iter().map(|element| *element * rhs).collect();
+        Self::from_vec(new_elements)
+    }
+}
+
 impl<F: PrimeField> SquareMatrix<F> {
     /// Create a `SquareMatrix` from a vector of elements.
     pub fn from_vec(elements: Vec<F>) -> Self {
@@ -225,6 +471,16 @@ impl<F: PrimeField> SquareMatrix<F> {
             panic!("SquareMatrix must be square")
         }
         Self(Matrix::new(dim, dim, elements))
+    }
+
+    /// Get row vector at a specified row index.
+    pub fn row_vector(&self, i: usize) -> Matrix<F> {
+        self.0.row_vector(i)
+    }
+
+    /// Create a 2x2 `SquareMatrix` from four elements.
+    pub fn new_2x2(a: F, b: F, c: F, d: F) -> SquareMatrix<F> {
+        Self::from_vec(vec![a, b, c, d])
     }
 }
 
@@ -445,7 +701,7 @@ pub struct OptimizedMdsMatrices<F: PrimeField> {
     pub w_hat_collection: Vec<Matrix<F>>,
 }
 
-// TODO: arc and mds could be vec colls
+// TODO: arc and mds could be collections
 /// A set of Poseidon parameters for a given set of input parameters.
 #[derive(Clone, Debug)]
 pub struct PoseidonParameters<F: PrimeField> {

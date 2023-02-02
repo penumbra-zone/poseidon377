@@ -3,7 +3,7 @@ use ark_std::vec;
 use merlin::Transcript;
 use poseidon_parameters::{Alpha, InputParameters, RoundNumbers};
 
-use crate::{alpha::AlphaWrapper, rounds::RoundNumbersWrapper};
+use crate::alpha::AlphaWrapper;
 
 pub(crate) trait TranscriptProtocol {
     fn domain_sep<F: PrimeField>(
@@ -20,7 +20,7 @@ impl TranscriptProtocol for Transcript {
         &mut self,
         input: &InputParameters<F::BigInt>,
         round_numbers: RoundNumbers,
-        alpha: poseidon_parameters::Alpha,
+        alpha: Alpha,
     ) {
         self.append_message(b"dom-sep", b"poseidon-paramgen");
         // Bind transcript to input parameter choices
