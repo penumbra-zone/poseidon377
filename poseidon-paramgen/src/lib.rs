@@ -36,12 +36,13 @@ use core::ops::Deref;
 
 use alpha::AlphaWrapper;
 use ark_ff::PrimeField;
-use input::InputParametersWrapper;
 use mds::{MdsMatrixWrapper, OptimizedMdsMatricesWrapper};
 use poseidon_parameters::PoseidonParameters;
 use round_constants::{ArcMatrixWrapper, OptimizedArcMatrixWrapper};
-use rounds::RoundNumbersWrapper;
-pub use utils::log2;
+use utils::log2;
+
+pub use input::InputParametersWrapper;
+pub use rounds::RoundNumbersWrapper;
 
 /// A set of Poseidon parameters for a given set of input parameters.
 pub struct PoseidonParametersWrapper<F: PrimeField>(pub PoseidonParameters<F>);

@@ -18,12 +18,12 @@ poseidon-parameters = { path = "../poseidon-parameters" }
 rand_core = { version = "0.6.3", default-features = false, features = ["getrandom"] }
 
 [dev-dependencies]
-ark-bls12-377 = "0.3"
-ark-bls12-381 = "0.3"
+# ark-bls12-377 = "0.3"
+# ark-bls12-381 = "0.3"
 ark-bn254 = "0.3"
 ark-ed-on-bls12-377 = "0.3"
 ark-ed-on-bls12-381 = "0.3"
-proptest = "1"
+# proptest = "1"
 
 [features]
 default = ["std"]
