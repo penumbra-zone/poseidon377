@@ -136,8 +136,8 @@ impl<'a, F: PrimeField> Instance<'a, F> {
     /// This implementation is based on the unoptimized Sage implementation
     /// `poseidonperm_x5_254_3.sage` provided in Appendix B of the Poseidon paper.
     fn unoptimized_permute(&mut self) {
-        let R_f = self.parameters.rounds.r_F / 2;
-        let R_P = self.parameters.rounds.r_P;
+        let R_f = self.parameters.rounds.full() / 2;
+        let R_P = self.parameters.rounds.partial();
         let mut round_constants_counter = 0;
         let t = self.parameters.t;
         let round_constants = self.parameters.arc.elements().clone();

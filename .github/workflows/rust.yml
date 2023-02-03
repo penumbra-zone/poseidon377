@@ -62,7 +62,8 @@ jobs:
          toolchain: stable
          override: true
      - run: |
-         cargo install cargo-nono
+         curl -LSfs https://japaric.github.io/trust/install.sh | \
+           sh -s -- --git hobofan/cargo-nono
      - run: |
          packages="${{ poseidon_parameters poseidon_permutation }}"
          for p in ${packages[@]}

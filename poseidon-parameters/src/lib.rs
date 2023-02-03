@@ -1,4 +1,4 @@
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 #![allow(non_snake_case)]
 
 #[cfg(test)]

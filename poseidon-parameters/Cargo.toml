@@ -2,7 +2,7 @@
 name = "poseidon-parameters"
 version = "0.1.0"
 edition = "2018"
-authors = ["Penumbra <crates@penumbra.zone>", "redshiftzero <jen@penumbra.zone>"]
+authors = []
 description = "A crate for Poseidon parameters"
 license = "MIT OR Apache-2.0"
 keywords = ["no_std"]
@@ -15,8 +15,13 @@ num-integer = { version = "0.1.45", default-features = false }
 
 [dev-dependencies]
 ark-bls12-377 = "0.3"
-ark-bls12-381 = "0.3"
-ark-bn254 = "0.3"
 ark-ed-on-bls12-377 = "0.3"
-ark-ed-on-bls12-381 = "0.3"
 proptest = "1"
+
+[features]
+std = [
+    "anyhow/std",
+    "ark-ff/std",
+    "ark-std/std",
+    "num-integer/std",
+]
