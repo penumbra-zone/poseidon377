@@ -6,7 +6,7 @@ use super::*;
 
 #[test]
 fn identity_matrix() {
-    let identity: SquareMatrix<Fq> = SquareMatrix::identity(2);
+    let identity = SquareMatrix::<Fq>::identity(2);
     assert_eq!(identity.get_element(0, 0), Fq::one());
     assert_eq!(identity.get_element(0, 1), Fq::zero());
     assert_eq!(identity.get_element(1, 1), Fq::one());
@@ -15,7 +15,7 @@ fn identity_matrix() {
 
 #[test]
 fn square_matmul() {
-    let identity: SquareMatrix<Fq> = SquareMatrix::identity(2);
+    let identity = SquareMatrix::<Fq>::identity(2);
 
     let matrix_2x2 = SquareMatrix::from_vec(vec![
         Fq::one(),
@@ -122,12 +122,13 @@ fn transpose() {
 
 #[test]
 fn cofactors() {
-    let identity_1x1: SquareMatrix<Fq> = SquareMatrix::identity(1);
-    let expected_res: SquareMatrix<Fq> = SquareMatrix::from_vec(vec![Fq::one()]);
+    let identity_1x1 = SquareMatrix::<Fq>::identity(1);
+    let expected_res = SquareMatrix::<Fq>::from_vec(vec![Fq::one()]);
     assert_eq!(identity_1x1.cofactors(), expected_res);
 
-    let identity_2x2: SquareMatrix<Fq> = SquareMatrix::identity(2);
-    let expected_res = SquareMatrix::from_vec(vec![Fq::one(), -Fq::one(), -Fq::one(), Fq::one()]);
+    let identity_2x2 = SquareMatrix::<Fq>::identity(2);
+    let expected_res =
+        SquareMatrix::<Fq>::from_vec(vec![Fq::one(), -Fq::one(), -Fq::one(), Fq::one()]);
     assert_eq!(identity_2x2.cofactors(), expected_res);
 }
 
@@ -140,18 +141,18 @@ fn fq_strategy() -> BoxedStrategy<Fq> {
 proptest! {
     #[test]
     fn inverse_2x2(a in fq_strategy(), b in fq_strategy(), c in fq_strategy(), d in fq_strategy()) {
-        let matrix_2x2 : SquareMatrix<Fq>= SquareMatrix::from_vec(vec![
+        let matrix_2x2 = SquareMatrix::<Fq>::from_vec(vec![
             a,b,c,d
         ]);
 
         let res = matrix_2x2.inverse().unwrap();
-        assert_eq!(mat_mul(&matrix_2x2, &res).unwrap(), SquareMatrix::identity(2));
+        assert_eq!(mat_mul(&matrix_2x2, &res).unwrap(), SquareMatrix::<Fq>::identity(2));
     }
 }
 
 #[test]
 fn inverse() {
-    let matrix_1x1 = SquareMatrix::from_vec(vec![Fq::from(2u64)]);
+    let matrix_1x1 = SquareMatrix::<Fq>::from_vec(vec![Fq::from(2u64)]);
     let res = matrix_1x1.inverse().unwrap();
     assert_eq!(
         mat_mul(&matrix_1x1, &res).unwrap(),
@@ -171,7 +172,7 @@ fn inverse() {
         SquareMatrix::identity(2)
     );
 
-    let identity_3x3: SquareMatrix<Fq> = SquareMatrix::identity(3);
+    let identity_3x3 = SquareMatrix::<Fq>::identity(3);
     assert_eq!(identity_3x3, identity_3x3.inverse().unwrap());
 
     let matrix_3x3 = SquareMatrix::from_vec(vec![
