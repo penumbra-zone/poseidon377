@@ -151,7 +151,7 @@ mod tests {
 
     #[test]
     fn convert_from_arc_to_vec_of_vecs() {
-        let arc_matrix = poseidon_parameters::ArcMatrix(poseidon_parameters::Matrix::new(
+        let arc_matrix = ArcMatrix(Matrix::new(
             2,
             3,
             vec![

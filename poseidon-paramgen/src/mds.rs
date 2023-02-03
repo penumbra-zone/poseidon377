@@ -34,7 +34,7 @@ impl<F: PrimeField> MdsMatrixWrapper<F> {
             panic!("no MDS matrix exists");
         }
 
-        MdsMatrixWrapper::fixed_cauchy_matrix(input)
+        Self::fixed_cauchy_matrix(input)
     }
 
     /// Generate a deterministic Cauchy matrix
@@ -305,6 +305,7 @@ mod tests {
     use ark_ed_on_bls12_377::{Fq as Fq377, FqParameters as Fq377Parameters};
     use ark_ed_on_bls12_381::{Fq, FqParameters as Fq381Parameters};
     use ark_ff::{fields::FpParameters, One, Zero};
+    use poseidon_parameters::Alpha;
 
     use crate::{input::InputParametersWrapper, rounds::RoundNumbersWrapper};
 
@@ -312,13 +313,12 @@ mod tests {
 
     #[test]
     fn convert_from_mds_to_vec_of_vecs() {
-        let MDS_matrix =
-            poseidon_parameters::MdsMatrix(poseidon_parameters::SquareMatrix::from_vec(vec![
-                Fq::from(1u32),
-                Fq::from(2u32),
-                Fq::from(3u32),
-                Fq::from(4u32),
-            ]));
+        let MDS_matrix = MdsMatrix(SquareMatrix::from_vec(vec![
+            Fq::from(1u32),
+            Fq::from(2u32),
+            Fq::from(3u32),
+            Fq::from(4u32),
+        ]));
         let vec_of_vecs: Vec<Vec<Fq>> = MDS_matrix.into();
         assert_eq!(vec_of_vecs[0][0], Fq::from(1u32));
         assert_eq!(vec_of_vecs[0][1], Fq::from(2u32));
@@ -344,8 +344,7 @@ mod tests {
         let M = 128;
 
         let input = InputParametersWrapper::new(M, 3, Fq377Parameters::MODULUS, true);
-        let rounds =
-            RoundNumbersWrapper::generate(&input, &poseidon_parameters::Alpha::Exponent(17));
+        let rounds = RoundNumbersWrapper::generate(&input, &Alpha::Exponent(17));
         let mds: MdsMatrix<Fq377> = MdsMatrixWrapper::generate(&input);
         let M_00 = mds.get_element(0, 0);
         // Sanity check
