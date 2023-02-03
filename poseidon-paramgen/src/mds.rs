@@ -344,7 +344,8 @@ mod tests {
         let M = 128;
 
         let input = InputParametersWrapper::new(M, 3, Fq377Parameters::MODULUS, true);
-        let rounds = RoundNumbersWrapper::new(&input, &poseidon_parameters::Alpha::Exponent(17));
+        let rounds =
+            RoundNumbersWrapper::generate(&input, &poseidon_parameters::Alpha::Exponent(17));
         let mds: MdsMatrix<Fq377> = MdsMatrixWrapper::generate(&input);
         let M_00 = mds.get_element(0, 0);
         // Sanity check

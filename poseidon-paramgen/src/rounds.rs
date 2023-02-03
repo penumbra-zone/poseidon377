@@ -25,7 +25,7 @@ impl Deref for RoundNumbersWrapper {
 impl RoundNumbersWrapper {
     /// Generate round numbers.
     #[allow(clippy::new_ret_no_self)]
-    pub fn new<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> RoundNumbers {
+    pub fn generate<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> RoundNumbers {
         let mut choice: Option<RoundNumbers> = None;
         let mut cost = usize::MAX;
         let mut cost_rf = usize::MAX;

@@ -72,7 +72,7 @@ impl<F: PrimeField> PoseidonParametersWrapper<F> {
     pub fn new(M: usize, t: usize, p: F::BigInt, allow_inverse: bool) -> PoseidonParameters<F> {
         let input = InputParametersWrapper::new(M, t, p, allow_inverse);
         let alpha = AlphaWrapper::generate::<F>(p, allow_inverse);
-        let rounds = RoundNumbersWrapper::new(&input, &alpha);
+        let rounds = RoundNumbersWrapper::generate(&input, &alpha);
         let mds = MdsMatrixWrapper::generate(&input);
         let arc = ArcMatrixWrapper::generate(&input, rounds, alpha);
         let optimized_mds = OptimizedMdsMatricesWrapper::generate(&mds, t, &rounds);
