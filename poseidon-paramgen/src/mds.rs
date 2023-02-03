@@ -8,6 +8,7 @@ use poseidon_parameters::{
 };
 
 /// Represents an MDS (maximum distance separable) matrix.
+#[derive(Debug)]
 pub struct MdsMatrixWrapper<F: PrimeField>(pub MdsMatrix<F>);
 
 impl<F: PrimeField> From<MdsMatrix<F>> for MdsMatrixWrapper<F> {
@@ -128,6 +129,7 @@ impl<F: PrimeField> From<&MdsMatrixWrapper<F>> for Vec<F> {
 }
 
 /// Represents an optimized MDS (maximum distance separable) matrix.
+#[derive(Debug)]
 pub struct OptimizedMdsMatricesWrapper<F: PrimeField>(pub OptimizedMdsMatrices<F>);
 
 impl<F: PrimeField> From<OptimizedMdsMatrices<F>> for OptimizedMdsMatricesWrapper<F> {

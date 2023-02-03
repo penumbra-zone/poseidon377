@@ -5,6 +5,7 @@ use ark_std::cmp::{Ordering, PartialOrd};
 use poseidon_parameters::{Alpha, InputParameters, RoundNumbers};
 
 /// `RoundNumbers` required for security based on known attacks.
+#[derive(Debug)]
 pub struct RoundNumbersWrapper(pub RoundNumbers);
 
 impl From<RoundNumbers> for RoundNumbersWrapper {

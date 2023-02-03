@@ -11,6 +11,7 @@ use poseidon_parameters::{
 use crate::{mds::MdsMatrixWrapper, rounds::RoundNumbersWrapper, transcript::TranscriptProtocol};
 
 /// Represents an matrix of round constants.
+#[derive(Debug)]
 pub struct ArcMatrixWrapper<F: PrimeField>(pub ArcMatrix<F>);
 
 impl<F: PrimeField> From<ArcMatrix<F>> for ArcMatrixWrapper<F> {
@@ -76,6 +77,7 @@ impl<F: PrimeField> From<&OptimizedArcMatrixWrapper<F>> for Vec<Vec<F>> {
 }
 
 /// Represents an optimized matrix of round constants.
+#[derive(Debug)]
 pub struct OptimizedArcMatrixWrapper<F: PrimeField>(pub OptimizedArcMatrix<F>);
 
 impl<F: PrimeField> From<OptimizedArcMatrix<F>> for OptimizedArcMatrixWrapper<F> {

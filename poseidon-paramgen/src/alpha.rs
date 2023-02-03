@@ -47,6 +47,7 @@ impl ShortestAdditionChains {
 }
 
 /// The exponent in `Sbox(x) = x^\alpha`.
+#[derive(Debug)]
 pub struct AlphaWrapper(pub Alpha);
 
 impl From<Alpha> for AlphaWrapper {

@@ -6,6 +6,7 @@ use poseidon_parameters::InputParameters;
 use crate::log2;
 
 /// Input parameters that are used to generate Poseidon parameters.
+#[derive(Debug)]
 pub struct InputParametersWrapper<T: BigInteger>(pub InputParameters<T>);
 
 impl<T: BigInteger> From<InputParameters<T>> for InputParametersWrapper<T> {
