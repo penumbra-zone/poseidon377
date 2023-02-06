@@ -1,5 +1,5 @@
 use ark_ed_on_bls12_377::Fq;
-use ark_ff::{One, PrimeField, Zero};
+use ark_ff::{vec, One, PrimeField, Zero};
 use proptest::prelude::*;
 
 use super::*;
