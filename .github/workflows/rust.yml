@@ -52,7 +52,7 @@ jobs:
           args: --all -- --check
 
   no-std:
-   name: `no_std` compatibility check
+   name: no-std compatibility check
    runs-on: ubuntu-latest
    steps:
      - uses: actions/checkout@v2
