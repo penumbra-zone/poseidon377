@@ -4,14 +4,11 @@
 #[cfg(test)]
 mod tests;
 
-use anyhow::anyhow;
-use anyhow::Result;
-use core::slice::Chunks;
-use num_integer::Roots;
+use core::{ops::Mul, slice::Chunks};
 
-use ark_ff::BigInteger;
-use ark_ff::PrimeField;
-use ark_std::{ops::Mul, vec, vec::Vec};
+use anyhow::{anyhow, Result};
+use ark_ff::{vec, vec::Vec, BigInteger, PrimeField};
+use num_integer::Roots;
 
 /// Input parameters that are used to generate Poseidon parameters.
 #[derive(Clone, Debug)]

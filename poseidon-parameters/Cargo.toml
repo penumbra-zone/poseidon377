@@ -10,11 +10,9 @@ keywords = ["no_std"]
 [dependencies]
 anyhow = { version = "1", default-features = false }
 ark-ff = { version = "^0.3.0", default-features = false }
-ark-std = { version = "^0.3.0", default-features = false }
 num-integer = { version = "0.1.45", default-features = false }
 
 [dev-dependencies]
-ark-bls12-377 = "0.3"
 ark-ed-on-bls12-377 = "0.3"
 proptest = "1"
 
@@ -22,6 +20,5 @@ proptest = "1"
 std = [
     "anyhow/std",
     "ark-ff/std",
-    "ark-std/std",
     "num-integer/std",
 ]

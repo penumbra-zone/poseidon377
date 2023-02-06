@@ -51,8 +51,8 @@ jobs:
           command: fmt
           args: --all -- --check
 
-  nono:
-   name: no_std compatibility check
+  no-std:
+   name: `no_std` compatibility check
    runs-on: ubuntu-latest
    steps:
      - uses: actions/checkout@v2
