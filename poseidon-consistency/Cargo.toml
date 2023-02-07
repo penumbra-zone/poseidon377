@@ -7,6 +7,7 @@ description = "Checks consistency between Penumbra and Ark-sponge implementation
 license = "MIT OR Apache-2.0"
 
 [dependencies]
+poseidon-parameters = { path = "../poseidon-parameters" }
 poseidon-paramgen = { path = "../poseidon-paramgen", default-features = false }
 poseidon-permutation = { path="../poseidon-permutation", default-features = false }
 ark-sponge = { version="0.3", git = "https://github.com/penumbra-zone/sponge", branch = "r1cs", default-features = false }

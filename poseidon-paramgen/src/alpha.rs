@@ -2,6 +2,7 @@ use ark_ff::PrimeField;
 use ark_std::vec::Vec;
 use num::integer::gcd;
 use num_bigint::BigUint;
+use poseidon_parameters::Alpha;
 
 /// Shortest addition chains for small numbers.
 ///
@@ -43,48 +44,29 @@ impl ShortestAdditionChains {
     }
 }
 
-/// The exponent in `Sbox(x) = x^\alpha`.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Alpha {
-    /// A positive exponent $x^{alpha}$.
-    Exponent(u32),
-    /// 1/x
-    Inverse,
+/// Select the best choice of `Alpha` given the parameters.
+pub fn generate<F: PrimeField>(p: F::BigInt, allow_inverse: bool) -> Alpha {
+    // Move through the addition chains in increasing depth,
+    // picking the leftmost choice that meets the coprime requirement.
+    for candidate in SHORTEST_ADDITION_CHAINS.depths_in_order() {
+        if candidate % 2 != 0 && alpha_coprime_to_p_minus_one::<F>(*candidate, p) {
+            return Alpha::Exponent(*candidate);
+        }
+    }
+
+    if allow_inverse {
+        Alpha::Inverse
+    } else {
+        panic!("could not find a small positive exponent and allow_inverse was not enabled")
+    }
 }
 
-impl Alpha {
-    /// Select the best choice of `Alpha` given the parameters.
-    pub fn generate<F: PrimeField>(p: F::BigInt, allow_inverse: bool) -> Self {
-        // Move through the addition chains in increasing depth,
-        // picking the leftmost choice that meets the coprime requirement.
-        for candidate in SHORTEST_ADDITION_CHAINS.depths_in_order() {
-            if candidate % 2 != 0 && Self::alpha_coprime_to_p_minus_one::<F>(*candidate, p) {
-                return Alpha::Exponent(*candidate);
-            }
-        }
-
-        if allow_inverse {
-            Alpha::Inverse
-        } else {
-            panic!("could not find a small positive exponent and allow_inverse was not enabled")
-        }
-    }
-
-    fn alpha_coprime_to_p_minus_one<F: PrimeField>(alpha: u32, p: F::BigInt) -> bool {
-        let one: BigUint = F::one().into();
-        let p_minus_one: BigUint = p.into() - one;
-        let alpha_bigint: BigUint = F::from(alpha).into();
-        let computed_gcd = gcd(alpha_bigint, p_minus_one);
-        F::from(computed_gcd) == F::one()
-    }
-
-    /// Return the memory representation of alpha as a byte array in little-endian byte order.
-    pub fn to_bytes_le(&self) -> [u8; 4] {
-        match self {
-            Alpha::Exponent(exp) => exp.to_le_bytes(),
-            Alpha::Inverse => (-1i32).to_le_bytes(),
-        }
-    }
+fn alpha_coprime_to_p_minus_one<F: PrimeField>(alpha: u32, p: F::BigInt) -> bool {
+    let one: BigUint = F::one().into();
+    let p_minus_one: BigUint = p.into() - one;
+    let alpha_bigint: BigUint = F::from(alpha).into();
+    let computed_gcd = gcd(alpha_bigint, p_minus_one);
+    F::from(computed_gcd) == F::one()
 }
 
 #[cfg(test)]
@@ -118,16 +100,16 @@ mod tests {
         // We know from the Poseidon paper that we should get an alpha of 5 for
         // BLS12-381 and BN254 (see Table 2)
         let p = FqParameters381::MODULUS;
-        assert_eq!(Alpha::generate::<Fq381>(p, true), Alpha::Exponent(5));
+        assert_eq!(generate::<Fq381>(p, true), Alpha::Exponent(5));
 
         let p = FqParameters254::MODULUS;
-        assert_eq!(Alpha::generate::<Fq254>(p, true), Alpha::Exponent(5));
+        assert_eq!(generate::<Fq254>(p, true), Alpha::Exponent(5));
     }
 
     #[test]
     fn check_alpha_17() {
         // For Poseidon377, we should get an alpha of 17 (from our own work).
         let p = FqParameters377::MODULUS;
-        assert_eq!(Alpha::generate::<Fq377>(p, true), Alpha::Exponent(17));
+        assert_eq!(generate::<Fq377>(p, true), Alpha::Exponent(17));
     }
 }

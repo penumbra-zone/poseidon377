@@ -5,10 +5,9 @@ use ark_sponge::{
 };
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use decaf377::Fq;
+use poseidon377::hash_4;
 use rand_chacha::ChaChaRng;
 use rand_core::{RngCore, SeedableRng};
-
-use poseidon377::hash_4;
 
 fn hash_4_1_ark_sponge(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
     let mut poseidon_instance: PoseidonSponge<Fq> = PoseidonSponge::new(&rate_5());

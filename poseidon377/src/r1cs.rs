@@ -1,11 +1,10 @@
 use ark_relations::r1cs::{ConstraintSystemRef, SynthesisError};
 use ark_sponge::{
-    constraints::CryptographicSpongeVar, poseidon::constraints::PoseidonSpongeVar,
-    poseidon::PoseidonParameters as ArkPoseidonParameters,
+    constraints::CryptographicSpongeVar,
+    poseidon::{constraints::PoseidonSpongeVar, PoseidonParameters as ArkPoseidonParameters},
 };
-use poseidon_paramgen::{Alpha, PoseidonParameters};
-
 use decaf377::r1cs::FqVar;
+use poseidon_parameters::{Alpha, PoseidonParameters};
 
 use crate::Fq;
 
