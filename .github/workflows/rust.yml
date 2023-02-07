@@ -1,4 +1,8 @@
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
 name: Rust CI
 
@@ -50,6 +54,27 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
+
+  no-std:
+   name: no-std compatibility check
+   runs-on: ubuntu-latest
+   steps:
+     - uses: actions/checkout@v2
+     - uses: actions-rs/toolchain@v1
+       with:
+         profile: minimal
+         toolchain: stable
+         override: true
+     - run: cargo install cargo-nono
+     - run: |
+         packages=("poseidon-parameters" "poseidon-permutation")
+         for p in ${packages[@]}
+         do
+           echo "Checking package $p..."
+           pushd "$p"
+           cargo nono check --no-default-features
+           popd
+         done
 
   # clippy:
   #  name: Clippy

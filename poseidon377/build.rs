@@ -1,11 +1,12 @@
-use ark_ed_on_bls12_377::{Fq, FqParameters};
-use ark_ff::FpParameters;
-use poseidon_paramgen::poseidon_build;
 use std::{
     env, fs,
     io::{BufWriter, Write},
     path::PathBuf,
 };
+
+use ark_ed_on_bls12_377::{Fq, FqParameters};
+use ark_ff::FpParameters;
+use poseidon_paramgen::poseidon_build;
 
 fn main() {
     // We use the default `OUT_DIR` set by Cargo when a build script exists.
@@ -19,7 +20,7 @@ fn main() {
     let params_codegen =
         poseidon_build::compile::<Fq>(security_level, t_values, FqParameters::MODULUS, true);
 
-    let fh = fs::File::create(&output_location).expect("can create source file");
+    let fh = fs::File::create(output_location).expect("can create source file");
     let mut f = BufWriter::new(fh);
     f.write_all(params_codegen.as_bytes())
         .expect("can write parameters to file");

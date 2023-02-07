@@ -5,6 +5,7 @@ members = [
     "poseidon-paramgen",
     "poseidon-permutation",
     "poseidon-consistency",
+    "poseidon-parameters",
 ]
 
 [profile.release]

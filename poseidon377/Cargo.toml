@@ -18,7 +18,7 @@ once_cell = { version = "1.8", default-features = false }
 
 ark-sponge = { git = "https://github.com/penumbra-zone/sponge", default-features = false, branch = "r1cs" }
 
-poseidon-paramgen = { path = "../poseidon-paramgen", default-features = false }
+poseidon-parameters = { path = "../poseidon-parameters", default-features = false }
 poseidon-permutation = { path = "../poseidon-permutation", default-features = false }
 
 [dev-dependencies]
@@ -38,7 +38,13 @@ std = [
     "num-bigint/std",
     "once_cell/std",
 ]
-r1cs = ["ark-groth16", "ark-relations", "ark-snark", "ark-r1cs-std"]
+r1cs = [
+    "ark-groth16",
+    "ark-relations",
+    "ark-snark",
+    "ark-r1cs-std",
+    "ark-sponge/r1cs"
+]
 
 [[bench]]
 name = "oldhash"

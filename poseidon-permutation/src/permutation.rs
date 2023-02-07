@@ -1,7 +1,8 @@
 #![allow(non_snake_case)]
 
-use ark_ff::{vec, vec::Vec, PrimeField};
-use poseidon_paramgen::{Alpha, MatrixOperations, PoseidonParameters};
+use ark_ff::PrimeField;
+use ark_std::{vec, vec::Vec};
+use poseidon_parameters::{Alpha, MatrixOperations, PoseidonParameters};
 
 /// Represents a generic instance of `Poseidon`.
 ///
@@ -89,6 +90,7 @@ impl<'a, F: PrimeField> Instance<'a, F> {
                 .get_element(round_constants_counter, 0);
             self.sparse_mat_mul(self.parameters.rounds.partial() - r - 1);
         }
+
         // Last partial round
         self.partial_sub_words();
         self.sparse_mat_mul(0);
@@ -177,7 +179,7 @@ impl<'a, F: PrimeField> Instance<'a, F> {
     /// Applies the partial `SubWords` layer.
     fn partial_sub_words(&mut self) {
         match self.parameters.alpha {
-            Alpha::Exponent(exp) => self.state_words[0] = (self.state_words[0]).pow(&[exp as u64]),
+            Alpha::Exponent(exp) => self.state_words[0] = (self.state_words[0]).pow([exp as u64]),
             Alpha::Inverse => self.state_words[0] = F::one() / self.state_words[0],
         }
     }
@@ -189,7 +191,7 @@ impl<'a, F: PrimeField> Instance<'a, F> {
                 self.state_words = self
                     .state_words
                     .iter()
-                    .map(|x| x.pow(&[exp as u64]))
+                    .map(|x| x.pow([exp as u64]))
                     .collect()
             }
             Alpha::Inverse => {
@@ -236,7 +238,7 @@ impl<'a, F: PrimeField> Instance<'a, F> {
         // mul_row = [(state_words[0] * v[i]) for i in range(0, t-1)]
         // add_row = [(mul_row[i] + state_words[i+1]) for i in range(0, t-1)]
         let add_row: Vec<F> = self.parameters.optimized_mds.v_collection[round_number]
-            .elements()
+            .elements
             .iter()
             .enumerate()
             .map(|(i, x)| *x * self.state_words[0] + self.state_words[i + 1])
@@ -247,7 +249,7 @@ impl<'a, F: PrimeField> Instance<'a, F> {
         // state_words_new = [state_words_new[0]] + add_row
         self.state_words[0] = self.parameters.optimized_mds.M_00 * self.state_words[0]
             + self.parameters.optimized_mds.w_hat_collection[round_number]
-                .elements()
+                .elements
                 .iter()
                 .zip(self.state_words[1..self.parameters.t].iter())
                 .map(|(x, y)| *x * *y)
