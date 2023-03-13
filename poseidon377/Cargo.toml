@@ -12,7 +12,7 @@ ark-groth16 = { version = "0.3", default-features = false, optional=true }
 ark-r1cs-std = {version = "0.3", default-features = false, optional=true }
 ark-relations = { version="0.3", default-features = false, optional=true }
 ark-snark = { version = "0.3", default-features = false, optional=true }
-decaf377 = { version="0.1", features = ["r1cs"] }
+decaf377 = { version="0.3", default-features = false, features = ["r1cs"] }
 num-bigint = { version = "0.4.3", default-features = false }
 once_cell = { version = "1.8", default-features = false }
 
@@ -43,7 +43,14 @@ r1cs = [
     "ark-relations",
     "ark-snark",
     "ark-r1cs-std",
-    "ark-sponge/r1cs"
+    "ark-sponge/r1cs",
+    "decaf377/r1cs",
+]
+parallel  = [
+    "ark-ff/parallel",
+    "ark-groth16/parallel",
+    "ark-r1cs-std/parallel",
+    "decaf377/parallel",
 ]
 
 [[bench]]
