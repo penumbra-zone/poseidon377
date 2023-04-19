@@ -65,7 +65,7 @@ jobs:
          profile: minimal
          toolchain: stable
          override: true
-     - run: cargo install cargo-nono
+     - run: cargo install --locked cargo-nono
      - run: |
          packages=("poseidon-parameters" "poseidon-permutation")
          for p in ${packages[@]}
