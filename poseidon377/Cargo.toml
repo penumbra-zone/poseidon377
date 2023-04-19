@@ -1,10 +1,11 @@
 [package]
 name = "poseidon377"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2018"
 authors = ["Penumbra <crates@penumbra.zone>", "redshiftzero <jen@penumbra.zone>"]
 description = "An instantiation of the Poseidon hash for use with decaf377."
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/penumbra-zone/poseidon377"
 
 [dependencies]
 ark-ff = { version = "0.3", default-features = false }

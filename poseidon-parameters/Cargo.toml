@@ -1,11 +1,12 @@
 [package]
 name = "poseidon-parameters"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2018"
 authors = []
 description = "A crate for Poseidon parameters"
 license = "MIT OR Apache-2.0"
 keywords = ["no_std"]
+repository = "https://github.com/penumbra-zone/poseidon377"
 
 [dependencies]
 anyhow = { version = "1", default-features = false }
