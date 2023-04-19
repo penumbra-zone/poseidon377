@@ -11,7 +11,7 @@ repository = "https://github.com/penumbra-zone/poseidon377"
 ark-ff = { version = "0.3", default-features = false }
 ark-std = { version = "^0.3.0", default-features = false }
 
-poseidon-parameters = { path = "../poseidon-parameters", default-features = false }
+poseidon-parameters = { path = "../poseidon-parameters", default-features = false, version = "0.2" }
 
 [features]
 default = ["std"]
