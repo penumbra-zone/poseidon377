@@ -10,11 +10,10 @@ use rand_chacha::ChaChaRng;
 use rand_core::{RngCore, SeedableRng};
 
 use poseidon_consistency::convert_to_ark_sponge_parameters;
-use poseidon_paramgen::PoseidonParameters;
 use poseidon_permutation::Instance;
 
 static PARAMS_4_TO_1: Lazy<poseidon_parameters::PoseidonParameters<Fq>> =
-    Lazy::new(|| PoseidonParameters::new(128, 5, FqParameters::MODULUS, true));
+    Lazy::new(|| poseidon_paramgen::generate(128, 5, FqParameters::MODULUS, true));
 
 fn hash_4_1_ark_sponge(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
     let params_ark: Parameters<Fq> = convert_to_ark_sponge_parameters(PARAMS_4_TO_1.clone());
