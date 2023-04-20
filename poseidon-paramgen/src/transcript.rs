@@ -34,7 +34,7 @@ impl TranscriptProtocol for Transcript {
     }
 
     fn round_constant<F: PrimeField>(&mut self) -> F {
-        let size_in_bytes = (F::size_in_bits() + 135) / 8;
+        let size_in_bytes = (F::MODULUS_BIT_SIZE as usize + 135) / 8;
         let mut dest = vec![0u8; size_in_bytes];
         self.challenge_bytes(b"round-constant", &mut dest);
         F::from_le_bytes_mod_order(&dest)

@@ -31,24 +31,24 @@ where
 
 #[cfg(test)]
 mod tests {
-    use ark_ed_on_bls12_381::FqParameters as Fq381Parameters;
-    use ark_ff::{BigInteger256, FpParameters};
+    use ark_ed_on_bls12_381::Fq;
+    use ark_ff::{BigInteger256, PrimeField};
 
     use super::*;
 
     #[test]
     fn log2_bigint() {
-        let test_val: BigInteger256 = 4.into();
+        let test_val: BigInteger256 = ark_ff::BigInt!("4");
         assert_eq!(log2(test_val), 2.0);
 
-        let test_val: BigInteger256 = 257.into();
+        let test_val: BigInteger256 = ark_ff::BigInt!("257");
         assert!(log2(test_val) > 8.005);
         assert!(log2(test_val) < 8.006);
 
-        let test_val: BigInteger256 = 65536.into();
+        let test_val: BigInteger256 = ark_ff::BigInt!("65536");
         assert_eq!(log2(test_val), 16.0);
 
-        let test_val = Fq381Parameters::MODULUS;
+        let test_val = Fq::MODULUS;
         assert!(log2(test_val) > 254.856);
         assert!(log2(test_val) < 254.858);
     }
