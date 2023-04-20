@@ -71,10 +71,9 @@ fn alpha_coprime_to_p_minus_one<F: PrimeField>(alpha: u32, p: F::BigInt) -> bool
 
 #[cfg(test)]
 mod tests {
-    use ark_bn254::{Fq as Fq254, FqParameters as FqParameters254};
-    use ark_ed_on_bls12_377::{Fq as Fq377, FqParameters as FqParameters377};
-    use ark_ed_on_bls12_381::{Fq as Fq381, FqParameters as FqParameters381};
-    use ark_ff::FpParameters;
+    use ark_bn254::Fq as Fq254;
+    use ark_ed_on_bls12_377::Fq as Fq377;
+    use ark_ed_on_bls12_381::Fq as Fq381;
     use num_bigint::BigInt;
 
     use super::*;
@@ -89,7 +88,7 @@ mod tests {
         assert_eq!(computed_gcd, BigInt::from(1u32));
         let computed_gcd = gcd(BigInt::from(11586173u32), BigInt::from(63141853u32));
         assert_eq!(computed_gcd, BigInt::from(1u32));
-        let p: BigUint = FqParameters377::MODULUS.into();
+        let p: BigUint = Fq377::MODULUS.into();
         let p_minus_one: BigUint = p - BigUint::from(1u32);
         let computed_gcd = gcd(BigInt::from(5u32), p_minus_one.into());
         assert_eq!(computed_gcd, BigInt::from(5u32))
@@ -99,17 +98,17 @@ mod tests {
     fn check_alpha_5() {
         // We know from the Poseidon paper that we should get an alpha of 5 for
         // BLS12-381 and BN254 (see Table 2)
-        let p = FqParameters381::MODULUS;
+        let p = Fq381::MODULUS;
         assert_eq!(generate::<Fq381>(p, true), Alpha::Exponent(5));
 
-        let p = FqParameters254::MODULUS;
+        let p = Fq254::MODULUS;
         assert_eq!(generate::<Fq254>(p, true), Alpha::Exponent(5));
     }
 
     #[test]
     fn check_alpha_17() {
         // For Poseidon377, we should get an alpha of 17 (from our own work).
-        let p = FqParameters377::MODULUS;
+        let p = Fq377::MODULUS;
         assert_eq!(generate::<Fq377>(p, true), Alpha::Exponent(17));
     }
 }
