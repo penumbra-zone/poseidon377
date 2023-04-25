@@ -1,12 +1,15 @@
 use ark_relations::r1cs::{ConstraintSystemRef, SynthesisError};
-use ark_sponge::{
-    constraints::CryptographicSpongeVar,
-    poseidon::{constraints::PoseidonSpongeVar, PoseidonParameters as ArkPoseidonParameters},
-};
 use decaf377::r1cs::FqVar;
 use poseidon_parameters::{Alpha, PoseidonParameters};
 
 use crate::Fq;
+
+mod vendor;
+
+use vendor::sponge::{
+    constraints::CryptographicSpongeVar,
+    poseidon::{constraints::PoseidonSpongeVar, PoseidonParameters as ArkPoseidonParameters},
+};
 
 fn convert_to_ark_sponge_parameters(params: PoseidonParameters<Fq>) -> ArkPoseidonParameters<Fq> {
     let alpha = match params.alpha {
