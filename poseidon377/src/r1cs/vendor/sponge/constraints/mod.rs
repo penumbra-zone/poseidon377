@@ -1,4 +1,4 @@
-use crate::{Absorb, CryptographicSponge, FieldElementSize};
+use crate::r1cs::vendor::sponge::{Absorb, CryptographicSponge, FieldElementSize};
 use ark_ff::PrimeField;
 use ark_nonnative_field::params::{get_params, OptimizationType};
 use ark_nonnative_field::{AllocatedNonNativeFieldVar, NonNativeFieldVar};

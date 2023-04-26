@@ -6,3 +6,7 @@
 
 * Parameter generation originally in `poseidon-paramgen` was split into
 `poseidon-permutation` (types).
+
+# 0.3.0
+
+* Vendor `ark-sponge` dependency (used in R1CS feature only).

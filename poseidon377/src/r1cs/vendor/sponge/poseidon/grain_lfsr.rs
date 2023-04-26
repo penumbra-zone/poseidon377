@@ -190,7 +190,7 @@ impl PoseidonGrainLFSR {
 
 #[cfg(test)]
 mod test {
-    use crate::poseidon::grain_lfsr::PoseidonGrainLFSR;
+    use crate::r1cs::vendor::sponge::poseidon::grain_lfsr::PoseidonGrainLFSR;
     use ark_ff::field_new;
     use ark_test_curves::bls12_381::Fr;
 

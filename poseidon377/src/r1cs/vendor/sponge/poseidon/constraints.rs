@@ -1,7 +1,7 @@
-use crate::constraints::AbsorbGadget;
-use crate::constraints::{CryptographicSpongeVar, SpongeWithGadget};
-use crate::poseidon::{PoseidonParameters, PoseidonSponge};
-use crate::DuplexSpongeMode;
+use crate::r1cs::vendor::sponge::constraints::AbsorbGadget;
+use crate::r1cs::vendor::sponge::constraints::{CryptographicSpongeVar, SpongeWithGadget};
+use crate::r1cs::vendor::sponge::poseidon::{PoseidonParameters, PoseidonSponge};
+use crate::r1cs::vendor::sponge::DuplexSpongeMode;
 use ark_ff::{FpParameters, PrimeField};
 use ark_r1cs_std::fields::fp::FpVar;
 use ark_r1cs_std::prelude::*;
@@ -294,11 +294,11 @@ impl<F: PrimeField> CryptographicSpongeVar<F, PoseidonSponge<F>> for PoseidonSpo
 
 #[cfg(test)]
 mod tests {
-    use crate::constraints::CryptographicSpongeVar;
-    use crate::poseidon::constraints::PoseidonSpongeVar;
-    use crate::poseidon::tests::poseidon_parameters_for_test;
-    use crate::poseidon::PoseidonSponge;
-    use crate::{CryptographicSponge, FieldBasedCryptographicSponge};
+    use crate::r1cs::vendor::sponge::constraints::CryptographicSpongeVar;
+    use crate::r1cs::vendor::sponge::poseidon::constraints::PoseidonSpongeVar;
+    use crate::r1cs::vendor::sponge::poseidon::tests::poseidon_parameters_for_test;
+    use crate::r1cs::vendor::sponge::poseidon::PoseidonSponge;
+    use crate::r1cs::vendor::sponge::{CryptographicSponge, FieldBasedCryptographicSponge};
     use ark_ff::UniformRand;
     use ark_r1cs_std::fields::fp::FpVar;
     use ark_r1cs_std::prelude::*;

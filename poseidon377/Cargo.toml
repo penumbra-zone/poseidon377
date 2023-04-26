@@ -1,6 +1,6 @@
 [package]
 name = "poseidon377"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2018"
 authors = ["Penumbra <team@penumbralabs.xyz>", "redshiftzero <jen@penumbralabs.xyz>"]
 description = "An instantiation of the Poseidon hash for use with decaf377."
@@ -19,12 +19,22 @@ once_cell = { version = "1.8", default-features = false }
 poseidon-parameters = { path = "../poseidon-parameters", default-features = false }
 poseidon-permutation = { path = "../poseidon-permutation", default-features = false }
 
+# Dependencies added for ark-sponge vendoring
+ark-ec = { version = "0.3", default_features = false, optional=true }
+ark-std = { version = "0.3", default-features = false, optional=true }
+tracing = { version = "0.1", default-features = false, features = [ "attributes" ], optional = true }
+ark-serialize = { version = "0.3", default_features = false, optional=true }
+ark-nonnative-field = { version = "0.3", default-features = false, optional = true }
+
 [dev-dependencies]
 ark-ed-on-bls12-381 = "0.3"
 proptest = "1"
 criterion = { version = "0.3", features=["html_reports"] }
 rand_core = { version = "0.6.3", features = ["getrandom"] }
 rand_chacha = "0.3"
+
+# Dependencies added for ark-sponge tests
+ark-test-curves = { version = "0.3", features = ["bls12_381_curve", "mnt4_753_curve"]}
 
 [features]
 default = ["std"]
@@ -35,6 +45,10 @@ std = [
     "ark-relations/std",
     "num-bigint/std",
     "once_cell/std",
+    "ark-std/std",
+    "ark-ec/std",
+    "ark-serialize/std",
+    "ark-nonnative-field/std",
 ]
 r1cs = [
     "ark-groth16",
@@ -42,12 +56,19 @@ r1cs = [
     "ark-snark",
     "ark-r1cs-std",
     "decaf377/r1cs",
+    "ark-std",
+    "ark-ec",
+    "tracing",
+    "ark-serialize",
+    "ark-nonnative-field",
 ]
 parallel  = [
     "ark-ff/parallel",
     "ark-groth16/parallel",
     "ark-r1cs-std/parallel",
     "decaf377/parallel",
+    "ark-std/parallel",
+    "ark-ec/parallel",
 ]
 
 [[bench]]
