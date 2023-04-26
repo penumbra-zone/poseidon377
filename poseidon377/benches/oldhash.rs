@@ -1,11 +1,11 @@
 use ark_ff::PrimeField;
-use ark_sponge::{
-    poseidon::{PoseidonParameters, PoseidonSponge},
-    CryptographicSponge,
-};
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use decaf377::Fq;
 use poseidon377::hash_4;
+use poseidon377::r1cs::vendor::sponge::{
+    poseidon::{PoseidonParameters, PoseidonSponge},
+    CryptographicSponge,
+};
 use rand_chacha::ChaChaRng;
 use rand_core::{RngCore, SeedableRng};
 

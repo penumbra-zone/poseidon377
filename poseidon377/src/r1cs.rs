@@ -4,7 +4,7 @@ use poseidon_parameters::{Alpha, PoseidonParameters};
 
 use crate::Fq;
 
-mod vendor;
+pub mod vendor;
 
 use vendor::sponge::{
     constraints::CryptographicSpongeVar,
