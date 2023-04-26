@@ -16,8 +16,8 @@ ark-snark = { version = "0.3", default-features = false, optional=true }
 decaf377 = { version="0.3", default-features = false, features = ["r1cs"] }
 num-bigint = { version = "0.4.3", default-features = false }
 once_cell = { version = "1.8", default-features = false }
-poseidon-parameters = { path = "../poseidon-parameters", default-features = false }
-poseidon-permutation = { path = "../poseidon-permutation", default-features = false }
+poseidon-parameters = { version="0.2", path = "../poseidon-parameters", default-features = false }
+poseidon-permutation = { version="0.2", path = "../poseidon-permutation", default-features = false }
 
 # Dependencies added for ark-sponge vendoring
 ark-ec = { version = "0.3", default_features = false, optional=true }
@@ -76,7 +76,7 @@ name = "oldhash"
 harness = false
 
 [build-dependencies]
-poseidon-paramgen = { path = "../poseidon-paramgen" }
+poseidon-paramgen = { version="0.2", path = "../poseidon-paramgen" }
 ark-ed-on-bls12-377 = "0.3"
 ark-ff = "0.3"
 
