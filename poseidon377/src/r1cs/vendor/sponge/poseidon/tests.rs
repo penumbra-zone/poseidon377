@@ -1,6 +1,8 @@
-use crate::poseidon::{PoseidonParameters, PoseidonSponge};
+use crate::r1cs::vendor::sponge::poseidon::{PoseidonParameters, PoseidonSponge};
+use crate::r1cs::vendor::sponge::{
+    Absorb, AbsorbWithLength, CryptographicSponge, FieldBasedCryptographicSponge,
+};
 use crate::{absorb, collect_sponge_bytes, collect_sponge_field_elements};
-use crate::{Absorb, AbsorbWithLength, CryptographicSponge, FieldBasedCryptographicSponge};
 use ark_ff::{One, PrimeField, UniformRand};
 use ark_std::test_rng;
 use ark_test_curves::bls12_381::Fr;

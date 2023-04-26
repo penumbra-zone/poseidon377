@@ -221,8 +221,8 @@ macro_rules! collect_sponge_field_elements_gadget {
 
 #[cfg(test)]
 mod tests {
-    use crate::constraints::AbsorbGadget;
-    use crate::Absorb;
+    use crate::r1cs::vendor::sponge::constraints::AbsorbGadget;
+    use crate::r1cs::vendor::sponge::Absorb;
     use ark_r1cs_std::alloc::AllocVar;
     use ark_r1cs_std::fields::fp::FpVar;
     use ark_r1cs_std::uint8::UInt8;

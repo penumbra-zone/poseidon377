@@ -1,4 +1,4 @@
-use crate::{
+use crate::r1cs::vendor::sponge::{
     batch_field_cast, squeeze_field_elements_with_sizes_default_impl, Absorb, CryptographicSponge,
     DuplexSpongeMode, FieldBasedCryptographicSponge, FieldElementSize, SpongeExt,
 };
@@ -371,10 +371,12 @@ impl<CF: PrimeField> SpongeExt for PoseidonSponge<CF> {
 
 #[cfg(test)]
 mod test {
-    use crate::poseidon::{
+    use crate::r1cs::vendor::sponge::poseidon::{
         PoseidonDefaultParameters, PoseidonDefaultParametersEntry, PoseidonDefaultParametersField,
     };
-    use crate::{poseidon::PoseidonSponge, CryptographicSponge, FieldBasedCryptographicSponge};
+    use crate::r1cs::vendor::sponge::{
+        poseidon::PoseidonSponge, CryptographicSponge, FieldBasedCryptographicSponge,
+    };
     use ark_ff::{field_new, BigInteger256, FftParameters, Fp256, Fp256Parameters, FpParameters};
     use ark_test_curves::bls12_381::FrParameters;
 

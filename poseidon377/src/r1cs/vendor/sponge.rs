@@ -1,16 +1,12 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 //! A crate for the cryptographic sponge trait.
 #![deny(
-    const_err,
-    future_incompatible,
     missing_docs,
     non_shorthand_field_patterns,
     renamed_and_removed_lints,
-    rust_2018_idioms,
     stable_features,
     trivial_casts,
     trivial_numeric_casts,
-    unused,
     variant_size_differences
 )]
 #![forbid(unsafe_code)]

@@ -1,5 +1,5 @@
-use crate::poseidon::grain_lfsr::PoseidonGrainLFSR;
-use crate::poseidon::PoseidonParameters;
+use crate::r1cs::vendor::sponge::poseidon::grain_lfsr::PoseidonGrainLFSR;
+use crate::r1cs::vendor::sponge::poseidon::PoseidonParameters;
 use ark_ff::{fields::models::*, FpParameters, PrimeField};
 use ark_std::{vec, vec::Vec};
 
@@ -168,7 +168,7 @@ impl_poseidon_default_parameters_field!(Fp832, Fp832Parameters);
 
 #[cfg(test)]
 mod test {
-    use crate::poseidon::{
+    use crate::r1cs::vendor::sponge::poseidon::{
         PoseidonDefaultParameters, PoseidonDefaultParametersEntry, PoseidonDefaultParametersField,
     };
     use ark_ff::{field_new, fields::Fp256};
