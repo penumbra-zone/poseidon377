@@ -2,7 +2,7 @@ use crate::r1cs::vendor::sponge::constraints::AbsorbGadget;
 use crate::r1cs::vendor::sponge::constraints::{CryptographicSpongeVar, SpongeWithGadget};
 use crate::r1cs::vendor::sponge::poseidon::{PoseidonParameters, PoseidonSponge};
 use crate::r1cs::vendor::sponge::DuplexSpongeMode;
-use ark_ff::{FpParameters, PrimeField};
+use ark_ff::{FpConfig, PrimeField};
 use ark_r1cs_std::fields::fp::FpVar;
 use ark_r1cs_std::prelude::*;
 use ark_relations::r1cs::{ConstraintSystemRef, SynthesisError};

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use ark_ff::{BigInteger, FpParameters, PrimeField};
+use ark_ff::{BigInteger, FpConfig, PrimeField};
 use ark_std::vec::Vec;
 
 pub struct PoseidonGrainLFSR {
@@ -191,7 +191,7 @@ impl PoseidonGrainLFSR {
 #[cfg(test)]
 mod test {
     use crate::r1cs::vendor::sponge::poseidon::grain_lfsr::PoseidonGrainLFSR;
-    use ark_ff::field_new;
+    use ark_ff::MontFp;
     use ark_test_curves::bls12_381::Fr;
 
     #[test]
@@ -200,15 +200,13 @@ mod test {
 
         assert_eq!(
             lfsr.get_field_elements_rejection_sampling::<Fr>(1)[0],
-            field_new!(
-                Fr,
+            MontFp!(
                 "27117311055620256798560880810000042840428971800021819916023577129547249660720"
             )
         );
         assert_eq!(
             lfsr.get_field_elements_rejection_sampling::<Fr>(1)[0],
-            field_new!(
-                Fr,
+            MontFp!(
                 "51641662388546346858987925410984003801092143452466182801674685248597955169158"
             )
         );
