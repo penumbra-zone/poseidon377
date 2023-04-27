@@ -33,7 +33,7 @@ mod utils;
 pub mod poseidon_build;
 
 use ark_ff::PrimeField;
-use poseidon_parameters::PoseidonParameters;
+use poseidon_parameters::v1::PoseidonParameters;
 use utils::log2;
 
 /// Generate a Poseidon instance mapped over Fp given a choice of:

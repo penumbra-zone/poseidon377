@@ -2,7 +2,7 @@ use ark_ff::PrimeField;
 use ark_std::vec::Vec;
 use num::integer::gcd;
 use num_bigint::BigUint;
-use poseidon_parameters::Alpha;
+use poseidon_parameters::v1::Alpha;
 
 /// Shortest addition chains for small numbers.
 ///

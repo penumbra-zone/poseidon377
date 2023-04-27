@@ -1,8 +1,13 @@
 use ark_ed_on_bls12_377::Fq;
 use ark_ff::{vec, One, PrimeField, Zero};
 use proptest::prelude::*;
+use v1::Matrix;
 
 use super::*;
+
+use crate::matrix_ops::mat_mul;
+use crate::matrix_ops::MatrixOperations;
+use crate::{matrix::SquareMatrix, matrix_ops::SquareMatrixOperations};
 
 #[test]
 fn identity_matrix() {
