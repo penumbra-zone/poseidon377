@@ -43,11 +43,11 @@ pub enum FieldElementSize {
 impl FieldElementSize {
     pub(crate) fn num_bits<F: PrimeField>(&self) -> usize {
         if let FieldElementSize::Truncated(num_bits) = self {
-            if *num_bits > (F::Params::MODULUS_BITS as usize) {
+            if *num_bits > (F::MODULUS_BIT_SIZE as usize) {
                 panic!("num_bits is greater than the capacity of the field.")
             }
         };
-        F::Params::CAPACITY as usize
+        F::MODULUS_BIT_SIZE as usize
     }
 
     /// Calculate the sum of field element sizes in `elements`.

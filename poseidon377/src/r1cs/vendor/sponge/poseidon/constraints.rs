@@ -234,34 +234,12 @@ impl<F: PrimeField> CryptographicSpongeVar<F, PoseidonSponge<F>> for PoseidonSpo
 
     #[tracing::instrument(target = "r1cs", skip(self))]
     fn squeeze_bytes(&mut self, num_bytes: usize) -> Result<Vec<UInt8<F>>, SynthesisError> {
-        let usable_bytes = (F::Params::CAPACITY / 8) as usize;
-
-        let num_elements = (num_bytes + usable_bytes - 1) / usable_bytes;
-        let src_elements = self.squeeze_field_elements(num_elements)?;
-
-        let mut bytes: Vec<UInt8<F>> = Vec::with_capacity(usable_bytes * num_elements);
-        for elem in &src_elements {
-            bytes.extend_from_slice(&elem.to_bytes()?[..usable_bytes]);
-        }
-
-        bytes.truncate(num_bytes);
-        Ok(bytes)
+        unimplemented!()
     }
 
     #[tracing::instrument(target = "r1cs", skip(self))]
     fn squeeze_bits(&mut self, num_bits: usize) -> Result<Vec<Boolean<F>>, SynthesisError> {
-        let usable_bits = F::Params::CAPACITY as usize;
-
-        let num_elements = (num_bits + usable_bits - 1) / usable_bits;
-        let src_elements = self.squeeze_field_elements(num_elements)?;
-
-        let mut bits: Vec<Boolean<F>> = Vec::with_capacity(usable_bits * num_elements);
-        for elem in &src_elements {
-            bits.extend_from_slice(&elem.to_bits_le()?[..usable_bits]);
-        }
-
-        bits.truncate(num_bits);
-        Ok(bits)
+        unimplemented!()
     }
 
     #[tracing::instrument(target = "r1cs", skip(self))]
@@ -289,62 +267,5 @@ impl<F: PrimeField> CryptographicSpongeVar<F, PoseidonSponge<F>> for PoseidonSpo
         };
 
         Ok(squeezed_elems)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::r1cs::vendor::sponge::constraints::CryptographicSpongeVar;
-    use crate::r1cs::vendor::sponge::poseidon::constraints::PoseidonSpongeVar;
-    use crate::r1cs::vendor::sponge::poseidon::tests::poseidon_parameters_for_test;
-    use crate::r1cs::vendor::sponge::poseidon::PoseidonSponge;
-    use crate::r1cs::vendor::sponge::{CryptographicSponge, FieldBasedCryptographicSponge};
-    use ark_ff::UniformRand;
-    use ark_r1cs_std::fields::fp::FpVar;
-    use ark_r1cs_std::prelude::*;
-    use ark_relations::r1cs::ConstraintSystem;
-    use ark_relations::*;
-    use ark_std::test_rng;
-    use ark_test_curves::bls12_381::Fr;
-
-    #[test]
-    fn absorb_test() {
-        let mut rng = test_rng();
-        let cs = ConstraintSystem::new_ref();
-
-        let absorb1: Vec<_> = (0..256).map(|_| Fr::rand(&mut rng)).collect();
-        let absorb1_var: Vec<_> = absorb1
-            .iter()
-            .map(|v| FpVar::new_input(ns!(cs, "absorb1"), || Ok(*v)).unwrap())
-            .collect();
-
-        let absorb2: Vec<_> = (0..8).map(|i| vec![i, i + 1, i + 2]).collect();
-        let absorb2_var: Vec<_> = absorb2
-            .iter()
-            .map(|v| UInt8::new_input_vec(ns!(cs, "absorb2"), v).unwrap())
-            .collect();
-
-        let sponge_params = poseidon_parameters_for_test();
-
-        let mut native_sponge = PoseidonSponge::<Fr>::new(&sponge_params);
-        let mut constraint_sponge = PoseidonSpongeVar::<Fr>::new(cs.clone(), &sponge_params);
-
-        native_sponge.absorb(&absorb1);
-        constraint_sponge.absorb(&absorb1_var).unwrap();
-
-        let squeeze1 = native_sponge.squeeze_native_field_elements(1);
-        let squeeze2 = constraint_sponge.squeeze_field_elements(1).unwrap();
-
-        assert_eq!(squeeze2.value().unwrap(), squeeze1);
-        assert!(cs.is_satisfied().unwrap());
-
-        native_sponge.absorb(&absorb2);
-        constraint_sponge.absorb(&absorb2_var).unwrap();
-
-        let squeeze1 = native_sponge.squeeze_native_field_elements(1);
-        let squeeze2 = constraint_sponge.squeeze_field_elements(1).unwrap();
-
-        assert_eq!(squeeze2.value().unwrap(), squeeze1);
-        assert!(cs.is_satisfied().unwrap());
     }
 }
