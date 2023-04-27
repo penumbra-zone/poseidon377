@@ -1,6 +1,6 @@
 [package]
 name = "poseidon377"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2018"
 authors = ["Penumbra <team@penumbralabs.xyz>", "redshiftzero <jen@penumbralabs.xyz>"]
 description = "An instantiation of the Poseidon hash for use with decaf377."
@@ -8,33 +8,32 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/penumbra-zone/poseidon377"
 
 [dependencies]
-ark-ff = { version = "0.3", default-features = false }
-ark-groth16 = { version = "0.3", default-features = false, optional=true }
-ark-r1cs-std = {version = "0.3", default-features = false, optional=true }
-ark-relations = { version="0.3", default-features = false, optional=true }
-ark-snark = { version = "0.3", default-features = false, optional=true }
-decaf377 = { version="0.3", default-features = false, features = ["r1cs"] }
+ark-ff = { version = "0.4", default-features = false }
+ark-groth16 = { version = "0.4", default-features = false, optional=true }
+ark-r1cs-std = {version = "0.4", default-features = false, optional=true }
+ark-relations = { version="0.4", default-features = false, optional=true }
+ark-snark = { version = "0.4", default-features = false, optional=true }
+decaf377 = { version="0.4", default-features = false, features = ["r1cs"] }
 num-bigint = { version = "0.4.3", default-features = false }
 once_cell = { version = "1.8", default-features = false }
-poseidon-parameters = { version="0.2", path = "../poseidon-parameters", default-features = false }
-poseidon-permutation = { version="0.2", path = "../poseidon-permutation", default-features = false }
+poseidon-parameters = { version="0.3", path = "../poseidon-parameters", default-features = false }
+poseidon-permutation = { version="0.3", path = "../poseidon-permutation", default-features = false }
 
 # Dependencies added for ark-sponge vendoring
-ark-ec = { version = "0.3", default_features = false, optional=true }
-ark-std = { version = "0.3", default-features = false, optional=true }
+ark-ec = { version = "0.4", default_features = false, optional=true }
+ark-std = { version = "0.4", default-features = false, optional=true }
 tracing = { version = "0.1", default-features = false, features = [ "attributes" ], optional = true }
-ark-serialize = { version = "0.3", default_features = false, optional=true }
-ark-nonnative-field = { version = "0.3", default-features = false, optional = true }
+ark-serialize = { version = "0.4", default_features = false, optional=true }
 
 [dev-dependencies]
-ark-ed-on-bls12-381 = "0.3"
+ark-ed-on-bls12-381 = "0.4"
 proptest = "1"
 criterion = { version = "0.3", features=["html_reports"] }
 rand_core = { version = "0.6.3", features = ["getrandom"] }
 rand_chacha = "0.3"
 
 # Dependencies added for ark-sponge tests
-ark-test-curves = { version = "0.3", features = ["bls12_381_curve", "mnt4_753_curve"]}
+ark-test-curves = { version = "0.4", features = ["bls12_381_curve", "mnt4_753_curve"]}
 
 [features]
 default = ["std"]
@@ -48,7 +47,6 @@ std = [
     "ark-std/std",
     "ark-ec/std",
     "ark-serialize/std",
-    "ark-nonnative-field/std",
 ]
 r1cs = [
     "ark-groth16",
@@ -60,7 +58,6 @@ r1cs = [
     "ark-ec",
     "tracing",
     "ark-serialize",
-    "ark-nonnative-field",
 ]
 parallel  = [
     "ark-ff/parallel",
@@ -76,9 +73,9 @@ name = "oldhash"
 harness = false
 
 [build-dependencies]
-poseidon-paramgen = { version="0.2", path = "../poseidon-paramgen" }
-ark-ed-on-bls12-377 = "0.3"
-ark-ff = "0.3"
+poseidon-paramgen = { version="0.3", path = "../poseidon-paramgen" }
+ark-ed-on-bls12-377 = "0.4"
+ark-ff = "0.4"
 
 [[test]]
 name = "r1cs"

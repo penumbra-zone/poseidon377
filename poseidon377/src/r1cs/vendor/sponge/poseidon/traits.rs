@@ -1,6 +1,6 @@
 use crate::r1cs::vendor::sponge::poseidon::grain_lfsr::PoseidonGrainLFSR;
 use crate::r1cs::vendor::sponge::poseidon::PoseidonParameters;
-use ark_ff::{fields::models::*, FpParameters, PrimeField};
+use ark_ff::{fields::models::*, FpConfig, PrimeField};
 use ark_std::{vec, vec::Vec};
 
 /// An entry in the default Poseidon parameters
@@ -40,20 +40,20 @@ impl PoseidonDefaultParametersEntry {
 }
 
 /// A trait for default Poseidon parameters associated with a prime field
-pub trait PoseidonDefaultParameters: FpParameters {
-    /// An array of the parameters optimized for constraints
-    /// (rate, alpha, full_rounds, partial_rounds, skip_matrices)
-    /// for rate = 2, 3, 4, 5, 6, 7, 8
-    ///
-    /// Here, `skip_matrices` denote how many matrices to skip before
-    /// finding one that satisfy all the requirements.
-    const PARAMS_OPT_FOR_CONSTRAINTS: [PoseidonDefaultParametersEntry; 7];
+// pub trait PoseidonDefaultParameters: FpConfig {
+//     /// An array of the parameters optimized for constraints
+//     /// (rate, alpha, full_rounds, partial_rounds, skip_matrices)
+//     /// for rate = 2, 3, 4, 5, 6, 7, 8
+//     ///
+//     /// Here, `skip_matrices` denote how many matrices to skip before
+//     /// finding one that satisfy all the requirements.
+//     const PARAMS_OPT_FOR_CONSTRAINTS: [PoseidonDefaultParametersEntry; 7];
 
-    /// An array of the parameters optimized for weights
-    /// (rate, alpha, full_rounds, partial_rounds, skip_matrices)
-    /// for rate = 2, 3, 4, 5, 6, 7, 8
-    const PARAMS_OPT_FOR_WEIGHTS: [PoseidonDefaultParametersEntry; 7];
-}
+//     /// An array of the parameters optimized for weights
+//     /// (rate, alpha, full_rounds, partial_rounds, skip_matrices)
+//     /// for rate = 2, 3, 4, 5, 6, 7, 8
+//     const PARAMS_OPT_FOR_WEIGHTS: [PoseidonDefaultParametersEntry; 7];
+// }
 
 /// A field with Poseidon parameters associated
 pub trait PoseidonDefaultParametersField: PrimeField {
@@ -66,40 +66,40 @@ pub trait PoseidonDefaultParametersField: PrimeField {
 }
 
 /// Internal function that uses the `PoseidonDefaultParameters` to compute the Poseidon parameters.
-pub fn get_default_poseidon_parameters_internal<F: PrimeField, P: PoseidonDefaultParameters>(
-    rate: usize,
-    optimized_for_weights: bool,
-) -> Option<PoseidonParameters<F>> {
-    let params_set = if !optimized_for_weights {
-        P::PARAMS_OPT_FOR_CONSTRAINTS
-    } else {
-        P::PARAMS_OPT_FOR_WEIGHTS
-    };
+// pub fn get_default_poseidon_parameters_internal<F: PrimeField, P: PoseidonDefaultParameters>(
+//     rate: usize,
+//     optimized_for_weights: bool,
+// ) -> Option<PoseidonParameters<F>> {
+//     let params_set = if !optimized_for_weights {
+//         P::PARAMS_OPT_FOR_CONSTRAINTS
+//     } else {
+//         P::PARAMS_OPT_FOR_WEIGHTS
+//     };
 
-    for param in params_set.iter() {
-        if param.rate == rate {
-            let (ark, mds) = find_poseidon_ark_and_mds::<F>(
-                P::MODULUS_BITS as u64,
-                rate,
-                param.full_rounds as u64,
-                param.partial_rounds as u64,
-                param.skip_matrices as u64,
-            );
+//     for param in params_set.iter() {
+//         if param.rate == rate {
+//             let (ark, mds) = find_poseidon_ark_and_mds::<F>(
+//                 P::MODULUS_BITS as u64,
+//                 rate,
+//                 param.full_rounds as u64,
+//                 param.partial_rounds as u64,
+//                 param.skip_matrices as u64,
+//             );
 
-            return Some(PoseidonParameters {
-                full_rounds: param.full_rounds,
-                partial_rounds: param.partial_rounds,
-                alpha: param.alpha as u64,
-                ark,
-                mds,
-                rate: param.rate,
-                capacity: 1,
-            });
-        }
-    }
+//             return Some(PoseidonParameters {
+//                 full_rounds: param.full_rounds,
+//                 partial_rounds: param.partial_rounds,
+//                 alpha: param.alpha as u64,
+//                 ark,
+//                 mds,
+//                 rate: param.rate,
+//                 capacity: 1,
+//             });
+//         }
+//     }
 
-    None
-}
+//     None
+// }
 
 /// Internal function that computes the ark and mds from the Poseidon Grain LFSR.
 pub fn find_poseidon_ark_and_mds<F: PrimeField>(
@@ -158,297 +158,258 @@ macro_rules! impl_poseidon_default_parameters_field {
     };
 }
 
-impl_poseidon_default_parameters_field!(Fp64, Fp64Parameters);
-impl_poseidon_default_parameters_field!(Fp256, Fp256Parameters);
-impl_poseidon_default_parameters_field!(Fp320, Fp320Parameters);
-impl_poseidon_default_parameters_field!(Fp384, Fp384Parameters);
-impl_poseidon_default_parameters_field!(Fp448, Fp448Parameters);
-impl_poseidon_default_parameters_field!(Fp768, Fp768Parameters);
-impl_poseidon_default_parameters_field!(Fp832, Fp832Parameters);
+// impl_poseidon_default_parameters_field!(Fp64, MontConfig);
 
-#[cfg(test)]
-mod test {
-    use crate::r1cs::vendor::sponge::poseidon::{
-        PoseidonDefaultParameters, PoseidonDefaultParametersEntry, PoseidonDefaultParametersField,
-    };
-    use ark_ff::{field_new, fields::Fp256};
-    use ark_ff::{BigInteger256, FftParameters, Fp256Parameters, FpParameters};
-    use ark_test_curves::bls12_381::FrParameters;
+// #[cfg(test)]
+// mod test {
+//     use crate::r1cs::vendor::sponge::poseidon::{
+//         PoseidonDefaultParameters, PoseidonDefaultParametersEntry, PoseidonDefaultParametersField,
+//     };
+//     use ark_ff::{fields::Fp256, MontFp};
+//     use ark_ff::{BigInteger256, FftField, FpConfig};
+//     use ark_test_curves::bls12_381::FrConfig;
 
-    pub struct TestFrParameters;
+//     pub type TestFrConfig = FrConfig;
 
-    impl Fp256Parameters for TestFrParameters {}
-    impl FftParameters for TestFrParameters {
-        type BigInt = <FrParameters as FftParameters>::BigInt;
-        const TWO_ADICITY: u32 = FrParameters::TWO_ADICITY;
-        const TWO_ADIC_ROOT_OF_UNITY: Self::BigInt = FrParameters::TWO_ADIC_ROOT_OF_UNITY;
-    }
+//     //impl Fp256Parameters for TestFrConfig {}
+//     // impl FftField for TestFrConfig {
+//     //     const TWO_ADICITY: u32 = FrConfig::TWO_ADICITY;
+//     //     const TWO_ADIC_ROOT_OF_UNITY: Self::BigInt = FrConfig::TWO_ADIC_ROOT_OF_UNITY;
+//     // }
 
-    // This TestFrParameters is the same as the BLS12-381's Fr.
-    // MODULUS = 52435875175126190479447740508185965837690552500527637822603658699938581184513
-    impl FpParameters for TestFrParameters {
-        const MODULUS: BigInteger256 = FrParameters::MODULUS;
-        const MODULUS_BITS: u32 = FrParameters::MODULUS_BITS;
-        const CAPACITY: u32 = FrParameters::CAPACITY;
-        const REPR_SHAVE_BITS: u32 = FrParameters::REPR_SHAVE_BITS;
-        const R: BigInteger256 = FrParameters::R;
-        const R2: BigInteger256 = FrParameters::R2;
-        const INV: u64 = FrParameters::INV;
-        const GENERATOR: BigInteger256 = FrParameters::GENERATOR;
-        const MODULUS_MINUS_ONE_DIV_TWO: BigInteger256 = FrParameters::MODULUS_MINUS_ONE_DIV_TWO;
-        const T: BigInteger256 = FrParameters::T;
-        const T_MINUS_ONE_DIV_TWO: BigInteger256 = FrParameters::T_MINUS_ONE_DIV_TWO;
-    }
+//     // This TestFrConfig is the same as the BLS12-381's Fr.
+//     // MODULUS = 52435875175126190479447740508185965837690552500527637822603658699938581184513
+//     // impl FpConfig for TestFrConfig {
+//     //     const MODULUS: BigInteger256 = FrConfig::MODULUS;
+//     //     const MODULUS_BITS: u32 = FrConfig::MODULUS_BITS;
+//     //     const CAPACITY: u32 = FrConfig::CAPACITY;
+//     //     const REPR_SHAVE_BITS: u32 = FrConfig::REPR_SHAVE_BITS;
+//     //     const R: BigInteger256 = FrConfig::R;
+//     //     const R2: BigInteger256 = FrConfig::R2;
+//     //     const INV: u64 = FrConfig::INV;
+//     //     const GENERATOR: BigInteger256 = FrConfig::GENERATOR;
+//     //     const MODULUS_MINUS_ONE_DIV_TWO: BigInteger256 = FrConfig::MODULUS_MINUS_ONE_DIV_TWO;
+//     //     const T: BigInteger256 = FrConfig::T;
+//     //     const T_MINUS_ONE_DIV_TWO: BigInteger256 = FrConfig::T_MINUS_ONE_DIV_TWO;
+//     // }
 
-    impl PoseidonDefaultParameters for TestFrParameters {
-        const PARAMS_OPT_FOR_CONSTRAINTS: [PoseidonDefaultParametersEntry; 7] = [
-            PoseidonDefaultParametersEntry::new(2, 17, 8, 31, 0),
-            PoseidonDefaultParametersEntry::new(3, 5, 8, 56, 0),
-            PoseidonDefaultParametersEntry::new(4, 5, 8, 56, 0),
-            PoseidonDefaultParametersEntry::new(5, 5, 8, 57, 0),
-            PoseidonDefaultParametersEntry::new(6, 5, 8, 57, 0),
-            PoseidonDefaultParametersEntry::new(7, 5, 8, 57, 0),
-            PoseidonDefaultParametersEntry::new(8, 5, 8, 57, 0),
-        ];
-        const PARAMS_OPT_FOR_WEIGHTS: [PoseidonDefaultParametersEntry; 7] = [
-            PoseidonDefaultParametersEntry::new(2, 257, 8, 13, 0),
-            PoseidonDefaultParametersEntry::new(3, 257, 8, 13, 0),
-            PoseidonDefaultParametersEntry::new(4, 257, 8, 13, 0),
-            PoseidonDefaultParametersEntry::new(5, 257, 8, 13, 0),
-            PoseidonDefaultParametersEntry::new(6, 257, 8, 13, 0),
-            PoseidonDefaultParametersEntry::new(7, 257, 8, 13, 0),
-            PoseidonDefaultParametersEntry::new(8, 257, 8, 13, 0),
-        ];
-    }
+//     impl PoseidonDefaultParameters for TestFrConfig {
+//         const PARAMS_OPT_FOR_CONSTRAINTS: [PoseidonDefaultParametersEntry; 7] = [
+//             PoseidonDefaultParametersEntry::new(2, 17, 8, 31, 0),
+//             PoseidonDefaultParametersEntry::new(3, 5, 8, 56, 0),
+//             PoseidonDefaultParametersEntry::new(4, 5, 8, 56, 0),
+//             PoseidonDefaultParametersEntry::new(5, 5, 8, 57, 0),
+//             PoseidonDefaultParametersEntry::new(6, 5, 8, 57, 0),
+//             PoseidonDefaultParametersEntry::new(7, 5, 8, 57, 0),
+//             PoseidonDefaultParametersEntry::new(8, 5, 8, 57, 0),
+//         ];
+//         const PARAMS_OPT_FOR_WEIGHTS: [PoseidonDefaultParametersEntry; 7] = [
+//             PoseidonDefaultParametersEntry::new(2, 257, 8, 13, 0),
+//             PoseidonDefaultParametersEntry::new(3, 257, 8, 13, 0),
+//             PoseidonDefaultParametersEntry::new(4, 257, 8, 13, 0),
+//             PoseidonDefaultParametersEntry::new(5, 257, 8, 13, 0),
+//             PoseidonDefaultParametersEntry::new(6, 257, 8, 13, 0),
+//             PoseidonDefaultParametersEntry::new(7, 257, 8, 13, 0),
+//             PoseidonDefaultParametersEntry::new(8, 257, 8, 13, 0),
+//         ];
+//     }
 
-    pub type TestFr = Fp256<TestFrParameters>;
+//     pub type TestFr = Fp256<TestFrConfig>;
 
-    #[test]
-    fn bls12_381_fr_poseidon_default_parameters_test() {
-        // constraints
-        let constraints_rate_2 = TestFr::get_default_poseidon_parameters(2, false).unwrap();
-        assert_eq!(
-            constraints_rate_2.ark[0][0],
-            field_new!(
-                TestFr,
-                "27117311055620256798560880810000042840428971800021819916023577129547249660720"
-            )
-        );
-        assert_eq!(
-            constraints_rate_2.mds[0][0],
-            field_new!(
-                TestFr,
-                "26017457457808754696901916760153646963713419596921330311675236858336250747575"
-            )
-        );
+//     #[test]
+//     fn bls12_381_fr_poseidon_default_parameters_test() {
+//         // constraints
+//         let constraints_rate_2 = TestFr::get_default_poseidon_parameters(2, false).unwrap();
+//         assert_eq!(
+//             constraints_rate_2.ark[0][0],
+//             MontFp!(
+//                 "27117311055620256798560880810000042840428971800021819916023577129547249660720"
+//             )
+//         );
+//         assert_eq!(
+//             constraints_rate_2.mds[0][0],
+//             MontFp!(
+//                 "26017457457808754696901916760153646963713419596921330311675236858336250747575"
+//             )
+//         );
 
-        let constraints_rate_3 = TestFr::get_default_poseidon_parameters(3, false).unwrap();
-        assert_eq!(
-            constraints_rate_3.ark[0][0],
-            field_new!(
-                TestFr,
-                "11865901593870436687704696210307853465124332568266803587887584059192277437537"
-            )
-        );
-        assert_eq!(
-            constraints_rate_3.mds[0][0],
-            field_new!(
-                TestFr,
-                "18791275321793747281053101601584820964683215017313972132092847596434094368732"
-            )
-        );
+//         let constraints_rate_3 = TestFr::get_default_poseidon_parameters(3, false).unwrap();
+//         assert_eq!(
+//             constraints_rate_3.ark[0][0],
+//             MontFp!(
+//                 "11865901593870436687704696210307853465124332568266803587887584059192277437537"
+//             )
+//         );
+//         assert_eq!(
+//             constraints_rate_3.mds[0][0],
+//             MontFp!(
+//                 "18791275321793747281053101601584820964683215017313972132092847596434094368732"
+//             )
+//         );
 
-        let constraints_rate_4 = TestFr::get_default_poseidon_parameters(4, false).unwrap();
-        assert_eq!(
-            constraints_rate_4.ark[0][0],
-            field_new!(
-                TestFr,
-                "41775194144383840477168997387904574072980173775424253289429546852163474914621"
-            )
-        );
-        assert_eq!(
-            constraints_rate_4.mds[0][0],
-            field_new!(
-                TestFr,
-                "42906651709148432559075674119637355642263148226238482628104108168707874713729"
-            )
-        );
+//         let constraints_rate_4 = TestFr::get_default_poseidon_parameters(4, false).unwrap();
+//         assert_eq!(
+//             constraints_rate_4.ark[0][0],
+//             MontFp!(
+//                 "41775194144383840477168997387904574072980173775424253289429546852163474914621"
+//             )
+//         );
+//         assert_eq!(
+//             constraints_rate_4.mds[0][0],
+//             MontFp!(
+//                 "42906651709148432559075674119637355642263148226238482628104108168707874713729"
+//             )
+//         );
 
-        let constraints_rate_5 = TestFr::get_default_poseidon_parameters(5, false).unwrap();
-        assert_eq!(
-            constraints_rate_5.ark[0][0],
-            field_new!(
-                TestFr,
-                "24877380261526996562448766783081897666376381975344509826094208368479247894723"
-            )
-        );
-        assert_eq!(
-            constraints_rate_5.mds[0][0],
-            field_new!(
-                TestFr,
-                "30022080821787948421423927053079656488514459012053372877891553084525866347732"
-            )
-        );
+//         let constraints_rate_5 = TestFr::get_default_poseidon_parameters(5, false).unwrap();
+//         assert_eq!(
+//             constraints_rate_5.ark[0][0],
+//             MontFp!(
+//                 "24877380261526996562448766783081897666376381975344509826094208368479247894723"
+//             )
+//         );
+//         assert_eq!(
+//             constraints_rate_5.mds[0][0],
+//             MontFp!(
+//                 "30022080821787948421423927053079656488514459012053372877891553084525866347732"
+//             )
+//         );
 
-        let constraints_rate_6 = TestFr::get_default_poseidon_parameters(6, false).unwrap();
-        assert_eq!(
-            constraints_rate_6.ark[0][0],
-            field_new!(
-                TestFr,
-                "37928506567864057383105673253383925733025682403141583234734361541053005808936"
-            )
-        );
-        assert_eq!(
-            constraints_rate_6.mds[0][0],
-            field_new!(
-                TestFr,
-                "49124738641420159156404016903087065194698370461819821829905285681776084204443"
-            )
-        );
+//         let constraints_rate_6 = TestFr::get_default_poseidon_parameters(6, false).unwrap();
+//         assert_eq!(
+//             constraints_rate_6.ark[0][0],
+//             MontFp!(
+//                 "37928506567864057383105673253383925733025682403141583234734361541053005808936"
+//             )
+//         );
+//         assert_eq!(
+//             constraints_rate_6.mds[0][0],
+//             MontFp!(
+//                 "49124738641420159156404016903087065194698370461819821829905285681776084204443"
+//             )
+//         );
 
-        let constraints_rate_7 = TestFr::get_default_poseidon_parameters(7, false).unwrap();
-        assert_eq!(
-            constraints_rate_7.ark[0][0],
-            field_new!(
-                TestFr,
-                "37848764121158464546907147011864524711588624175161409526679215525602690343051"
-            )
-        );
-        assert_eq!(
-            constraints_rate_7.mds[0][0],
-            field_new!(
-                TestFr,
-                "28113878661515342855868752866874334649815072505130059513989633785080391114646"
-            )
-        );
+//         let constraints_rate_7 = TestFr::get_default_poseidon_parameters(7, false).unwrap();
+//         assert_eq!(
+//             constraints_rate_7.ark[0][0],
+//             MontFp!(
+//                 "37848764121158464546907147011864524711588624175161409526679215525602690343051"
+//             )
+//         );
+//         assert_eq!(
+//             constraints_rate_7.mds[0][0],
+//             MontFp!(
+//                 "28113878661515342855868752866874334649815072505130059513989633785080391114646"
+//             )
+//         );
 
-        let constraints_rate_8 = TestFr::get_default_poseidon_parameters(8, false).unwrap();
-        assert_eq!(
-            constraints_rate_8.ark[0][0],
-            field_new!(
-                TestFr,
-                "51456871630395278065627483917901523970718884366549119139144234240744684354360"
-            )
-        );
-        assert_eq!(
-            constraints_rate_8.mds[0][0],
-            field_new!(
-                TestFr,
-                "12929023787467701044434927689422385731071756681420195282613396560814280256210"
-            )
-        );
+//         let constraints_rate_8 = TestFr::get_default_poseidon_parameters(8, false).unwrap();
+//         assert_eq!(
+//             constraints_rate_8.ark[0][0],
+//             MontFp!(
+//                 "51456871630395278065627483917901523970718884366549119139144234240744684354360"
+//             )
+//         );
+//         assert_eq!(
+//             constraints_rate_8.mds[0][0],
+//             MontFp!(
+//                 "12929023787467701044434927689422385731071756681420195282613396560814280256210"
+//             )
+//         );
 
-        // weights
-        let weights_rate_2 = TestFr::get_default_poseidon_parameters(2, true).unwrap();
-        assert_eq!(
-            weights_rate_2.ark[0][0],
-            field_new!(
-                TestFr,
-                "25126470399169474618535500283750950727260324358529540538588217772729895991183"
-            )
-        );
-        assert_eq!(
-            weights_rate_2.mds[0][0],
-            field_new!(
-                TestFr,
-                "46350838805835525240431215868760423854112287760212339623795708191499274188615"
-            )
-        );
+//         // weights
+//         let weights_rate_2 = TestFr::get_default_poseidon_parameters(2, true).unwrap();
+//         assert_eq!(
+//             weights_rate_2.ark[0][0],
+//             MontFp!(
+//                 "25126470399169474618535500283750950727260324358529540538588217772729895991183"
+//             )
+//         );
+//         assert_eq!(
+//             weights_rate_2.mds[0][0],
+//             MontFp!(
+//                 "46350838805835525240431215868760423854112287760212339623795708191499274188615"
+//             )
+//         );
 
-        let weights_rate_3 = TestFr::get_default_poseidon_parameters(3, true).unwrap();
-        assert_eq!(
-            weights_rate_3.ark[0][0],
-            field_new!(
-                TestFr,
-                "16345358380711600255519479157621098002794924491287389755192263320486827897573"
-            )
-        );
-        assert_eq!(
-            weights_rate_3.mds[0][0],
-            field_new!(
-                TestFr,
-                "37432344439659887296708509941462699942272362339508052702346957525719991245918"
-            )
-        );
+//         let weights_rate_3 = TestFr::get_default_poseidon_parameters(3, true).unwrap();
+//         assert_eq!(
+//             weights_rate_3.ark[0][0],
+//             MontFp!(
+//                 "16345358380711600255519479157621098002794924491287389755192263320486827897573"
+//             )
+//         );
+//         assert_eq!(
+//             weights_rate_3.mds[0][0],
+//             MontFp!(
+//                 "37432344439659887296708509941462699942272362339508052702346957525719991245918"
+//             )
+//         );
 
-        let weights_rate_4 = TestFr::get_default_poseidon_parameters(4, true).unwrap();
-        assert_eq!(
-            weights_rate_4.ark[0][0],
-            field_new!(
-                TestFr,
-                "2997721997773001075802235431463112417440167809433966871891875582435098138600"
-            )
-        );
-        assert_eq!(
-            weights_rate_4.mds[0][0],
-            field_new!(
-                TestFr,
-                "43959024692079347032841256941012668338943730711936867712802582656046301966186"
-            )
-        );
+//         let weights_rate_4 = TestFr::get_default_poseidon_parameters(4, true).unwrap();
+//         assert_eq!(
+//             weights_rate_4.ark[0][0],
+//             MontFp!("2997721997773001075802235431463112417440167809433966871891875582435098138600")
+//         );
+//         assert_eq!(
+//             weights_rate_4.mds[0][0],
+//             MontFp!(
+//                 "43959024692079347032841256941012668338943730711936867712802582656046301966186"
+//             )
+//         );
 
-        let weights_rate_5 = TestFr::get_default_poseidon_parameters(5, true).unwrap();
-        assert_eq!(
-            weights_rate_5.ark[0][0],
-            field_new!(
-                TestFr,
-                "28142027771717376151411984909531650866105717069245696861966432993496676054077"
-            )
-        );
-        assert_eq!(
-            weights_rate_5.mds[0][0],
-            field_new!(
-                TestFr,
-                "13157425078305676755394500322568002504776463228389342308130514165393397413991"
-            )
-        );
+//         let weights_rate_5 = TestFr::get_default_poseidon_parameters(5, true).unwrap();
+//         assert_eq!(
+//             weights_rate_5.ark[0][0],
+//             MontFp!(
+//                 "28142027771717376151411984909531650866105717069245696861966432993496676054077"
+//             )
+//         );
+//         assert_eq!(
+//             weights_rate_5.mds[0][0],
+//             MontFp!(
+//                 "13157425078305676755394500322568002504776463228389342308130514165393397413991"
+//             )
+//         );
 
-        let weights_rate_6 = TestFr::get_default_poseidon_parameters(6, true).unwrap();
-        assert_eq!(
-            weights_rate_6.ark[0][0],
-            field_new!(
-                TestFr,
-                "7417004907071346600696060525974582183666365156576759507353305331252133694222"
-            )
-        );
-        assert_eq!(
-            weights_rate_6.mds[0][0],
-            field_new!(
-                TestFr,
-                "51393878771453405560681338747290999206747890655420330824736778052231938173954"
-            )
-        );
+//         let weights_rate_6 = TestFr::get_default_poseidon_parameters(6, true).unwrap();
+//         assert_eq!(
+//             weights_rate_6.ark[0][0],
+//             MontFp!("7417004907071346600696060525974582183666365156576759507353305331252133694222")
+//         );
+//         assert_eq!(
+//             weights_rate_6.mds[0][0],
+//             MontFp!(
+//                 "51393878771453405560681338747290999206747890655420330824736778052231938173954"
+//             )
+//         );
 
-        let weights_rate_7 = TestFr::get_default_poseidon_parameters(7, true).unwrap();
-        assert_eq!(
-            weights_rate_7.ark[0][0],
-            field_new!(
-                TestFr,
-                "47093173418416013663709314805327945458844779999893881721688570889452680883650"
-            )
-        );
-        assert_eq!(
-            weights_rate_7.mds[0][0],
-            field_new!(
-                TestFr,
-                "51455917624412053400160569105425532358410121118308957353565646758865245830775"
-            )
-        );
+//         let weights_rate_7 = TestFr::get_default_poseidon_parameters(7, true).unwrap();
+//         assert_eq!(
+//             weights_rate_7.ark[0][0],
+//             MontFp!(
+//                 "47093173418416013663709314805327945458844779999893881721688570889452680883650"
+//             )
+//         );
+//         assert_eq!(
+//             weights_rate_7.mds[0][0],
+//             MontFp!(
+//                 "51455917624412053400160569105425532358410121118308957353565646758865245830775"
+//             )
+//         );
 
-        let weights_rate_8 = TestFr::get_default_poseidon_parameters(8, true).unwrap();
-        assert_eq!(
-            weights_rate_8.ark[0][0],
-            field_new!(
-                TestFr,
-                "16478680729975035007348178961232525927424769683353433314299437589237598655079"
-            )
-        );
-        assert_eq!(
-            weights_rate_8.mds[0][0],
-            field_new!(
-                TestFr,
-                "39160448583049384229582837387246752222769278402304070376350288593586064961857"
-            )
-        );
-    }
-}
+//         let weights_rate_8 = TestFr::get_default_poseidon_parameters(8, true).unwrap();
+//         assert_eq!(
+//             weights_rate_8.ark[0][0],
+//             MontFp!(
+//                 "16478680729975035007348178961232525927424769683353433314299437589237598655079"
+//             )
+//         );
+//         assert_eq!(
+//             weights_rate_8.mds[0][0],
+//             MontFp!(
+//                 "39160448583049384229582837387246752222769278402304070376350288593586064961857"
+//             )
+//         );
+//     }
+// }

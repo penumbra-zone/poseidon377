@@ -11,7 +11,7 @@
 )]
 #![forbid(unsafe_code)]
 
-use ark_ff::{FpParameters, PrimeField};
+use ark_ff::{FpConfig, PrimeField};
 use ark_std::vec;
 use ark_std::vec::Vec;
 

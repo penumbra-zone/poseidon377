@@ -1,13 +1,14 @@
-use ark_ec::models::short_weierstrass_jacobian::GroupAffine as SWAffine;
-use ark_ec::models::twisted_edwards_extended::GroupAffine as TEAffine;
-use ark_ec::models::{SWModelParameters, TEModelParameters};
-use ark_ff::models::{
-    Fp256, Fp256Parameters, Fp320, Fp320Parameters, Fp384, Fp384Parameters, Fp768, Fp768Parameters,
-    Fp832, Fp832Parameters,
+use ark_ec::models::short_weierstrass::Affine as SWAffine;
+use ark_ec::models::twisted_edwards::Affine as TEAffine;
+use ark_ec::models::{
+    short_weierstrass::SWCurveConfig as SWModelParameters,
+    twisted_edwards::TECurveConfig as TEModelParameters, CurveConfig as ModelParameters,
 };
-use ark_ff::{PrimeField, ToConstraintField};
+use ark_ff::models::{Fp256, Fp320, Fp384, Fp768, Fp832, FpConfig, MontConfig};
+use ark_ff::{MontBackend, PrimeField, ToConstraintField};
 use ark_serialize::CanonicalSerialize;
 use ark_std::vec::Vec;
+
 /// An interface for objects that can be absorbed by a `CryptographicSponge`.
 pub trait Absorb {
     /// Converts the object into a list of bytes that can be absorbed by a `CryptographicSponge`.
@@ -163,7 +164,7 @@ impl Absorb for bool {
 }
 
 macro_rules! impl_absorbable_field {
-    ($field:ident, $params:ident) => {
+    ($field:ident, $params:expr) => {
         impl<P: $params> Absorb for $field<P> {
             fn to_sponge_bytes(&self, dest: &mut Vec<u8>) {
                 self.serialize(dest).unwrap()
@@ -182,6 +183,12 @@ macro_rules! impl_absorbable_field {
         }
     };
 }
+
+type Fp256Parameters = MontBackend<FpConfig<4>, 4>;
+type Fp320Parameters = MontBackend<FpConfig<5>, 5>;
+type Fp384Parameters = MontBackend<FpConfig<6>, 6>;
+type Fp768Parameters = MontBackend<FpConfig<12>, 12>;
+type Fp832Parameters = MontBackend<FpConfig<13>, 13>;
 
 impl_absorbable_field!(Fp256, Fp256Parameters);
 impl_absorbable_field!(Fp320, Fp320Parameters);

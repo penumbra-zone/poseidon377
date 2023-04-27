@@ -4,8 +4,8 @@ use std::{
     path::PathBuf,
 };
 
-use ark_ed_on_bls12_377::{Fq, FqParameters};
-use ark_ff::FpParameters;
+use ark_ed_on_bls12_377::{Fq, FqConfig};
+use ark_ff::MontConfig;
 use poseidon_paramgen::poseidon_build;
 
 fn main() {
@@ -18,7 +18,7 @@ fn main() {
     // Recall t = rate + capacity, so t=2 is rate=1, capacity=1 (i.e. 1:1 hash)
     let t_values = vec![2, 3, 4, 5, 6, 7, 8];
     let params_codegen =
-        poseidon_build::compile::<Fq>(security_level, t_values, FqParameters::MODULUS, true);
+        poseidon_build::compile::<Fq>(security_level, t_values, FqConfig::MODULUS, true);
 
     let fh = fs::File::create(output_location).expect("can create source file");
     let mut f = BufWriter::new(fh);

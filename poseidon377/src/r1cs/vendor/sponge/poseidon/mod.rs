@@ -2,7 +2,7 @@ use crate::r1cs::vendor::sponge::{
     batch_field_cast, squeeze_field_elements_with_sizes_default_impl, Absorb, CryptographicSponge,
     DuplexSpongeMode, FieldBasedCryptographicSponge, FieldElementSize, SpongeExt,
 };
-use ark_ff::{BigInteger, FpParameters, PrimeField};
+use ark_ff::{BigInteger, FpConfig, PrimeField};
 use ark_std::any::TypeId;
 use ark_std::vec;
 use ark_std::vec::Vec;

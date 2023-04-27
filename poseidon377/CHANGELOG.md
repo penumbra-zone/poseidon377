@@ -10,3 +10,7 @@
 # 0.3.0
 
 * Vendor `ark-sponge` dependency (used in R1CS feature only).
+
+# 0.4.0
+
+* Upgrade to 0.4.x series of Arkworks dependencies.

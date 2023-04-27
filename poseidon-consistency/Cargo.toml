@@ -1,6 +1,6 @@
 [package]
 name = "poseidon-consistency"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2018"
 authors = ["Penumbra <team@penumbralabs.xyz>", "redshiftzero <jen@penumbralabs.xyz>"]
 description = "Checks consistency between Penumbra and Ark-sponge implementation"
@@ -11,13 +11,12 @@ repository = "https://github.com/penumbra-zone/poseidon377"
 poseidon-parameters = { path = "../poseidon-parameters" }
 poseidon-paramgen = { path = "../poseidon-paramgen", default-features = false }
 poseidon-permutation = { path="../poseidon-permutation", default-features = false }
-ark-sponge = { version="0.3", git = "https://github.com/penumbra-zone/sponge", branch = "r1cs", default-features = false }
-decaf377 = { version = "0.1", default-features = false }
+decaf377 = { version = "0.4", default-features = false }
 
 [dev-dependencies]
-criterion = { version = "0.3", features=["html_reports"] }
-ark-ff = "0.3"
-ark-ed-on-bls12-377 = "0.3"
+criterion = { version = "0.4", features=["html_reports"] }
+ark-ff = "0.4"
+ark-ed-on-bls12-377 = "0.4"
 num-bigint = "0.4"
 proptest = "1"
 rand_core = { version = "0.6.3", features = ["getrandom"] }
@@ -33,6 +32,5 @@ default = ["std"]
 std = [
     "poseidon-paramgen/std",
     "poseidon-permutation/std",
-    "ark-sponge/std",
 ]
 

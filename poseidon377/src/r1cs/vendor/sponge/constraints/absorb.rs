@@ -1,4 +1,4 @@
-use ark_ec::{ModelParameters, SWModelParameters, TEModelParameters};
+use ark_ec::{short_weierstrass::SWCurveConfig, twisted_edwards::TECurveConfig, CurveConfig};
 use ark_ff::{Field, PrimeField};
 use ark_r1cs_std::bits::boolean::Boolean;
 use ark_r1cs_std::bits::uint8::UInt8;
@@ -114,31 +114,27 @@ macro_rules! impl_absorbable_group {
     };
 }
 
-impl_absorbable_group!(TEAffineVar, TEModelParameters);
-impl_absorbable_group!(SWAffineVar, SWModelParameters);
+impl_absorbable_group!(TEAffineVar, TECurveConfig);
+impl_absorbable_group!(SWAffineVar, SWCurveConfig);
 
 impl<P, F> AbsorbGadget<<P::BaseField as Field>::BasePrimeField> for SWProjectiveVar<P, F>
 where
-    P: SWModelParameters,
+    P: SWCurveConfig,
     F: FieldVar<P::BaseField, <P::BaseField as Field>::BasePrimeField>,
     for<'a> &'a F: FieldOpsBounds<'a, P::BaseField, F>,
     F: ToConstraintFieldGadget<<P::BaseField as Field>::BasePrimeField>,
 {
     fn to_sponge_bytes(
         &self,
-    ) -> Result<
-        Vec<UInt8<<<P as ModelParameters>::BaseField as Field>::BasePrimeField>>,
-        SynthesisError,
-    > {
+    ) -> Result<Vec<UInt8<<<P as CurveConfig>::BaseField as Field>::BasePrimeField>>, SynthesisError>
+    {
         self.to_bytes()
     }
 
     fn to_sponge_field_elements(
         &self,
-    ) -> Result<
-        Vec<FpVar<<<P as ModelParameters>::BaseField as Field>::BasePrimeField>>,
-        SynthesisError,
-    > {
+    ) -> Result<Vec<FpVar<<<P as CurveConfig>::BaseField as Field>::BasePrimeField>>, SynthesisError>
+    {
         self.to_affine()?.to_sponge_field_elements()
     }
 }

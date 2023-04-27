@@ -6,3 +6,7 @@
 
 * Parameter generation originally in `poseidon-paramgen` was split into
 `poseidon-permutation` (types).
+
+# 0.3.0
+
+* Upgrade to 0.4.x series of Arkworks dependencies.
