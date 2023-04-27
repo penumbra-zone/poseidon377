@@ -1,5 +1,6 @@
+use ark_ec::bls12::Bls12;
 use ark_ff::{One, PrimeField};
-use ark_groth16::{Groth16, ProvingKey, VerifyingKey};
+use ark_groth16::{r1cs_to_qap::LibsnarkReduction, Groth16, ProvingKey, VerifyingKey};
 use ark_r1cs_std::prelude::{AllocVar, EqGadget};
 use ark_relations::r1cs::{ConstraintSynthesizer, ToConstraintField};
 use ark_snark::SNARK;
@@ -46,8 +47,9 @@ impl PreimageCircuit {
             preimage: Fq::from(2),
             hash_output: Fq::from(2),
         };
-        let (pk, vk) = Groth16::circuit_specific_setup(circuit, &mut OsRng)
-            .expect("can perform circuit specific setup");
+        let (pk, vk) =
+            Groth16::<Bls12_377, LibsnarkReduction>::circuit_specific_setup(circuit, &mut OsRng)
+                .expect("can perform circuit specific setup");
         (pk, vk)
     }
 }
@@ -69,15 +71,15 @@ fn groth16_hash_proof_happy_path(preimage in fq_strategy()) {
 
         // Prover POV
         let circuit = PreimageCircuit { preimage,hash_output };
-        let proof = Groth16::prove(&pk, circuit.clone(), &mut rng)
+        let proof = Groth16::<Bls12_377, LibsnarkReduction>::prove(&pk, circuit.clone(), &mut rng)
             .expect("can generate proof");
         dbg!(circuit.clone().num_constraints_and_instance_variables());
 
         // Verifier POV
-        let processed_pvk = Groth16::process_vk(&vk).expect("can process verifying key");
+        let processed_pvk = Groth16::<Bls12_377, LibsnarkReduction>::process_vk(&vk).expect("can process verifying key");
         let public_inputs = hash_output.to_field_elements().unwrap();
         let proof_result =
-            Groth16::verify_with_processed_vk(&processed_pvk, &public_inputs, &proof).unwrap();
+            Groth16::<Bls12_377, LibsnarkReduction>::verify_with_processed_vk(&processed_pvk, &public_inputs, &proof).unwrap();
 
         assert!(proof_result);
     }
@@ -94,15 +96,15 @@ fn groth16_hash_proof_unhappy_path(preimage in fq_strategy()) {
 
         // Prover POV
         let circuit = PreimageCircuit { preimage,hash_output };
-        let proof = Groth16::prove(&pk, circuit.clone(), &mut rng)
+        let proof = Groth16::<Bls12_377, LibsnarkReduction>::prove(&pk, circuit.clone(), &mut rng)
             .expect("can generate proof");
         dbg!(circuit.clone().num_constraints_and_instance_variables());
 
         // Verifier POV
-        let processed_pvk = Groth16::process_vk(&vk).expect("can process verifying key");
+        let processed_pvk = Groth16::<Bls12_377, LibsnarkReduction>::process_vk(&vk).expect("can process verifying key");
         let public_inputs = (hash_output + Fq::one()).to_field_elements().unwrap();
         let proof_result =
-            Groth16::verify_with_processed_vk(&processed_pvk, &public_inputs, &proof).unwrap();
+            Groth16::<Bls12_377, LibsnarkReduction>::verify_with_processed_vk(&processed_pvk, &public_inputs, &proof).unwrap();
 
         assert!(!proof_result);
     }

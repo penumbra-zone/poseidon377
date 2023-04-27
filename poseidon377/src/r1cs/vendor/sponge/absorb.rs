@@ -108,7 +108,7 @@ pub(crate) fn field_cast<F1: PrimeField, F2: PrimeField>(input: F1) -> Option<F2
         None
     } else {
         let mut buf = Vec::new();
-        input.serialize(&mut buf).unwrap();
+        input.serialize_compressed(&mut buf).unwrap();
         Some(F2::from_le_bytes_mod_order(&buf))
     }
 }
@@ -126,7 +126,7 @@ pub(crate) fn batch_field_cast<'a, F1: PrimeField, F2: PrimeField>(
     } else {
         x.iter().for_each(|item| {
             let mut buf = Vec::new();
-            item.serialize(&mut buf).unwrap();
+            item.serialize_compressed(&mut buf).unwrap();
             dest.push(F2::from_le_bytes_mod_order(&buf))
         });
         Some(dest)
@@ -162,39 +162,6 @@ impl Absorb for bool {
         dest.push(F::from(*self))
     }
 }
-
-macro_rules! impl_absorbable_field {
-    ($field:ident, $params:expr) => {
-        impl<P: $params> Absorb for $field<P> {
-            fn to_sponge_bytes(&self, dest: &mut Vec<u8>) {
-                self.serialize(dest).unwrap()
-            }
-
-            fn to_sponge_field_elements<F: PrimeField>(&self, dest: &mut Vec<F>) {
-                dest.push(field_cast(*self).unwrap())
-            }
-
-            fn batch_to_sponge_field_elements<F: PrimeField>(batch: &[Self], dest: &mut Vec<F>)
-            where
-                Self: Sized,
-            {
-                batch_field_cast(batch, dest).unwrap();
-            }
-        }
-    };
-}
-
-type Fp256Parameters = MontBackend<FpConfig<4>, 4>;
-type Fp320Parameters = MontBackend<FpConfig<5>, 5>;
-type Fp384Parameters = MontBackend<FpConfig<6>, 6>;
-type Fp768Parameters = MontBackend<FpConfig<12>, 12>;
-type Fp832Parameters = MontBackend<FpConfig<13>, 13>;
-
-impl_absorbable_field!(Fp256, Fp256Parameters);
-impl_absorbable_field!(Fp320, Fp320Parameters);
-impl_absorbable_field!(Fp384, Fp384Parameters);
-impl_absorbable_field!(Fp768, Fp768Parameters);
-impl_absorbable_field!(Fp832, Fp832Parameters);
 
 macro_rules! impl_absorbable_unsigned {
     ($t:ident) => {
@@ -261,7 +228,10 @@ impl Absorb for isize {
 
 impl<CF: PrimeField, P: TEModelParameters<BaseField = CF>> Absorb for TEAffine<P> {
     fn to_sponge_bytes(&self, dest: &mut Vec<u8>) {
-        self.to_field_elements().unwrap().serialize(dest).unwrap()
+        self.to_field_elements()
+            .unwrap()
+            .serialize_compressed(dest)
+            .unwrap()
     }
 
     fn to_sponge_field_elements<F: PrimeField>(&self, dest: &mut Vec<F>) {
@@ -271,7 +241,10 @@ impl<CF: PrimeField, P: TEModelParameters<BaseField = CF>> Absorb for TEAffine<P
 
 impl<CF: PrimeField, P: SWModelParameters<BaseField = CF>> Absorb for SWAffine<P> {
     fn to_sponge_bytes(&self, dest: &mut Vec<u8>) {
-        self.to_field_elements().unwrap().serialize(dest).unwrap()
+        self.to_field_elements()
+            .unwrap()
+            .serialize_compressed(dest)
+            .unwrap()
     }
 
     fn to_sponge_field_elements<F: PrimeField>(&self, dest: &mut Vec<F>) {
