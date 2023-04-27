@@ -6,7 +6,7 @@ mod tests {
     use ark_ed_on_bls12_377::Fq;
     use ark_ff::{BigInteger768, PrimeField};
     use num_bigint::BigUint;
-    use poseidon_parameters::{Alpha, PoseidonParameters};
+    use poseidon_parameters::v1::{Alpha, PoseidonParameters};
 
     use crate::{generate, input, rounds};
 

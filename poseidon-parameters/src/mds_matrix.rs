@@ -1,7 +1,10 @@
 use anyhow::Result;
 use ark_ff::{vec::Vec, PrimeField};
 
-use crate::{Matrix, MatrixOperations, SquareMatrix, SquareMatrixOperations};
+use crate::{
+    matrix::{Matrix, SquareMatrix},
+    matrix_ops::{MatrixOperations, SquareMatrixOperations},
+};
 
 /// Represents an MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]

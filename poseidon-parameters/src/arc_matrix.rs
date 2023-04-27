@@ -1,7 +1,7 @@
 use anyhow::Result;
 use ark_ff::{vec::Vec, PrimeField};
 
-use crate::{Matrix, MatrixOperations};
+use crate::{matrix::Matrix, matrix_ops::MatrixOperations};
 
 /// Represents an matrix of round constants.
 #[derive(Clone, Debug, PartialEq, Eq)]

@@ -1,6 +1,6 @@
 use ark_ff::{BigInteger, PrimeField};
 use ark_std::vec::Vec;
-use poseidon_parameters::{
+use poseidon_parameters::v1::{
     mat_mul, InputParameters, Matrix, MatrixOperations, MdsMatrix, OptimizedMdsMatrices,
     RoundNumbers, SquareMatrix, SquareMatrixOperations,
 };
@@ -204,7 +204,7 @@ mod tests {
     use ark_ed_on_bls12_377::Fq as Fq377;
     use ark_ed_on_bls12_381::Fq;
     use ark_ff::{One, Zero};
-    use poseidon_parameters::Alpha;
+    use poseidon_parameters::v1::Alpha;
 
     use super::*;
     use crate::{input, rounds};

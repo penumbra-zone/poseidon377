@@ -1,5 +1,5 @@
 use ark_ff::BigInteger;
-use poseidon_parameters::InputParameters;
+use poseidon_parameters::v1::InputParameters;
 
 use crate::log2;
 
