@@ -1,9 +1,10 @@
+use crate::input::InputParameters;
 use ark_ff::PrimeField;
 use ark_std::{vec, vec::Vec};
 use merlin::Transcript;
 use poseidon_parameters::v1::{
-    mat_mul, Alpha, ArcMatrix, InputParameters, Matrix, MatrixOperations, MdsMatrix,
-    OptimizedArcMatrix, RoundNumbers,
+    mat_mul, Alpha, ArcMatrix, Matrix, MatrixOperations, MdsMatrix, OptimizedArcMatrix,
+    RoundNumbers,
 };
 
 use crate::transcript::TranscriptProtocol;

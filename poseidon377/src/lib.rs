@@ -35,7 +35,7 @@ pub static RATE_6_PARAMS: Lazy<PoseidonParameters<Fq>> = Lazy::new(params::rate_
 pub static RATE_7_PARAMS: Lazy<PoseidonParameters<Fq>> = Lazy::new(params::rate_7);
 
 pub use decaf377::Fq;
-pub use poseidon_parameters::PoseidonParameters;
+pub use poseidon_parameters::v1::PoseidonParameters;
 pub use poseidon_permutation::Instance;
 
 #[cfg(feature = "r1cs")]

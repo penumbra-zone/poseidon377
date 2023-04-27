@@ -1,6 +1,6 @@
 use ark_relations::r1cs::{ConstraintSystemRef, SynthesisError};
 use decaf377::r1cs::FqVar;
-use poseidon_parameters::{Alpha, PoseidonParameters};
+use poseidon_parameters::v1::{Alpha, PoseidonParameters};
 
 use crate::Fq;
 
