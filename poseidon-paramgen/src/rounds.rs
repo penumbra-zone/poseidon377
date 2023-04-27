@@ -1,6 +1,7 @@
+use crate::input::InputParameters;
 use ark_ff::BigInteger;
 use ark_std::cmp::{Ordering, PartialOrd};
-use poseidon_parameters::v1::{Alpha, InputParameters, RoundNumbers};
+use poseidon_parameters::v1::{Alpha, RoundNumbers};
 
 /// Generate round numbers.
 pub fn generate<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> RoundNumbers {

@@ -1,8 +1,9 @@
+use crate::input::InputParameters;
 use ark_ff::{BigInteger, PrimeField};
 use ark_std::vec::Vec;
 use poseidon_parameters::v1::{
-    mat_mul, InputParameters, Matrix, MatrixOperations, MdsMatrix, OptimizedMdsMatrices,
-    RoundNumbers, SquareMatrix, SquareMatrixOperations,
+    mat_mul, Matrix, MatrixOperations, MdsMatrix, OptimizedMdsMatrices, RoundNumbers, SquareMatrix,
+    SquareMatrixOperations,
 };
 
 /// Generate the MDS matrix.
@@ -229,7 +230,7 @@ mod tests {
         let M = 128;
         let t = 3;
 
-        let input = input::generate(M, 3, Fq::MODULUS, true);
+        let input = InputParameters::generate(M, 3, Fq::MODULUS, true);
         let MDS_matrix: MdsMatrix<Fq> = generate(&input);
 
         assert!(MDS_matrix.0.determinant() != Fq::zero());
@@ -241,7 +242,7 @@ mod tests {
     fn check_calc_equivalent_matrices_vs_sage() {
         let M = 128;
 
-        let input = input::generate(M, 3, Fq377::MODULUS, true);
+        let input = InputParameters::generate(M, 3, Fq377::MODULUS, true);
         let rounds = rounds::generate(&input, &Alpha::Exponent(17));
         let mds: MdsMatrix<Fq377> = generate(&input);
         let M_00 = mds.get_element(0, 0);

@@ -36,6 +36,8 @@ use ark_ff::PrimeField;
 use poseidon_parameters::v1::PoseidonParameters;
 use utils::log2;
 
+use input::InputParameters;
+
 /// Generate a Poseidon instance mapped over Fp given a choice of:
 ///
 /// * M, the desired security level (in bits),
@@ -48,7 +50,7 @@ pub fn generate<F: PrimeField>(
     p: F::BigInt,
     allow_inverse: bool,
 ) -> PoseidonParameters<F> {
-    let input = input::generate(M, t, p, allow_inverse);
+    let input = InputParameters::generate(M, t, p, allow_inverse);
     let alpha = alpha::generate::<F>(p, allow_inverse);
     let rounds = rounds::generate(&input, &alpha);
     let mds = mds::generate(&input);

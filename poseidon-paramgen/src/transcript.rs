@@ -1,7 +1,8 @@
+use crate::input::InputParameters;
 use ark_ff::{BigInteger, PrimeField};
 use ark_std::vec;
 use merlin::Transcript;
-use poseidon_parameters::v1::{Alpha, InputParameters, RoundNumbers};
+use poseidon_parameters::v1::{Alpha, RoundNumbers};
 
 pub(crate) trait TranscriptProtocol {
     fn domain_sep<F: PrimeField>(
