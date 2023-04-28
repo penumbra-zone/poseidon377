@@ -6,7 +6,7 @@ use std::{
 
 use ark_ed_on_bls12_377::{Fq, FqConfig};
 use ark_ff::MontConfig;
-use poseidon_paramgen::poseidon_build;
+use poseidon_paramgen::v1::poseidon_build;
 
 fn main() {
     // We use the default `OUT_DIR` set by Cargo when a build script exists.

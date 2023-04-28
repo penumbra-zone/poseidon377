@@ -9,9 +9,9 @@ mod tests {
     use poseidon_parameters::v1::{Alpha, PoseidonParameters};
 
     use crate::{
-        generate,
         input::{self, InputParameters},
         rounds,
+        v1::generate,
     };
 
     /// Represents a row in Table 7-9 in Appendix G of the paper.
@@ -85,7 +85,7 @@ mod tests {
                 cost: row[6],
             };
             let input = InputParameters::generate(table_row.M, table_row.t, table_row.p, true);
-            let rounds = rounds::generate(&input, &alpha);
+            let rounds = rounds::v1_generate(&input, &alpha);
             assert_eq!(rounds.full(), table_row.r_F);
             assert_eq!(rounds.partial(), table_row.r_P);
         }
@@ -136,8 +136,9 @@ mod tests {
                 cost: row[6],
             };
 
-            let input = InputParameters::generate(table_row.M, table_row.t, table_row.p, true);
-            let rounds = rounds::generate(&input, &alpha);
+            let input: InputParameters<ark_ff::BigInt<12>> =
+                InputParameters::generate(table_row.M, table_row.t, table_row.p, true);
+            let rounds = rounds::v1_generate(&input, &alpha);
             assert_eq!(rounds.full(), table_row.r_F);
             assert_eq!(rounds.partial(), table_row.r_P);
         }
@@ -188,7 +189,7 @@ mod tests {
                 cost: row[6],
             };
             let input = InputParameters::generate(table_row.M, table_row.t, table_row.p, true);
-            let rounds = rounds::generate(&input, &alpha);
+            let rounds = rounds::v1_generate(&input, &alpha);
             assert_eq!(rounds.full(), table_row.r_F);
             assert_eq!(rounds.partial(), table_row.r_P);
         }
@@ -200,35 +201,35 @@ mod tests {
 
         // $t=2$ corresponds to a 1:1 hash
         let input = InputParameters::generate(128, 2, Fq::MODULUS, true);
-        let _rounds = rounds::generate(&input, &alpha);
+        let _rounds = rounds::v1_generate(&input, &alpha);
         // Calling PoseidonParameters::new runs a bunch of assertions to ensure the optimized matrices
         // have been property constructed.
         let _params_1_to_11: PoseidonParameters<Fq> = generate(128, 2, Fq::MODULUS, true);
 
         // $t=3$ corresponds to a 2:1 hash
         let input = InputParameters::generate(128, 3, Fq::MODULUS, true);
-        let rounds = rounds::generate(&input, &alpha);
+        let rounds = rounds::v1_generate(&input, &alpha);
         assert_eq!(rounds.full(), 8);
         assert_eq!(rounds.partial(), 31);
         let _params_2_to_1: PoseidonParameters<Fq> = generate(128, 3, Fq::MODULUS, true);
 
         // $t=4$ corresponds to a 3:1 hash
         let input = InputParameters::generate(128, 4, Fq::MODULUS, true);
-        let rounds = rounds::generate(&input, &alpha);
+        let rounds = rounds::v1_generate(&input, &alpha);
         assert_eq!(rounds.full(), 8);
         assert_eq!(rounds.partial(), 31);
         let _params_3_to_1: PoseidonParameters<Fq> = generate(128, 4, Fq::MODULUS, true);
 
         // $t=5$ corresponds to a 4:1 hash
         let input = InputParameters::generate(128, 5, Fq::MODULUS, true);
-        let rounds = rounds::generate(&input, &alpha);
+        let rounds = rounds::v1_generate(&input, &alpha);
         assert_eq!(rounds.full(), 8);
         assert_eq!(rounds.partial(), 31);
         let _params_4_to_1: PoseidonParameters<Fq> = generate(128, 5, Fq::MODULUS, true);
 
         // $t=6$ corresponds to a 5:1 hash
         let input = InputParameters::generate(128, 6, Fq::MODULUS, true);
-        let rounds = rounds::generate(&input, &alpha);
+        let rounds = rounds::v1_generate(&input, &alpha);
         assert_eq!(rounds.full(), 8);
         assert_eq!(rounds.partial(), 31);
         let _params_5_to_1: PoseidonParameters<Fq> = generate(128, 6, Fq::MODULUS, true);
