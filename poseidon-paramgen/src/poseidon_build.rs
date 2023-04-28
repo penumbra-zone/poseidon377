@@ -8,21 +8,22 @@ use poseidon_parameters::v1::{
     OptimizedMdsMatrices, PoseidonParameters, SquareMatrix,
 };
 
-use crate::generate;
+// use crate::generate;
+use crate::{v1, v2};
 
 /// Create parameter code.
-pub fn compile<F: PrimeField>(
+pub fn v1_compile<F: PrimeField>(
     M: usize,
     t_values: Vec<usize>,
     p: F::BigInt,
     allow_inverse: bool,
 ) -> String {
     let mut params_code = "use ark_ff::PrimeField;\n
-use poseidon_parameters::{Alpha, ArcMatrix, RoundNumbers, SquareMatrix, Matrix, MdsMatrix, OptimizedArcMatrix, OptimizedMdsMatrices, PoseidonParameters, MatrixOperations};\n\n"
+use poseidon_parameters::v1::{Alpha, ArcMatrix, RoundNumbers, SquareMatrix, Matrix, MdsMatrix, OptimizedArcMatrix, OptimizedMdsMatrices, PoseidonParameters, MatrixOperations};\n\n"
         .to_string();
 
     for t in t_values {
-        let params = generate::<F>(M, t, p, allow_inverse);
+        let params = v1::generate::<F>(M, t, p, allow_inverse);
         params_code.push_str(&format!("{}", DisplayablePoseidonParameters(&params))[..]);
     }
 

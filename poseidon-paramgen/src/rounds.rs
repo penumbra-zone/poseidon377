@@ -4,7 +4,7 @@ use ark_std::cmp::{Ordering, PartialOrd};
 use poseidon_parameters::v1::{Alpha, RoundNumbers};
 
 /// Generate round numbers.
-pub fn generate<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> RoundNumbers {
+pub fn v1_generate<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> RoundNumbers {
     let mut choice: Option<RoundNumbers> = None;
     let mut cost = usize::MAX;
     let mut cost_rf = usize::MAX;

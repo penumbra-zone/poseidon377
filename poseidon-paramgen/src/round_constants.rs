@@ -10,7 +10,7 @@ use poseidon_parameters::v1::{
 use crate::transcript::TranscriptProtocol;
 
 /// Generate round constants.
-pub fn generate<F: PrimeField>(
+pub fn v1_generate<F: PrimeField>(
     input: &InputParameters<F::BigInt>,
     round_numbers: RoundNumbers,
     alpha: Alpha,

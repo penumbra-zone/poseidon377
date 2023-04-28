@@ -7,7 +7,7 @@ use poseidon_parameters::v1::{
 };
 
 /// Generate the MDS matrix.
-pub fn generate<F: PrimeField>(input: &InputParameters<F::BigInt>) -> MdsMatrix<F> {
+pub fn v1_generate<F: PrimeField>(input: &InputParameters<F::BigInt>) -> MdsMatrix<F> {
     // A t x t MDS matrix only exists if: 2t + 1 <= p
     let two_times_t_bigint: F::BigInt = (2 * input.t as u64).into();
     if two_times_t_bigint > input.p {
@@ -231,7 +231,7 @@ mod tests {
         let t = 3;
 
         let input = InputParameters::generate(M, 3, Fq::MODULUS, true);
-        let MDS_matrix: MdsMatrix<Fq> = generate(&input);
+        let MDS_matrix: MdsMatrix<Fq> = v1_generate(&input);
 
         assert!(MDS_matrix.0.determinant() != Fq::zero());
         assert_eq!(MDS_matrix.n_rows(), t);
@@ -243,8 +243,8 @@ mod tests {
         let M = 128;
 
         let input = InputParameters::generate(M, 3, Fq377::MODULUS, true);
-        let rounds = rounds::generate(&input, &Alpha::Exponent(17));
-        let mds: MdsMatrix<Fq377> = generate(&input);
+        let rounds = rounds::v1_generate(&input, &Alpha::Exponent(17));
+        let mds: MdsMatrix<Fq377> = v1_generate(&input);
         let M_00 = mds.get_element(0, 0);
         // Sanity check
         assert_eq!(

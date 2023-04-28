@@ -4,6 +4,9 @@ use ark_ff::{vec::Vec, PrimeField};
 use crate::{matrix::Matrix, matrix_ops::MatrixOperations};
 
 /// Represents an matrix of round constants.
+///
+/// Arc stands for `AddRoundConstant` which is the
+/// step in the permutation where this matrix is used.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ArcMatrix<F: PrimeField>(pub Matrix<F>);
 
