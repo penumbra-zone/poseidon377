@@ -8,7 +8,7 @@ use rand_core::{RngCore, SeedableRng};
 use poseidon_permutation::Instance;
 
 static PARAMS_4_TO_1: Lazy<poseidon_parameters::v1::PoseidonParameters<Fq>> =
-    Lazy::new(|| poseidon_paramgen::generate(128, 5, FqConfig::MODULUS, true));
+    Lazy::new(|| poseidon_paramgen::v1::generate(128, 5, FqConfig::MODULUS, true));
 
 fn hash_4_1_our_impl(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
     let mut our_instance = Instance::new(&PARAMS_4_TO_1);

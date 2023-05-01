@@ -3,15 +3,17 @@ use std::fmt::Display;
 use ark_ff::PrimeField;
 use ark_std::vec::Vec;
 use num::BigUint;
+
 use poseidon_parameters::v1::{
     Alpha, ArcMatrix, Matrix, MatrixOperations, MdsMatrix, OptimizedArcMatrix,
     OptimizedMdsMatrices, PoseidonParameters, SquareMatrix,
 };
+use poseidon_parameters::v2::PoseidonParameters as V2PoseidonParameters;
 
 // use crate::generate;
 use crate::{v1, v2};
 
-/// Create parameter code.
+/// Create v1 parameter code.
 pub fn v1_compile<F: PrimeField>(
     M: usize,
     t_values: Vec<usize>,
@@ -28,6 +30,32 @@ use poseidon_parameters::v1::{Alpha, ArcMatrix, RoundNumbers, SquareMatrix, Matr
     }
 
     params_code
+}
+
+/// Create v2 parameter code.poseidon-parameters/src/v2.rs
+pub fn v2_compile<F: PrimeField>(
+    M: usize,
+    t_values: Vec<usize>,
+    p: F::BigInt,
+    allow_inverse: bool,
+) -> String {
+    let mut params_code = "use ark_ff::PrimeField;\n
+use poseidon_parameters::v2::{Alpha, ArcMatrix, RoundNumbers, SquareMatrix, Matrix, PoseidonParameters, MatrixOperations};\n\n"
+        .to_string();
+
+    for t in t_values {
+        let params = v2::generate::<F>(M, t, p, allow_inverse);
+        params_code.push_str(&format!("{}", DisplayableV2PoseidonParameters(&params))[..]);
+    }
+
+    params_code
+}
+
+struct DisplayableV2PoseidonParameters<'a, F: PrimeField>(&'a V2PoseidonParameters<F>);
+impl<F: PrimeField> Display for DisplayableV2PoseidonParameters<'_, F> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
 }
 
 struct DisplayablePoseidonParameters<'a, F: PrimeField>(&'a PoseidonParameters<F>);

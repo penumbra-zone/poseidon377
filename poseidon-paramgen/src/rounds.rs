@@ -32,6 +32,10 @@ pub fn v1_generate<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> 
     choice.unwrap()
 }
 
+pub fn v2_generate<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> RoundNumbers {
+    todo!()
+}
+
 struct RoundNumbersBuilder(pub RoundNumbers);
 
 impl RoundNumbersBuilder {

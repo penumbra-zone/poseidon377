@@ -25,6 +25,24 @@ pub fn v1_generate<F: PrimeField>(
     ArcMatrix(Matrix::new(num_total_rounds, input.t, elements))
 }
 
+/// Generate round constants.
+pub fn v2_generate<F: PrimeField>(
+    input: &InputParameters<F::BigInt>,
+    round_numbers: RoundNumbers,
+    alpha: Alpha,
+) -> ArcMatrix<F> {
+    let mut transcript = Transcript::new(b"round-constants");
+    transcript.domain_sep::<F>(input, round_numbers, alpha);
+
+    let full_rounds = round_numbers.full();
+    let partial_rounds = round_numbers.partial();
+    let num_round_constants = full_rounds * input.t + partial_rounds;
+    let elements = (0..num_round_constants)
+        .map(|_| transcript.round_constant())
+        .collect();
+    ArcMatrix(Matrix::new(num_round_constants, 1, elements))
+}
+
 /// Get row vector of constants by round
 fn constants_by_round<F: PrimeField>(arc_matrix: &ArcMatrix<F>, r: usize) -> Matrix<F> {
     arc_matrix.0.row_vector(r)
