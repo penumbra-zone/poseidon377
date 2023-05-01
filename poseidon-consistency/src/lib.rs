@@ -4,7 +4,7 @@
 mod tests {
     use ark_ed_on_bls12_377::{Fq, FqConfig};
     use ark_ff::{MontConfig, PrimeField, Zero};
-    use poseidon_paramgen::generate;
+    use poseidon_paramgen::v1::generate;
     use poseidon_permutation::Instance;
     use proptest::prelude::*;
 
