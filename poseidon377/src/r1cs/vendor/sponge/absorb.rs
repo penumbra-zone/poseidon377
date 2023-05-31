@@ -78,28 +78,6 @@ pub trait Absorb {
     }
 }
 
-/// An extension to `Absorb` that is specific to items with variable length, such as a list.
-pub trait AbsorbWithLength: Absorb {
-    /// The length of the `self` being absorbed.
-    fn absorb_length(&self) -> usize;
-
-    /// Converts the object into a list of bytes along with its length information
-    /// that can be absorbed by a `CryptographicSponge`.
-    /// Append the list to `dest`.
-    fn to_sponge_bytes_with_length(&self, dest: &mut Vec<u8>) {
-        self.absorb_length().to_sponge_bytes(dest);
-        self.to_sponge_bytes(dest)
-    }
-
-    /// Converts the object into field elements along with its length information
-    /// that can be absorbed by a `CryptographicSponge`.
-    /// Append the list to `dest`
-    fn to_sponge_field_elements_with_length<F: PrimeField>(&self, dest: &mut Vec<F>) {
-        self.absorb_length().to_sponge_field_elements(dest);
-        <Self as Absorb>::to_sponge_field_elements(&self, dest)
-    }
-}
-
 /// If `F1` and `F2` have the same prime modulus, this method returns `Some(input)`
 /// but cast to `F2`, and returns `None` otherwise.
 pub(crate) fn field_cast<F1: PrimeField, F2: PrimeField>(input: F1) -> Option<F2> {
@@ -262,12 +240,6 @@ impl<A: Absorb> Absorb for &[A] {
     }
 }
 
-impl<A: Absorb> AbsorbWithLength for &[A] {
-    fn absorb_length(&self) -> usize {
-        self.len()
-    }
-}
-
 impl<A: Absorb> Absorb for Vec<A> {
     fn to_sponge_bytes(&self, dest: &mut Vec<u8>) {
         self.as_slice().to_sponge_bytes(dest)
@@ -275,12 +247,6 @@ impl<A: Absorb> Absorb for Vec<A> {
 
     fn to_sponge_field_elements<F: PrimeField>(&self, dest: &mut Vec<F>) {
         self.as_slice().to_sponge_field_elements(dest)
-    }
-}
-
-impl<A: Absorb> AbsorbWithLength for Vec<A> {
-    fn absorb_length(&self) -> usize {
-        self.as_slice().len()
     }
 }
 
@@ -299,8 +265,6 @@ impl<A: Absorb> Absorb for Option<A> {
         }
     }
 }
-
-// TODO: add more for common data structures, treemap?
 
 impl<A: Absorb> Absorb for &A {
     fn to_sponge_bytes(&self, dest: &mut Vec<u8>) {
