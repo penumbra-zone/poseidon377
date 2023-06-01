@@ -28,7 +28,6 @@ ark-serialize = { version = "0.4", default_features = false, optional=true }
 [dev-dependencies]
 ark-ed-on-bls12-381 = "0.4"
 proptest = "1"
-criterion = { version = "0.3", features=["html_reports"] }
 rand_core = { version = "0.6.3", features = ["getrandom"] }
 rand_chacha = "0.3"
 
@@ -67,10 +66,6 @@ parallel  = [
     "ark-std/parallel",
     "ark-ec/parallel",
 ]
-
-[[bench]]
-name = "oldhash"
-harness = false
 
 [build-dependencies]
 poseidon-paramgen = { version="0.4", path = "../poseidon-paramgen" }
