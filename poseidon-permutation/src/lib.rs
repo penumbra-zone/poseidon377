@@ -5,3 +5,6 @@
 mod permutation;
 
 pub use permutation::Instance;
+
+#[cfg(feature = "r1cs")]
+pub mod r1cs;
