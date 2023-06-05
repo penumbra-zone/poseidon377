@@ -53,6 +53,7 @@ r1cs = [
     "ark-snark",
     "ark-r1cs-std",
     "decaf377/r1cs",
+    "poseidon-permutation/r1cs",
     "ark-std",
     "ark-ec",
     "tracing",
