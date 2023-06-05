@@ -1,4 +1,5 @@
 use ark_ff::PrimeField;
+use ark_std::{vec, vec::Vec};
 
 use ark_r1cs_std::{fields::fp::FpVar, prelude::*};
 use ark_relations::r1cs::ConstraintSystemRef;
