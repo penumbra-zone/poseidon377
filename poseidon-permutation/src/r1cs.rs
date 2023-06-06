@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use ark_ff::PrimeField;
 use ark_std::{vec, vec::Vec};
 
@@ -9,6 +10,8 @@ use poseidon_parameters::v1::{Alpha, MatrixOperations, PoseidonParameters};
 pub struct InstanceVar<F: PrimeField> {
     /// Parameters for this instance of Poseidon.
     pub parameters: PoseidonParameters<F>,
+    /// Constant FpVar representing the first element of the MDS matrix (used in optimized version).
+    M00_var: FpVar<F>,
 
     /// Constraint system
     pub cs: ConstraintSystemRef<F>,
@@ -26,11 +29,14 @@ where
         let zero = FpVar::<F>::zero();
         // t = rate + capacity
         let state_words = vec![zero; parameters.t];
+        let M00_var = FpVar::<F>::new_constant(cs.clone(), parameters.optimized_mds.M_00)
+            .expect("can create constant");
 
         Self {
             parameters,
             cs,
             state_words,
+            M00_var,
         }
     }
 
@@ -47,6 +53,7 @@ where
         }
 
         // Apply Poseidon permutation.
+        //self.unoptimized_permute();
         self.permute();
 
         // Emit a single element since this is a n:1 hash.
@@ -73,7 +80,6 @@ where
     }
 
     /// Unoptimized Poseidon permutation.
-    #[allow(non_snake_case)]
     pub fn unoptimized_permute(&mut self) {
         let R_f = self.parameters.rounds.full() / 2;
         let R_P = self.parameters.rounds.partial();
@@ -121,12 +127,15 @@ where
     /// `poseidonperm_x3_64_optimized.sage` provided in Appendix B of the Poseidon paper.
     fn permute(&mut self) {
         let R_f = self.parameters.rounds.full() / 2;
+        let R_P = self.parameters.rounds.partial();
+        let round_constants = self.parameters.optimized_arc.0.clone();
+        let t = self.parameters.t;
 
         // First chunk of full rounds
         for r in 0..R_f {
             // Apply `AddRoundConstants` layer
-            for i in 0..self.parameters.t {
-                self.state_words[i] += self.parameters.optimized_arc.0.get_element(r, i);
+            for i in 0..t {
+                self.state_words[i] += round_constants.get_element(r, i);
             }
             self.full_sub_words();
             self.mix_layer_mds();
@@ -135,26 +144,18 @@ where
 
         // Partial rounds
         // First part of `AddRoundConstants` layer
-        for i in 0..self.parameters.t {
-            self.state_words[i] += self
-                .parameters
-                .optimized_arc
-                .0
-                .get_element(round_constants_counter, i);
+        for i in 0..t {
+            self.state_words[i] += round_constants.get_element(round_constants_counter, i);
         }
         // First full matrix multiplication.
         self.mix_layer_mi();
 
-        for r in 0..self.parameters.rounds.partial() - 1 {
+        for r in 0..R_P - 1 {
             self.partial_sub_words();
             // Rest of `AddRoundConstants` layer, moved to after the S-box layer
             round_constants_counter += 1;
-            self.state_words[0] += self
-                .parameters
-                .optimized_arc
-                .0
-                .get_element(round_constants_counter, 0);
-            self.sparse_mat_mul(self.parameters.rounds.partial() - r - 1);
+            self.state_words[0] += round_constants.get_element(round_constants_counter, 0);
+            self.sparse_mat_mul(R_P - r - 1);
         }
 
         // Last partial round
@@ -165,12 +166,8 @@ where
         // Final full rounds
         for _ in 0..R_f {
             // Apply `AddRoundConstants` layer
-            for i in 0..self.parameters.t {
-                self.state_words[i] += self
-                    .parameters
-                    .optimized_arc
-                    .0
-                    .get_element(round_constants_counter, i);
+            for i in 0..t {
+                self.state_words[i] += round_constants.get_element(round_constants_counter, i);
             }
             self.full_sub_words();
             self.mix_layer_mds();
@@ -261,8 +258,8 @@ where
             .enumerate()
             .map(|(i, x)| {
                 FpVar::<F>::new_constant(self.cs.clone(), x).expect("can create constant")
-                    * self.state_words[0].clone()
-                    + self.state_words[i + 1].clone()
+                    * &self.state_words[0]
+                    + &self.state_words[i + 1]
             })
             .collect();
 
@@ -277,10 +274,8 @@ where
                 FpVar::<F>::new_constant(self.cs.clone(), x).expect("can create constant") * y
             })
             .collect();
-        let result: FpVar<F> = temp_vec.iter().sum();
-        let M00_var = FpVar::<F>::new_constant(self.cs.clone(), self.parameters.optimized_mds.M_00)
-            .expect("can create constant");
-        self.state_words[0] = M00_var * self.state_words[0].clone() + result;
+        self.state_words[0] =
+            &self.M00_var * &self.state_words[0] + temp_vec.iter().sum::<FpVar<F>>();
 
         // self.state_words[1..self.parameters.t].copy_from_slice(&add_row[..(self.parameters.t - 1)]);
         for index in 1..self.parameters.t {
