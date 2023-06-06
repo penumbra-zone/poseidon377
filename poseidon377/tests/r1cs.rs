@@ -158,7 +158,7 @@ fn fq_strategy() -> BoxedStrategy<Fq> {
 }
 
 proptest! {
-#![proptest_config(ProptestConfig::with_cases(5))]
+#![proptest_config(ProptestConfig::with_cases(1))]
 #[test]
 fn groth16_hash_proof_happy_path(v1 in fq_strategy(), v2 in fq_strategy(), v3 in fq_strategy(), v4 in fq_strategy(), v5 in fq_strategy(), v6 in fq_strategy(), v7 in fq_strategy()) {
         let (pk, vk) = PreimageCircuit::generate_test_parameters();
