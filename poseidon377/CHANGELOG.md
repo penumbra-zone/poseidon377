@@ -14,3 +14,7 @@
 # 0.4.0
 
 * Upgrade to 0.4.x series of Arkworks dependencies.
+
+# 0.5.0
+
+* Use `poseidon-permutation` R1CS implementation.

@@ -10,3 +10,8 @@
 # 0.3.0
 
 * Upgrade to 0.4.x series of Arkworks dependencies.
+
+# 0.4.0
+
+* Use `v1` APIs from parameter crates.
+* Use `poseidon-permutation` R1CS implementation.
