@@ -1,6 +1,6 @@
 [package]
 name = "poseidon-parameters"
-version = "0.5.0"
+version = "0.4.0"
 edition = "2018"
 authors = []
 description = "A crate for Poseidon parameters"
