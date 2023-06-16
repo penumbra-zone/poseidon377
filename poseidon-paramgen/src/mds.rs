@@ -208,7 +208,7 @@ mod tests {
     use poseidon_parameters::v1::Alpha;
 
     use super::*;
-    use crate::{input, rounds};
+    use crate::rounds;
 
     #[test]
     fn convert_from_mds_to_vec_of_vecs() {

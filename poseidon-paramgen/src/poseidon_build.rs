@@ -53,7 +53,7 @@ use poseidon_parameters::v2::{Alpha, ArcMatrix, RoundNumbers, SquareMatrix, Matr
 
 struct DisplayableV2PoseidonParameters<'a, F: PrimeField>(&'a V2PoseidonParameters<F>);
 impl<F: PrimeField> Display for DisplayableV2PoseidonParameters<'_, F> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         todo!()
     }
 }

@@ -32,7 +32,7 @@ pub fn v1_generate<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> 
     choice.unwrap()
 }
 
-pub fn v2_generate<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> RoundNumbers {
+pub fn v2_generate<T: BigInteger>(_input: &InputParameters<T>, _alpha: &Alpha) -> RoundNumbers {
     todo!()
 }
 
