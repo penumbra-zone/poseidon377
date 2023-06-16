@@ -8,11 +8,7 @@ mod tests {
     use num_bigint::BigUint;
     use poseidon_parameters::v1::{Alpha, PoseidonParameters};
 
-    use crate::{
-        input::{self, InputParameters},
-        rounds,
-        v1::generate,
-    };
+    use crate::{input::InputParameters, rounds, v1::generate};
 
     /// Represents a row in Table 7-9 in Appendix G of the paper.
     #[allow(dead_code)]
