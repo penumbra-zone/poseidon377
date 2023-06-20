@@ -82,6 +82,14 @@ mod tests {
             };
             let input = InputParameters::generate(table_row.M, table_row.t, table_row.p, true);
             let rounds = rounds::v1_generate(&input, &alpha);
+
+            // For bits of security of 256 bits or less, v2 parameter generation should be unchanged.
+            if table_row.M <= 256 {
+                let rounds2 = rounds::v2_generate(&input, &alpha);
+                assert_eq!(rounds.full(), rounds2.full());
+                assert_eq!(rounds.partial(), rounds2.partial());
+            }
+
             assert_eq!(rounds.full(), table_row.r_F);
             assert_eq!(rounds.partial(), table_row.r_P);
         }
@@ -135,6 +143,14 @@ mod tests {
             let input: InputParameters<ark_ff::BigInt<12>> =
                 InputParameters::generate(table_row.M, table_row.t, table_row.p, true);
             let rounds = rounds::v1_generate(&input, &alpha);
+
+            // For bits of security of 256 bits or less, v2 parameter generation should be unchanged.
+            if table_row.M <= 256 {
+                let rounds2 = rounds::v2_generate(&input, &alpha);
+                assert_eq!(rounds.full(), rounds2.full());
+                assert_eq!(rounds.partial(), rounds2.partial());
+            }
+
             assert_eq!(rounds.full(), table_row.r_F);
             assert_eq!(rounds.partial(), table_row.r_P);
         }

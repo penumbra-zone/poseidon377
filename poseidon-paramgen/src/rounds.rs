@@ -1,19 +1,34 @@
 use crate::input::InputParameters;
 use ark_ff::BigInteger;
 use ark_std::cmp::{Ordering, PartialOrd};
+use num_bigint::{BigInt, ToBigInt};
 use poseidon_parameters::v1::{Alpha, RoundNumbers};
 
 /// Generate round numbers.
+///
+/// For Poseidon 1, we currently panic if the security level is not at
+/// the 128-bit or 256-bit level. This is because in the work by Ashur,
+/// Buschman, and Mahzoun 2023, they find the Grobner basis attacks are
+/// stronger than described in the original Poseidon paper, however they
+/// only find partial and full attacks beyond the 256-bit level [0]. The
+/// parameter generation logic for 128-bit and 256-bit security levels
+/// is unchanged.
+///
+/// [0]: https://eprint.iacr.org/2023/537
 pub fn v1_generate<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> RoundNumbers {
     let mut choice: Option<RoundNumbers> = None;
     let mut cost = usize::MAX;
     let mut cost_rf = usize::MAX;
 
+    if input.M > 256 {
+        panic!("This crate does not support security levels beyond 256 bits, use Poseidon2");
+    }
+
     // Loop through choices of r_F, r_P
     for r_P in 1..400 {
         for r_F in 4..100 {
             let mut candidate = RoundNumbersBuilder(RoundNumbers { r_F, r_P });
-            if !candidate.is_secure(input, alpha) {
+            if !candidate.is_secure_v1(input, alpha) {
                 continue;
             }
 
@@ -32,15 +47,40 @@ pub fn v1_generate<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> 
     choice.unwrap()
 }
 
-pub fn v2_generate<T: BigInteger>(_input: &InputParameters<T>, _alpha: &Alpha) -> RoundNumbers {
-    todo!()
+/// Generate round numbers for Poseidon2.
+pub fn v2_generate<T: BigInteger>(input: &InputParameters<T>, alpha: &Alpha) -> RoundNumbers {
+    let mut choice: Option<RoundNumbers> = None;
+    let mut cost = usize::MAX;
+    let mut cost_rf = usize::MAX;
+
+    // Loop through choices of r_F, r_P
+    for r_P in 1..400 {
+        for r_F in 4..100 {
+            let mut candidate = RoundNumbersBuilder(RoundNumbers { r_F, r_P });
+            if !candidate.is_secure_v2(input, alpha) {
+                continue;
+            }
+
+            candidate.apply_security_margin();
+            let candidate_cost = candidate.sbox_count(input.t);
+            // Pick the minimum cost Candidate, and if the cost is tied with another
+            // candidate, we switch to the new candidate if the total number of full rounds is lower.
+            if (candidate_cost < cost) || ((candidate_cost == cost) && (r_F < cost_rf)) {
+                cost = candidate_cost;
+                cost_rf = r_F;
+                choice = Some(candidate.0);
+            }
+        }
+    }
+
+    choice.unwrap()
 }
 
 struct RoundNumbersBuilder(pub RoundNumbers);
 
 impl RoundNumbersBuilder {
     /// Check if this `RoundNumbers` choice is secure given all known attacks.
-    fn is_secure<T: BigInteger>(&self, input: &InputParameters<T>, alpha: &Alpha) -> bool {
+    fn is_secure_v1<T: BigInteger>(&self, input: &InputParameters<T>, alpha: &Alpha) -> bool {
         // Check if the number of full rounds are sufficient.
         if self.0.full() < statistical_attack_full_rounds(input, alpha) {
             return false;
@@ -53,7 +93,7 @@ impl RoundNumbersBuilder {
                 if self.0.total() <= algebraic_attack_interpolation(input, alpha) {
                     return false;
                 }
-                if self.0.total() <= algebraic_attack_grobner_basis(input, alpha) {
+                if self.0.total() <= algebraic_attack_grobner_basis_v1(input, alpha) {
                     return false;
                 }
             }
@@ -68,11 +108,38 @@ impl RoundNumbersBuilder {
                 }
                 if (self.0.full() as f64 * (input.t as f64).log2()).floor() as usize
                     + self.0.partial()
-                    <= algebraic_attack_grobner_basis(input, alpha)
+                    <= algebraic_attack_grobner_basis_v1(input, alpha)
                 {
                     return false;
                 }
             }
+        }
+
+        true
+    }
+
+    /// Check if this `RoundNumbers` choice is secure given all known attacks.
+    fn is_secure_v2<T: BigInteger>(&self, input: &InputParameters<T>, alpha: &Alpha) -> bool {
+        // Check if the number of full rounds are sufficient.
+        if self.0.full() < statistical_attack_full_rounds(input, alpha) {
+            return false;
+        }
+
+        match alpha {
+            // For positive alpha, the interpolation and Grobner bounds are on the total
+            // number of rounds.
+            Alpha::Exponent(_) => {
+                if self.0.total() <= algebraic_attack_interpolation(input, alpha) {
+                    return false;
+                }
+                if self.0.total() <= algebraic_attack_grobner_basis_v1(input, alpha) {
+                    return false;
+                }
+                if algebraic_attack_grobner_basis_v2_possible(input, alpha, &self.0) {
+                    return false;
+                }
+            }
+            Alpha::Inverse => unimplemented!("no support for inverse alpha!"),
         }
 
         true
@@ -142,6 +209,57 @@ fn algebraic_attack_interpolation<T: BigInteger>(
     };
 }
 
+/// If the improved Grobner basis attacks from https://eprint.iacr.org/2023/537 are possible.
+///
+/// See: https://github.com/HorizenLabs/poseidon2/commit/44bdcbc37887390442c7e743bad655a7ab8a7b7d
+fn algebraic_attack_grobner_basis_v2_possible<T: BigInteger>(
+    input: &InputParameters<T>,
+    alpha: &Alpha,
+    choice: &RoundNumbers,
+) -> bool {
+    let r = (input.t as f64 / 3.0).floor() as usize;
+    let exponent = match alpha {
+        Alpha::Inverse => unimplemented!("no support for inverse alpha!"),
+        Alpha::Exponent(exp) => *exp as usize,
+    };
+
+    // Equation from Item 1, Section 4.3 in https://eprint.iacr.org/2023/537
+    let upper = ((choice.full() - 1) * input.t)
+        + choice.partial()
+        + r
+        + r * (choice.full() / 2)
+        + choice.partial()
+        + exponent;
+    let lower = r * (choice.full() / 2) + choice.partial() + exponent;
+
+    // Start computing the binomial coefficient (upper choose lower).
+    let mut acc = BigInt::from(1);
+    for i in 0..lower {
+        acc = (acc
+            * (upper - i)
+                .to_bigint()
+                .expect("always succeeds if operating on unsigned ints"))
+            / (i + 1)
+                .to_bigint()
+                .expect("always succeeds if operating on unsigned ints");
+
+        // 2 in the below expression is the minimum value of the linear
+        // algebra constant $\omega$ defined in section 4.1
+        // of https://eprint.iacr.org/2023/537. Note that in the equation presented
+        // in section 4.3 of the paper, they use the maximum value of the linear
+        // algebra constant, however the minimum value is the more conservative choice.
+        //
+        // If we find a binomial coeff bitsize that is equal to or beyond the security
+        // level, we return early to avoid computing the full binomial coefficient.
+        if (2.0 * acc.bits() as f64).ceil() as usize >= input.M {
+            return false;
+        }
+    }
+
+    // If we get here, it means the attack is possible.
+    true
+}
+
 /// Number of total rounds to defend against Grobner basis attacks.
 ///
 /// These are described in Section 5.5.2 of the paper.
@@ -149,7 +267,7 @@ fn algebraic_attack_interpolation<T: BigInteger>(
 /// We use the first two conditions described in Section C.2.2,
 /// eliding the third since if the first condition is satisfied, then
 /// the third will be also.
-fn algebraic_attack_grobner_basis<T: BigInteger>(
+fn algebraic_attack_grobner_basis_v1<T: BigInteger>(
     input: &InputParameters<T>,
     alpha: &Alpha,
 ) -> usize {
