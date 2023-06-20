@@ -13,4 +13,5 @@
 
 # 0.4.0
 
-* Add `v1` and `v2` APIs.
+* Add `v1` and `v2` APIs. Note the `v2` parameter generation has not been
+audited at the time of release.

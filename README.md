@@ -12,6 +12,8 @@ parameters
 ## Audits
 
 `poseidon-paramgen` [was audited](https://research.nccgroup.com/2022/09/12/public-report-penumbra-labs-decaf377-implementation-and-poseidon-parameter-selection-review/) by NCC Group in Summer 2022.
+Note that the audit covered only the parameter generation described in the original Poseidon paper. The Poseidon2 parameter
+generation is not yet audited.
 
 ## Benchmarks
 

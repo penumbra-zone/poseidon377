@@ -16,3 +16,12 @@ impl Alpha {
         }
     }
 }
+
+impl From<Alpha> for f64 {
+    fn from(alpha: Alpha) -> Self {
+        match alpha {
+            Alpha::Exponent(exp) => exp as f64,
+            Alpha::Inverse => -1.0,
+        }
+    }
+}
