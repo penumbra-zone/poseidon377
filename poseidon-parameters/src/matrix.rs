@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 use ark_ff::{vec, vec::Vec, PrimeField};
 use num_integer::Roots;
 
-use crate::matrix_ops::{mat_mul, MatrixOperations, SquareMatrixOperations};
+use crate::matrix_ops::{mat_mul, MatrixOperations, Polynomial, SquareMatrixOperations};
 
 /// Represents a matrix over `PrimeField` elements.
 ///
@@ -310,6 +310,11 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
                 det
             }
         }
+    }
+
+    /// Compute the minimal polynomial of the matrix.
+    fn min_poly(&self) -> Polynomial<F> {
+        unimplemented!("min_poly not yet implemented")
     }
 }
 
