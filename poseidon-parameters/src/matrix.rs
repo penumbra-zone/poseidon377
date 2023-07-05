@@ -311,11 +311,6 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
             }
         }
     }
-
-    /// Compute the minimal polynomial of the matrix.
-    fn min_poly(&self) -> Polynomial<F> {
-        unimplemented!("min_poly not yet implemented")
-    }
 }
 
 /// Multiply scalar by SquareMatrix
