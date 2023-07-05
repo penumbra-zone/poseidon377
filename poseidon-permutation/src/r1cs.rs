@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use ark_ff::PrimeField;
-use ark_std::{dbg, vec::Vec};
+use ark_std::vec::Vec;
 
 use ark_r1cs_std::{fields::fp::FpVar, prelude::*};
 use ark_relations::r1cs::ConstraintSystemRef;
@@ -63,9 +63,7 @@ where
                 self.state_words[i] += round_constants[round_constants_counter];
                 round_constants_counter += 1;
             }
-            dbg!("bout to SubWord: ", self.cs.num_constraints());
             self.full_sub_words();
-            dbg!("after x^a: ", self.cs.num_constraints());
             self.mix_layer_mds();
         }
 
