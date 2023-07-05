@@ -136,8 +136,6 @@ pub trait SquareMatrixOperations<F> {
     fn cofactors(&self) -> Self;
     /// Compute the matrix determinant
     fn determinant(&self) -> F;
-    /// Compute the minimal polynomial
-    fn min_poly(&self) -> Polynomial<F>;
 }
 
 #[cfg(test)]
