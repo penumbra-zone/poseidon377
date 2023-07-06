@@ -18,3 +18,7 @@
 # 0.5.0
 
 * Use `poseidon-permutation` R1CS implementation.
+
+# 0.6.0
+
+* Use `poseidon-permutation` version 0.5.0 to avoid spurious debug output.

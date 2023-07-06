@@ -1,6 +1,6 @@
 [package]
 name = "poseidon377"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2018"
 authors = ["Penumbra <team@penumbralabs.xyz>", "redshiftzero <jen@penumbralabs.xyz>"]
 description = "An instantiation of the Poseidon hash for use with decaf377."
@@ -17,7 +17,7 @@ decaf377 = { version="0.4", default-features = false, features = ["r1cs"] }
 num-bigint = { version = "0.4.3", default-features = false }
 once_cell = { version = "1.8", default-features = false }
 poseidon-parameters = { version="0.4", path = "../poseidon-parameters", default-features = false }
-poseidon-permutation = { version="0.4", path = "../poseidon-permutation", default-features = false }
+poseidon-permutation = { version="0.5", path = "../poseidon-permutation", default-features = false }
 
 # Dependencies added for ark-sponge vendoring
 ark-ec = { version = "0.4", default_features = false, optional=true }

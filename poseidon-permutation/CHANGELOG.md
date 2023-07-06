@@ -15,3 +15,7 @@
 
 * Use `v1` APIs from parameter crates.
 * Use `poseidon-permutation` R1CS implementation.
+
+# 0.5.0
+
+* Fix: Removing unnecessary debug output.
