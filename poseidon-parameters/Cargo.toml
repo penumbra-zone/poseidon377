@@ -1,6 +1,6 @@
 [package]
 name = "poseidon-parameters"
-version = "0.4.0"
+version = "1.0.0"
 edition = "2018"
 authors = []
 description = "A crate for Poseidon parameters"
@@ -11,6 +11,7 @@ repository = "https://github.com/penumbra-zone/poseidon377"
 [dependencies]
 ark-ff = { version = "^0.4.0", default-features = false, optional = true }
 num-integer = { version = "0.1.45", default-features = false }
+decaf377 = { version="0.8.0", default-features = false }
 
 [dev-dependencies]
 ark-ed-on-bls12-377 = "0.4"
@@ -18,12 +19,16 @@ proptest = "1"
 
 [features]
 default = ["arkworks"]
-alloc = []
+alloc = [
+    "decaf377/alloc"
+]
 arkworks = [
     "std",
     "ark-ff",
+    "decaf377/arkworks",
 ]
 std = [
     "ark-ff/std",
     "num-integer/std",
+    "decaf377/std",
 ]

@@ -1,7 +1,5 @@
 use core::slice::Chunks;
 
-use ark_ff::{vec::Vec, PrimeField};
-
 use crate::error::PoseidonParameterError;
 
 pub trait MatrixOperations<F> {

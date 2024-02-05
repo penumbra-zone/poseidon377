@@ -1,6 +1,6 @@
 use core::ops::Mul;
 
-use ark_ff::{vec, vec::Vec, PrimeField};
+// TODO: This library needs to be replaced
 use num_integer::Roots;
 
 use crate::error::PoseidonParameterError;
