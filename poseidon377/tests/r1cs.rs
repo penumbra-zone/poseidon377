@@ -1,4 +1,4 @@
-use ark_ff::{One, PrimeField, Zero};
+use ark_ff::PrimeField;
 use ark_groth16::{r1cs_to_qap::LibsnarkReduction, Groth16, ProvingKey, VerifyingKey};
 use ark_r1cs_std::prelude::{AllocVar, EqGadget};
 use ark_relations::r1cs::{ConstraintSynthesizer, ToConstraintField};
@@ -12,7 +12,7 @@ use proptest::prelude::*;
 use rand_core::OsRng;
 
 // This is a domain separator we'll use as a constant in our circuits below.
-static DOMAIN_SEP: Lazy<Fq> = Lazy::new(|| Fq::from(666));
+static DOMAIN_SEP: Lazy<Fq> = Lazy::new(|| Fq::from(666u64));
 
 /// The maximum fixed-width Poseidon hash exposed to downstream users of this crate.
 const MAX_WIDTH_POSEIDON_HASH: usize = 7;
@@ -141,8 +141,8 @@ impl ConstraintSynthesizer<Fq> for PreimageCircuit {
 impl PreimageCircuit {
     fn generate_test_parameters() -> (ProvingKey<Bls12_377>, VerifyingKey<Bls12_377>) {
         let circuit = PreimageCircuit {
-            preimages: [Fq::from(2); MAX_WIDTH_POSEIDON_HASH],
-            hash_outputs: [Fq::from(2); MAX_WIDTH_POSEIDON_HASH],
+            preimages: [Fq::from(2u64); MAX_WIDTH_POSEIDON_HASH],
+            hash_outputs: [Fq::from(2u64); MAX_WIDTH_POSEIDON_HASH],
         };
         let (pk, vk) =
             Groth16::<Bls12_377, LibsnarkReduction>::circuit_specific_setup(circuit, &mut OsRng)
