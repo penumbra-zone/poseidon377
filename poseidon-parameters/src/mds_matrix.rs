@@ -1,7 +1,7 @@
-use anyhow::Result;
 use ark_ff::{vec::Vec, PrimeField};
 
 use crate::{
+    error::PoseidonParameterError,
     matrix::{Matrix, SquareMatrix},
     matrix_ops::{MatrixOperations, SquareMatrixOperations},
 };
@@ -43,7 +43,7 @@ impl<F: PrimeField> MatrixOperations<F> for MdsMatrix<F> {
         Self(self.0.transpose())
     }
 
-    fn hadamard_product(&self, rhs: &Self) -> Result<Self>
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
     where
         Self: Sized,
     {
