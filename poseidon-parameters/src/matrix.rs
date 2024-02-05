@@ -5,23 +5,24 @@ use num_integer::Roots;
 
 use crate::error::PoseidonParameterError;
 use crate::matrix_ops::{mat_mul, MatrixOperations, SquareMatrixOperations};
+use decaf377::Fq;
 
 /// Represents a matrix over `PrimeField` elements.
 ///
 /// This matrix can be used to represent row or column
 /// vectors.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Matrix<F: PrimeField> {
+pub struct Matrix {
     /// Elements of the matrix.
-    pub elements: Vec<F>,
+    pub elements: Vec<Fq>,
     /// Number of columns.
     pub n_cols: usize,
     /// Number of rows.
     pub n_rows: usize,
 }
 
-impl<F: PrimeField> MatrixOperations<F> for Matrix<F> {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
+impl MatrixOperations for Matrix {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq>) -> Self {
         if elements.len() != n_rows * n_cols {
             panic!("Matrix has an insufficient number of elements")
         }
@@ -32,19 +33,19 @@ impl<F: PrimeField> MatrixOperations<F> for Matrix<F> {
         }
     }
 
-    fn elements(&self) -> &Vec<F> {
+    fn elements(&self) -> &Vec<Fq> {
         &self.elements
     }
 
-    fn get_element(&self, i: usize, j: usize) -> F {
+    fn get_element(&self, i: usize, j: usize) -> Fq {
         self.elements[i * self.n_cols + j]
     }
 
-    fn set_element(&mut self, i: usize, j: usize, val: F) {
+    fn set_element(&mut self, i: usize, j: usize, val: Fq) {
         self.elements[i * self.n_cols + j] = val
     }
 
-    fn rows(&self) -> Vec<&[F]> {
+    fn rows(&self) -> Vec<&[Fq]> {
         self.elements.chunks(self.n_cols).collect()
     }
 
@@ -87,19 +88,19 @@ impl<F: PrimeField> MatrixOperations<F> for Matrix<F> {
 }
 
 /// Multiply scalar by Matrix
-impl<F: PrimeField> Mul<F> for Matrix<F> {
-    type Output = Matrix<F>;
+impl Mul<Fq> for Matrix {
+    type Output = Matrix;
 
-    fn mul(self, rhs: F) -> Self::Output {
+    fn mul(self, rhs: Fq) -> Self::Output {
         let elements = self.elements();
-        let new_elements: Vec<F> = elements.iter().map(|element| *element * rhs).collect();
+        let new_elements: Vec<Fq> = elements.iter().map(|element| *element * rhs).collect();
         Self::new(self.n_rows(), self.n_cols(), new_elements)
     }
 }
 
-impl<F: PrimeField> Matrix<F> {
+impl Matrix {
     /// Get row vector at a specified row index
-    pub fn row_vector(&self, i: usize) -> Matrix<F> {
+    pub fn row_vector(&self, i: usize) -> Matrix {
         let mut row_elements = Vec::with_capacity(self.n_cols);
         for j in 0..self.n_cols {
             row_elements.push(self.get_element(i, j));
@@ -110,26 +111,26 @@ impl<F: PrimeField> Matrix<F> {
 
 /// Represents a square matrix over `PrimeField` elements
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SquareMatrix<F: PrimeField>(pub Matrix<F>);
+pub struct SquareMatrix(pub Matrix);
 
-impl<F: PrimeField> MatrixOperations<F> for SquareMatrix<F> {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
+impl MatrixOperations for SquareMatrix {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq>) -> Self {
         Self(Matrix::new(n_rows, n_cols, elements))
     }
 
-    fn elements(&self) -> &Vec<F> {
+    fn elements(&self) -> &Vec<Fq> {
         self.0.elements()
     }
 
-    fn get_element(&self, i: usize, j: usize) -> F {
+    fn get_element(&self, i: usize, j: usize) -> Fq {
         self.0.get_element(i, j)
     }
 
-    fn set_element(&mut self, i: usize, j: usize, val: F) {
+    fn set_element(&mut self, i: usize, j: usize, val: Fq) {
         self.0.set_element(i, j, val)
     }
 
-    fn rows(&self) -> Vec<&[F]> {
+    fn rows(&self) -> Vec<&[Fq]> {
         self.0.rows()
     }
 
@@ -153,7 +154,7 @@ impl<F: PrimeField> MatrixOperations<F> for SquareMatrix<F> {
     }
 }
 
-impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
+impl SquareMatrixOperations for SquareMatrix {
     /// Compute the inverse of the matrix
     fn inverse(&self) -> Result<Self, PoseidonParameterError> {
         let identity = Self::identity(self.n_rows());
@@ -166,7 +167,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
         }
 
         let determinant = self.determinant();
-        if determinant == F::zero() {
+        if determinant == Fq::zero() {
             return Err(PoseidonParameterError::NoMatrixInverse);
         }
 
@@ -176,7 +177,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
             .hadamard_product(&cofactor_matrix)
             .expect("minor and cofactor matrix have correct dimensions");
         let adj = signed_minors.transpose();
-        let matrix_inverse = adj * (F::one() / determinant);
+        let matrix_inverse = adj * (Fq::one() / determinant);
 
         debug_assert_eq!(
             mat_mul(self, &matrix_inverse)
@@ -188,11 +189,11 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
 
     /// Construct a dim x dim identity matrix
     fn identity(dim: usize) -> Self {
-        let mut m = Self::from_vec(vec![F::zero(); dim * dim]);
+        let mut m = Self::from_vec(vec![Fq::zero(); dim * dim]);
 
         // Set diagonals to 1
         for i in 0..dim {
-            m.set_element(i, i, F::one());
+            m.set_element(i, i, Fq::one());
         }
 
         m
@@ -215,7 +216,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
                 let mut minor_matrix_elements = Vec::with_capacity(dim * dim);
                 for i in 0..dim {
                     for j in 0..dim {
-                        let mut elements: Vec<F> = Vec::new();
+                        let mut elements: Vec<Fq> = Vec::new();
                         for k in 0..i {
                             for l in 0..j {
                                 elements.push(self.get_element(k, l))
@@ -245,16 +246,17 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
     fn cofactors(&self) -> Self {
         let dim = self.n_rows();
         let mut elements = Vec::with_capacity(dim);
+        // TODO: non arkworks Fq::pow
         for i in 0..dim {
             for j in 0..dim {
-                elements.push((-F::one()).pow([(i + j) as u64]))
+                elements.push((-Fq::one()).pow([(i + j) as u64]))
             }
         }
         Self::from_vec(elements)
     }
 
     /// Compute the matrix determinant
-    fn determinant(&self) -> F {
+    fn determinant(&self) -> Fq {
         match self.n_cols() {
             0 => panic!("matrix has no elements!"),
             1 => self.get_element(0, 0),
@@ -282,12 +284,12 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
             }
             _ => {
                 // Unoptimized, but MDS matrices are fairly small, so we do the naive thing
-                let mut det = F::zero();
+                let mut det = Fq::zero();
                 let mut levi_civita = true;
                 let dim = self.n_rows();
 
                 for i in 0..dim {
-                    let mut elements: Vec<F> = Vec::new();
+                    let mut elements: Vec<Fq> = Vec::new();
                     for k in 0..i {
                         for l in 1..dim {
                             elements.push(self.get_element(k, l))
@@ -314,19 +316,19 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
 }
 
 /// Multiply scalar by SquareMatrix
-impl<F: PrimeField> Mul<F> for SquareMatrix<F> {
-    type Output = SquareMatrix<F>;
+impl Mul<Fq> for SquareMatrix {
+    type Output = SquareMatrix;
 
-    fn mul(self, rhs: F) -> Self::Output {
+    fn mul(self, rhs: Fq) -> Self::Output {
         let elements = self.0.elements();
-        let new_elements: Vec<F> = elements.iter().map(|element| *element * rhs).collect();
+        let new_elements: Vec<Fq> = elements.iter().map(|element| *element * rhs).collect();
         Self::from_vec(new_elements)
     }
 }
 
-impl<F: PrimeField> SquareMatrix<F> {
+impl SquareMatrix {
     /// Create a `SquareMatrix` from a vector of elements.
-    pub fn from_vec(elements: Vec<F>) -> Self {
+    pub fn from_vec(elements: Vec<Fq>) -> Self {
         let dim = elements.len().sqrt();
         if dim * dim != elements.len() {
             panic!("SquareMatrix must be square")
@@ -335,12 +337,12 @@ impl<F: PrimeField> SquareMatrix<F> {
     }
 
     /// Get row vector at a specified row index.
-    pub fn row_vector(&self, i: usize) -> Matrix<F> {
+    pub fn row_vector(&self, i: usize) -> Matrix {
         self.0.row_vector(i)
     }
 
     /// Create a 2x2 `SquareMatrix` from four elements.
-    pub fn new_2x2(a: F, b: F, c: F, d: F) -> SquareMatrix<F> {
+    pub fn new_2x2(a: Fq, b: Fq, c: Fq, d: Fq) -> SquareMatrix {
         Self::from_vec(vec![a, b, c, d])
     }
 }
