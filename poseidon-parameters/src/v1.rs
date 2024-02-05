@@ -1,5 +1,3 @@
-use ark_ff::PrimeField;
-
 pub use crate::alpha::Alpha;
 pub use crate::round_numbers::RoundNumbers;
 
@@ -13,7 +11,7 @@ pub use crate::{
 // TODO: arc and mds could be collections
 /// A set of Poseidon1 parameters for a given set of input parameters.
 #[derive(Clone, Debug)]
-pub struct PoseidonParameters<F: PrimeField> {
+pub struct PoseidonParameters {
     // Input parameters.
     /// Security level.
     pub M: usize,
@@ -28,14 +26,14 @@ pub struct PoseidonParameters<F: PrimeField> {
     pub rounds: RoundNumbers,
 
     /// `t x t` MDS matrix used in the `MixLayer` step
-    pub mds: MdsMatrix<F>,
+    pub mds: MdsMatrix,
 
     /// `num_total_rounds x t` matrix of constants used in the `AddRoundConstant` step
-    pub arc: ArcMatrix<F>,
+    pub arc: ArcMatrix,
 
     /// Optimized round constants.
-    pub optimized_arc: OptimizedArcMatrix<F>,
+    pub optimized_arc: OptimizedArcMatrix,
 
     /// Optimized MDS matrices.
-    pub optimized_mds: OptimizedMdsMatrices<F>,
+    pub optimized_mds: OptimizedMdsMatrices,
 }

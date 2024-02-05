@@ -1,20 +1,21 @@
 use core::slice::Chunks;
 
 use crate::error::PoseidonParameterError;
+use decaf377::Fq;
 
-pub trait MatrixOperations<F> {
+pub trait MatrixOperations {
     /// Create a new matrix
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self;
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq>) -> Self;
     /// Access elements as a vector
-    fn elements(&self) -> &Vec<F>;
+    fn elements(&self) -> &Vec<Fq>;
     /// Get element[i,j]
-    fn get_element(&self, i: usize, j: usize) -> F;
+    fn get_element(&self, i: usize, j: usize) -> Fq;
     /// Set element[i,j]
-    fn set_element(&mut self, i: usize, j: usize, val: F);
+    fn set_element(&mut self, i: usize, j: usize, val: Fq);
     /// Get rows
-    fn rows(&self) -> Vec<&[F]>;
+    fn rows(&self) -> Vec<&[Fq]>;
     /// Get rows in chunks
-    fn iter_rows(&self) -> Chunks<F> {
+    fn iter_rows(&self) -> Chunks<Fq> {
         self.elements().chunks(self.n_cols())
     }
     /// Number of rows
@@ -30,10 +31,7 @@ pub trait MatrixOperations<F> {
 }
 
 /// Multiply two matrices
-pub fn mat_mul<F: PrimeField, M: MatrixOperations<F>>(
-    lhs: &M,
-    rhs: &M,
-) -> Result<M, PoseidonParameterError> {
+pub fn mat_mul<M: MatrixOperations>(lhs: &M, rhs: &M) -> Result<M, PoseidonParameterError> {
     if lhs.n_cols() != rhs.n_rows() {
         return Err(PoseidonParameterError::InvalidMatrixDimensions);
     }
@@ -49,14 +47,14 @@ pub fn mat_mul<F: PrimeField, M: MatrixOperations<F>>(
                 rhs_T
                     .iter_rows()
                     .map(|column| dot_product(row, column))
-                    .collect::<Vec<F>>()
+                    .collect::<Vec<Fq>>()
             })
             .collect(),
     ))
 }
 
 /// Compute vector dot product
-pub fn dot_product<F: PrimeField>(a: &[F], b: &[F]) -> F {
+pub fn dot_product(a: &[Fq], b: &[Fq]) -> Fq {
     if a.len() != b.len() {
         panic!("vecs not same len")
     }
@@ -64,14 +62,14 @@ pub fn dot_product<F: PrimeField>(a: &[F], b: &[F]) -> F {
     a.iter().zip(b.iter()).map(|(x, y)| *x * *y).sum()
 }
 
-pub struct Polynomial<F> {
+pub struct Polynomial {
     /// The coefficients of the polynomial a_0, ..., a_i
-    pub coeffs: Vec<F>,
+    pub coeffs: Vec<Fq>,
 }
 
-impl<F: PrimeField> Polynomial<F> {
+impl Polynomial {
     /// Construct a new polynomial
-    pub fn new(coeffs: Vec<F>) -> Self {
+    pub fn new(coeffs: Vec<Fq>) -> Self {
         Self { coeffs }
     }
 
@@ -81,24 +79,24 @@ impl<F: PrimeField> Polynomial<F> {
     }
 
     /// Evaluate the polynomial at a given point
-    pub fn evaluate(&self, x: F) -> F {
+    pub fn evaluate(&self, x: Fq) -> Fq {
         self.coeffs
             .iter()
             .rev()
-            .fold(F::zero(), |acc, coeff| acc * x + coeff)
+            .fold(Fq::zero(), |acc, coeff| acc * x + coeff)
     }
 
     /// Check if the polynomial is irreducible using Perron's irreducibility criterion.
     pub fn is_irreducible(&self) -> bool {
         // We first need to check the polynomial is monic.
-        if self.coeffs.last() != Some(&F::one()) {
+        if self.coeffs.last() != Some(&Fq::one()) {
             unimplemented!("polynomial is not monic, not sure how to check irreducibility")
         } else {
             // The polynomial is monic, so we can apply Perron's criterion.
             // See https://en.wikipedia.org/wiki/Perron%27s_irreducibility_criterion
             // for more details.
             let n = self.max_degree();
-            let mut sum = F::one();
+            let mut sum = Fq::one();
             for i in 0..n - 1 {
                 sum += self.coeffs[i];
             }
@@ -112,9 +110,9 @@ impl<F: PrimeField> Polynomial<F> {
                 // AND
                 // f(1) != 0 AND f(-1) != 0
                 coeff if coeff == sum => {
-                    let f_of_1 = self.evaluate(F::one());
-                    let f_of_neg_1 = self.evaluate(-F::one());
-                    f_of_1 != F::zero() && f_of_neg_1 != F::zero()
+                    let f_of_1 = self.evaluate(Fq::one());
+                    let f_of_neg_1 = self.evaluate(-Fq::one());
+                    f_of_1 != Fq::zero() && f_of_neg_1 != Fq::zero()
                 }
                 _ => false,
             }
@@ -123,7 +121,7 @@ impl<F: PrimeField> Polynomial<F> {
 }
 
 /// Matrix operations that are defined on square matrices.
-pub trait SquareMatrixOperations<F> {
+pub trait SquareMatrixOperations {
     /// Compute the matrix inverse, if it exists
     fn inverse(&self) -> Result<Self, PoseidonParameterError>
     where
@@ -135,19 +133,19 @@ pub trait SquareMatrixOperations<F> {
     /// Compute the matrix of cofactors
     fn cofactors(&self) -> Self;
     /// Compute the matrix determinant
-    fn determinant(&self) -> F;
+    fn determinant(&self) -> Fq;
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ark_ed_on_bls12_377::Fq;
+    use decaf377::Fq;
 
     #[test]
     fn poly_evaluate() {
         // f(x) = 1 + 2x + 3x^2
-        let poly = Polynomial::new(vec![Fq::from(1), Fq::from(2), Fq::from(3)]);
+        let poly = Polynomial::new(vec![Fq::from(1u64), Fq::from(2u64), Fq::from(3u64)]);
         assert_eq!(poly.max_degree(), 2);
-        assert_eq!(poly.evaluate(Fq::from(2)), Fq::from(17));
+        assert_eq!(poly.evaluate(Fq::from(2u64)), Fq::from(17u64));
     }
 }

@@ -3,29 +3,30 @@ use crate::{
     matrix::{Matrix, SquareMatrix},
     matrix_ops::{MatrixOperations, SquareMatrixOperations},
 };
+use decaf377::Fq;
 
 /// Represents an MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct MdsMatrix<F: PrimeField>(pub SquareMatrix<F>);
+pub struct MdsMatrix(pub SquareMatrix);
 
-impl<F: PrimeField> MatrixOperations<F> for MdsMatrix<F> {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
+impl MatrixOperations for MdsMatrix {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq>) -> Self {
         Self(SquareMatrix::new(n_rows, n_cols, elements))
     }
 
-    fn elements(&self) -> &Vec<F> {
+    fn elements(&self) -> &Vec<Fq> {
         self.0.elements()
     }
 
-    fn get_element(&self, i: usize, j: usize) -> F {
+    fn get_element(&self, i: usize, j: usize) -> Fq {
         self.0.get_element(i, j)
     }
 
-    fn set_element(&mut self, i: usize, j: usize, val: F) {
+    fn set_element(&mut self, i: usize, j: usize, val: Fq) {
         self.0.set_element(i, j, val)
     }
 
-    fn rows(&self) -> Vec<&[F]> {
+    fn rows(&self) -> Vec<&[Fq]> {
         self.0.rows()
     }
 
@@ -49,7 +50,7 @@ impl<F: PrimeField> MatrixOperations<F> for MdsMatrix<F> {
     }
 }
 
-impl<F: PrimeField> MdsMatrix<F> {
+impl MdsMatrix {
     /// Instantiate an MDS matrix from a list of elements.
     ///
     /// # Security
@@ -58,12 +59,12 @@ impl<F: PrimeField> MdsMatrix<F> {
     /// using the Cauchy method in `fixed_cauchy_matrix` or
     /// using the random subsampling method described in the original
     /// paper.
-    pub fn from_elements(elements: Vec<F>) -> Self {
+    pub fn from_elements(elements: Vec<Fq>) -> Self {
         Self(SquareMatrix::from_vec(elements))
     }
 
     /// Compute inverse of MDS matrix
-    pub fn inverse(&self) -> SquareMatrix<F> {
+    pub fn inverse(&self) -> SquareMatrix {
         self.0
             .inverse()
             .expect("all well-formed MDS matrices should have inverses")
@@ -72,15 +73,15 @@ impl<F: PrimeField> MdsMatrix<F> {
     /// Return the elements M_{0,1} .. M_{0,t} from the first row
     ///
     /// Ref: p.20 of the Poseidon paper
-    pub fn v(&self) -> Matrix<F> {
-        let elements: Vec<F> = self.0 .0.elements()[1..self.0 .0.n_rows()].to_vec();
+    pub fn v(&self) -> Matrix {
+        let elements: Vec<Fq> = self.0 .0.elements()[1..self.0 .0.n_rows()].to_vec();
         Matrix::new(1, self.0.n_rows() - 1, elements)
     }
 
     /// Return the elements M_{1,0} .. M_{t,0}from the first column
     ///
     /// Ref: p.20 of the Poseidon paper
-    pub fn w(&self) -> Matrix<F> {
+    pub fn w(&self) -> Matrix {
         let mut elements = Vec::with_capacity(self.0.n_rows() - 1);
         for i in 1..self.n_rows() {
             elements.push(self.get_element(i, 0))
@@ -93,7 +94,7 @@ impl<F: PrimeField> MdsMatrix<F> {
     /// This is simply the MDS matrix with the first row and column removed
     ///
     /// Ref: p.20 of the Poseidon paper
-    pub fn hat(&self) -> SquareMatrix<F> {
+    pub fn hat(&self) -> SquareMatrix {
         let dim = self.n_rows();
         let mut mhat_elements = Vec::with_capacity((dim - 1) * (dim - 1));
         for i in 1..dim {
@@ -106,9 +107,9 @@ impl<F: PrimeField> MdsMatrix<F> {
     }
 }
 
-impl<F: PrimeField> From<MdsMatrix<F>> for Vec<Vec<F>> {
-    fn from(val: MdsMatrix<F>) -> Self {
-        let mut rows = Vec::<Vec<F>>::new();
+impl From<MdsMatrix> for Vec<Vec<Fq>> {
+    fn from(val: MdsMatrix) -> Self {
+        let mut rows = Vec::<Vec<Fq>>::new();
         for i in 0..val.0.n_rows() {
             let mut row = Vec::new();
             for j in 0..val.0.n_rows() {
@@ -122,27 +123,27 @@ impl<F: PrimeField> From<MdsMatrix<F>> for Vec<Vec<F>> {
 
 /// Represents an optimized MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct OptimizedMdsMatrices<F: PrimeField> {
+pub struct OptimizedMdsMatrices {
     /// A (t - 1) x (t - 1) MDS submatrix derived from the MDS matrix.
-    pub M_hat: SquareMatrix<F>,
+    pub M_hat: SquareMatrix,
     /// A 1 x (t - 1) (row) vector derived from the MDS matrix.
-    pub v: Matrix<F>,
+    pub v: Matrix,
     /// A (t - 1) x 1 (column) vector derived from the MDS matrix.
-    pub w: Matrix<F>,
+    pub w: Matrix,
     /// A matrix formed from Mhat (an MDS submatrix of the MDS matrix).
-    pub M_prime: SquareMatrix<F>,
+    pub M_prime: SquareMatrix,
     /// A sparse matrix formed from M,
-    pub M_doubleprime: SquareMatrix<F>,
+    pub M_doubleprime: SquareMatrix,
     /// The inverse of the t x t MDS matrix (needed to compute round constants).
-    pub M_inverse: SquareMatrix<F>,
+    pub M_inverse: SquareMatrix,
     /// The inverse of the (t - 1) x (t - 1) Mhat matrix.
-    pub M_hat_inverse: SquareMatrix<F>,
+    pub M_hat_inverse: SquareMatrix,
     /// Element at M00
-    pub M_00: F,
+    pub M_00: Fq,
     /// M_i
-    pub M_i: Matrix<F>,
+    pub M_i: Matrix,
     /// v_collection: one per round.
-    pub v_collection: Vec<Matrix<F>>,
+    pub v_collection: Vec<Matrix>,
     /// w_hat_collection: one per round
-    pub w_hat_collection: Vec<Matrix<F>>,
+    pub w_hat_collection: Vec<Matrix>,
 }

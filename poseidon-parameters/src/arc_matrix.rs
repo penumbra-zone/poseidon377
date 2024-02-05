@@ -1,30 +1,31 @@
 use crate::{error::PoseidonParameterError, matrix::Matrix, matrix_ops::MatrixOperations};
+use decaf377::Fq;
 
 /// Represents an matrix of round constants.
 ///
 /// Arc stands for `AddRoundConstant` which is the
 /// step in the permutation where this matrix is used.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ArcMatrix(pub Matrix<Fq>);
+pub struct ArcMatrix(pub Matrix);
 
-impl<F: PrimeField> MatrixOperations<F> for ArcMatrix<F> {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
+impl MatrixOperations for ArcMatrix {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq>) -> Self {
         Self(Matrix::new(n_rows, n_cols, elements))
     }
 
-    fn elements(&self) -> &Vec<F> {
+    fn elements(&self) -> &Vec<Fq> {
         self.0.elements()
     }
 
-    fn get_element(&self, i: usize, j: usize) -> F {
+    fn get_element(&self, i: usize, j: usize) -> Fq {
         self.0.get_element(i, j)
     }
 
-    fn set_element(&mut self, i: usize, j: usize, val: F) {
+    fn set_element(&mut self, i: usize, j: usize, val: Fq) {
         self.0.set_element(i, j, val)
     }
 
-    fn rows(&self) -> Vec<&[F]> {
+    fn rows(&self) -> Vec<&[Fq]> {
         self.0.rows()
     }
 
@@ -48,9 +49,9 @@ impl<F: PrimeField> MatrixOperations<F> for ArcMatrix<F> {
     }
 }
 
-impl<F: PrimeField> From<ArcMatrix<F>> for Vec<Vec<F>> {
-    fn from(arc: ArcMatrix<F>) -> Self {
-        let mut rows = Vec::<Vec<F>>::new();
+impl From<ArcMatrix> for Vec<Vec<Fq>> {
+    fn from(arc: ArcMatrix) -> Self {
+        let mut rows = Vec::<Vec<Fq>>::new();
         let m = &arc.0;
 
         for i in 0..arc.n_rows() {
@@ -73,27 +74,27 @@ impl<F: PrimeField> From<ArcMatrix<F>> for Vec<Vec<F>> {
 /// This method follows `calc_equivalent_constants` from Appendix B's
 /// `poseidonperm_x3_64_24_optimized.sage`.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct OptimizedArcMatrix<F: PrimeField>(pub ArcMatrix<F>);
+pub struct OptimizedArcMatrix(pub ArcMatrix);
 
-impl<F: PrimeField> MatrixOperations<F> for OptimizedArcMatrix<F> {
+impl MatrixOperations for OptimizedArcMatrix {
     /// Create a `OptimizedArcMatrix` from its elements.
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq>) -> Self {
         Self(ArcMatrix::new(n_rows, n_cols, elements))
     }
 
-    fn elements(&self) -> &Vec<F> {
+    fn elements(&self) -> &Vec<Fq> {
         self.0.elements()
     }
 
-    fn get_element(&self, i: usize, j: usize) -> F {
+    fn get_element(&self, i: usize, j: usize) -> Fq {
         self.0.get_element(i, j)
     }
 
-    fn set_element(&mut self, i: usize, j: usize, val: F) {
+    fn set_element(&mut self, i: usize, j: usize, val: Fq) {
         self.0.set_element(i, j, val)
     }
 
-    fn rows(&self) -> Vec<&[F]> {
+    fn rows(&self) -> Vec<&[Fq]> {
         self.0.rows()
     }
 
