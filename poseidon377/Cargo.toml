@@ -52,6 +52,7 @@ std = [
     "once_cell/std",
 ]
 r1cs = [
+    "arkworks",
     "ark-groth16",
     "ark-relations",
     "ark-snark",
