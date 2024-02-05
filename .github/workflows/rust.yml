@@ -76,6 +76,23 @@ jobs:
            popd
          done
 
+  build_no_alloc:
+    name: build without alloc
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - run: rustup target add thumbv7em-none-eabihf
+      - uses: Swatinem/rust-cache@v1
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --package poseidon377 --target thumbv7em-none-eabihf --no-default-features
+
   # clippy:
   #  name: Clippy
   #  runs-on: ubuntu-latest
