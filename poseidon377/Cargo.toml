@@ -36,6 +36,7 @@ ark-test-curves = { version = "0.4", features = ["bls12_381_curve", "mnt4_753_cu
 
 [features]
 default = ["arkworks"]
+alloc = ["once_cell/alloc",]
 arkworks = ["std",
     "decaf377/arkworks",
     "ark-ff/std",
@@ -46,6 +47,7 @@ arkworks = ["std",
     "ark-ec/std",
     "ark-serialize/std"]
 std = [
+    "alloc",
     "num-bigint/std",
     "once_cell/std",
 ]
