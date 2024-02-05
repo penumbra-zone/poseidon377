@@ -35,17 +35,19 @@ rand_chacha = "0.3"
 ark-test-curves = { version = "0.4", features = ["bls12_381_curve", "mnt4_753_curve"]}
 
 [features]
-default = ["std"]
-std = [
+default = ["arkworks"]
+arkworks = ["std",
+    "decaf377/arkworks",
     "ark-ff/std",
     "ark-groth16/std",
     "ark-r1cs-std",
     "ark-relations/std",
-    "num-bigint/std",
-    "once_cell/std",
     "ark-std/std",
     "ark-ec/std",
-    "ark-serialize/std",
+    "ark-serialize/std"]
+std = [
+    "num-bigint/std",
+    "once_cell/std",
 ]
 r1cs = [
     "ark-groth16",
