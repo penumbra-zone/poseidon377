@@ -1,5 +1,3 @@
-use ark_ff::PrimeField;
-
 pub use crate::alpha::Alpha;
 pub use crate::arc_matrix::ArcMatrix;
 pub use crate::matrix::SquareMatrix;
@@ -11,7 +9,7 @@ pub use crate::{
 
 /// A set of Poseidon2 parameters for a given set of input parameters.
 #[derive(Clone, Debug)]
-pub struct PoseidonParameters<F: PrimeField> {
+pub struct PoseidonParameters {
     // Input parameters.
     /// Security level.
     pub M: usize,
@@ -26,11 +24,11 @@ pub struct PoseidonParameters<F: PrimeField> {
     pub rounds: RoundNumbers,
 
     /// External matrix
-    pub m_e: SquareMatrix<F>,
+    pub m_e: SquareMatrix,
 
     /// Internal matrix
-    pub m_i: SquareMatrix<F>,
+    pub m_i: SquareMatrix,
 
     /// Round constants
-    pub arc: ArcMatrix<F>,
+    pub arc: ArcMatrix,
 }
