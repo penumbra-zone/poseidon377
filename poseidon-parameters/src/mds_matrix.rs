@@ -1,5 +1,3 @@
-use ark_ff::{vec::Vec, PrimeField};
-
 use crate::{
     error::PoseidonParameterError,
     matrix::{Matrix, SquareMatrix},

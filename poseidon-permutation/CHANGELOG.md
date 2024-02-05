@@ -19,3 +19,7 @@
 # 0.5.0
 
 * Fix: Removing unnecessary debug output.
+
+# 1.0.0
+
+* Remove Arkworks requirement

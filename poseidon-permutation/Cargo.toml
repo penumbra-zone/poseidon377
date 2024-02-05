@@ -1,6 +1,6 @@
 [package]
 name = "poseidon-permutation"
-version = "0.5.0"
+version = "1.0.0"
 edition = "2018"
 authors = ["Penumbra <team@penumbralabs.xyz>", "redshiftzero <jen@penumbralabs.xyz>"]
 description = "An instantiation of the Poseidon permutation"
@@ -13,7 +13,7 @@ ark-std = { version = "^0.4.0", default-features = false }
 ark-r1cs-std = {version = "0.4", default-features = false, optional=true }
 ark-relations = { version="0.4", default-features = false, optional=true }
 
-poseidon-parameters = { path = "../poseidon-parameters", default-features = false, version = "0.4" }
+poseidon-parameters = { path = "../poseidon-parameters", default-features = false, version = "1.0" }
 
 [features]
 default = ["std"]

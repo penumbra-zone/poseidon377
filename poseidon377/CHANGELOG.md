@@ -22,3 +22,7 @@
 # 0.6.0
 
 * Use `poseidon-permutation` version 0.5.0 to avoid spurious debug output.
+
+# 1.0.0
+
+* Remove Arkworks requirement
