@@ -1,7 +1,8 @@
 use core::slice::Chunks;
 
-use anyhow::{anyhow, Result};
 use ark_ff::{vec::Vec, PrimeField};
+
+use crate::error::PoseidonParameterError;
 
 pub trait MatrixOperations<F> {
     /// Create a new matrix
@@ -22,20 +23,21 @@ pub trait MatrixOperations<F> {
     fn n_rows(&self) -> usize;
     /// Number of columns
     fn n_cols(&self) -> usize;
-    /// Take transpose of the matrix    
+    /// Take transpose of the matrix
     fn transpose(&self) -> Self;
     /// Compute Hadamard (element-wise) product
-    fn hadamard_product(&self, rhs: &Self) -> Result<Self>
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
     where
         Self: Sized;
 }
 
 /// Multiply two matrices
-pub fn mat_mul<F: PrimeField, M: MatrixOperations<F>>(lhs: &M, rhs: &M) -> Result<M> {
+pub fn mat_mul<F: PrimeField, M: MatrixOperations<F>>(
+    lhs: &M,
+    rhs: &M,
+) -> Result<M, PoseidonParameterError> {
     if lhs.n_cols() != rhs.n_rows() {
-        return Err(anyhow!(
-            "matrix dimensions do not allow matrix multiplication"
-        ));
+        return Err(PoseidonParameterError::InvalidMatrixDimensions);
     }
 
     let rhs_T = rhs.transpose();
@@ -125,7 +127,7 @@ impl<F: PrimeField> Polynomial<F> {
 /// Matrix operations that are defined on square matrices.
 pub trait SquareMatrixOperations<F> {
     /// Compute the matrix inverse, if it exists
-    fn inverse(&self) -> Result<Self>
+    fn inverse(&self) -> Result<Self, PoseidonParameterError>
     where
         Self: Sized;
     /// Construct an n x n identity matrix

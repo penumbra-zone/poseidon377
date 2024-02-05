@@ -1,9 +1,9 @@
 use core::ops::Mul;
 
-use anyhow::{anyhow, Result};
 use ark_ff::{vec, vec::Vec, PrimeField};
 use num_integer::Roots;
 
+use crate::error::PoseidonParameterError;
 use crate::matrix_ops::{mat_mul, MatrixOperations, SquareMatrixOperations};
 
 /// Represents a matrix over `PrimeField` elements.
@@ -67,12 +67,12 @@ impl<F: PrimeField> MatrixOperations<F> for Matrix<F> {
         Self::new(self.n_cols, self.n_rows, transposed_elements)
     }
 
-    fn hadamard_product(&self, rhs: &Self) -> Result<Self>
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
     where
         Self: Sized,
     {
         if self.n_rows != rhs.n_rows || self.n_cols != rhs.n_cols {
-            return Err(anyhow!("Hadamard product requires same shape matrices"));
+            return Err(PoseidonParameterError::InvalidMatrixDimensions);
         }
 
         let mut new_elements = Vec::with_capacity(self.n_rows * self.n_cols);
@@ -145,7 +145,7 @@ impl<F: PrimeField> MatrixOperations<F> for SquareMatrix<F> {
         Self(self.0.transpose())
     }
 
-    fn hadamard_product(&self, rhs: &Self) -> Result<Self>
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
     where
         Self: Sized,
     {
@@ -155,7 +155,7 @@ impl<F: PrimeField> MatrixOperations<F> for SquareMatrix<F> {
 
 impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
     /// Compute the inverse of the matrix
-    fn inverse(&self) -> Result<Self> {
+    fn inverse(&self) -> Result<Self, PoseidonParameterError> {
         let identity = Self::identity(self.n_rows());
 
         if self.n_rows() == 1 {
@@ -167,7 +167,7 @@ impl<F: PrimeField> SquareMatrixOperations<F> for SquareMatrix<F> {
 
         let determinant = self.determinant();
         if determinant == F::zero() {
-            return Err(anyhow!("err: matrix has no inverse"));
+            return Err(PoseidonParameterError::NoMatrixInverse);
         }
 
         let minors = self.minors();

@@ -1,7 +1,6 @@
-use anyhow::Result;
 use ark_ff::{vec::Vec, PrimeField};
 
-use crate::{matrix::Matrix, matrix_ops::MatrixOperations};
+use crate::{error::PoseidonParameterError, matrix::Matrix, matrix_ops::MatrixOperations};
 
 /// Represents an matrix of round constants.
 ///
@@ -43,7 +42,7 @@ impl<F: PrimeField> MatrixOperations<F> for ArcMatrix<F> {
         Self(self.0.transpose())
     }
 
-    fn hadamard_product(&self, rhs: &Self) -> Result<Self>
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
     where
         Self: Sized,
     {
@@ -112,7 +111,7 @@ impl<F: PrimeField> MatrixOperations<F> for OptimizedArcMatrix<F> {
         Self(self.0.transpose())
     }
 
-    fn hadamard_product(&self, rhs: &Self) -> Result<Self>
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
     where
         Self: Sized,
     {
