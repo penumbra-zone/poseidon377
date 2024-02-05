@@ -9,3 +9,7 @@
 # 0.4.0
 
 * Add `v1` and `v2` APIs.
+
+# 1.0.0
+
+* Remove Arkworks requirement

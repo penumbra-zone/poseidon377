@@ -1,5 +1,3 @@
-use ark_ff::{vec::Vec, PrimeField};
-
 use crate::{error::PoseidonParameterError, matrix::Matrix, matrix_ops::MatrixOperations};
 
 /// Represents an matrix of round constants.
@@ -7,7 +5,7 @@ use crate::{error::PoseidonParameterError, matrix::Matrix, matrix_ops::MatrixOpe
 /// Arc stands for `AddRoundConstant` which is the
 /// step in the permutation where this matrix is used.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ArcMatrix<F: PrimeField>(pub Matrix<F>);
+pub struct ArcMatrix(pub Matrix<Fq>);
 
 impl<F: PrimeField> MatrixOperations<F> for ArcMatrix<F> {
     fn new(n_rows: usize, n_cols: usize, elements: Vec<F>) -> Self {
