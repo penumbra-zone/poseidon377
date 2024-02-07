@@ -2,19 +2,21 @@ use crate::{
     error::PoseidonParameterError,
     matrix::{Matrix, SquareMatrix},
     matrix_ops::{MatrixOperations, SquareMatrixOperations},
+    MAX_DIMENSION,
 };
 use decaf377::Fq;
+use heapless::Vec;
 
 /// Represents an MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MdsMatrix(pub SquareMatrix);
 
 impl MatrixOperations for MdsMatrix {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq>) -> Self {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq, MAX_DIMENSION>) -> Self {
         Self(SquareMatrix::new(n_rows, n_cols, elements))
     }
 
-    fn elements(&self) -> &Vec<Fq> {
+    fn elements(&self) -> &Vec<Fq, MAX_DIMENSION> {
         self.0.elements()
     }
 
@@ -26,7 +28,7 @@ impl MatrixOperations for MdsMatrix {
         self.0.set_element(i, j, val)
     }
 
-    fn rows(&self) -> Vec<&[Fq]> {
+    fn rows(&self) -> Vec<&[Fq], MAX_DIMENSION> {
         self.0.rows()
     }
 
@@ -59,7 +61,7 @@ impl MdsMatrix {
     /// using the Cauchy method in `fixed_cauchy_matrix` or
     /// using the random subsampling method described in the original
     /// paper.
-    pub fn from_elements(elements: Vec<Fq>) -> Self {
+    pub fn from_elements(elements: Vec<Fq, MAX_DIMENSION>) -> Self {
         Self(SquareMatrix::from_vec(elements))
     }
 
@@ -74,7 +76,8 @@ impl MdsMatrix {
     ///
     /// Ref: p.20 of the Poseidon paper
     pub fn v(&self) -> Matrix {
-        let elements: Vec<Fq> = self.0 .0.elements()[1..self.0 .0.n_rows()].to_vec();
+        let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
+        elements.extend_from_slice(&self.0 .0.elements()[1..self.0 .0.n_rows()]);
         Matrix::new(1, self.0.n_rows() - 1, elements)
     }
 
@@ -82,9 +85,9 @@ impl MdsMatrix {
     ///
     /// Ref: p.20 of the Poseidon paper
     pub fn w(&self) -> Matrix {
-        let mut elements = Vec::with_capacity(self.0.n_rows() - 1);
+        let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
         for i in 1..self.n_rows() {
-            elements.push(self.get_element(i, 0))
+            elements.push(self.get_element(i, 0));
         }
         Matrix::new(&self.n_rows() - 1, 1, elements)
     }
@@ -96,10 +99,10 @@ impl MdsMatrix {
     /// Ref: p.20 of the Poseidon paper
     pub fn hat(&self) -> SquareMatrix {
         let dim = self.n_rows();
-        let mut mhat_elements = Vec::with_capacity((dim - 1) * (dim - 1));
+        let mut mhat_elements = Vec::<Fq, MAX_DIMENSION>::new();
         for i in 1..dim {
             for j in 1..dim {
-                mhat_elements.push(self.0.get_element(i, j))
+                mhat_elements.push(self.0.get_element(i, j));
             }
         }
 
@@ -107,9 +110,9 @@ impl MdsMatrix {
     }
 }
 
-impl From<MdsMatrix> for Vec<Vec<Fq>> {
+impl From<MdsMatrix> for Vec<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION> {
     fn from(val: MdsMatrix) -> Self {
-        let mut rows = Vec::<Vec<Fq>>::new();
+        let mut rows = Vec::<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION>::new();
         for i in 0..val.0.n_rows() {
             let mut row = Vec::new();
             for j in 0..val.0.n_rows() {
@@ -143,7 +146,7 @@ pub struct OptimizedMdsMatrices {
     /// M_i
     pub M_i: Matrix,
     /// v_collection: one per round.
-    pub v_collection: Vec<Matrix>,
+    pub v_collection: Vec<Matrix, MAX_DIMENSION>,
     /// w_hat_collection: one per round
-    pub w_hat_collection: Vec<Matrix>,
+    pub w_hat_collection: Vec<Matrix, MAX_DIMENSION>,
 }

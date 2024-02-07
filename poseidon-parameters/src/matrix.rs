@@ -1,7 +1,9 @@
 use core::ops::Mul;
+use heapless::Vec;
 
 use crate::error::PoseidonParameterError;
 use crate::matrix_ops::{mat_mul, MatrixOperations, SquareMatrixOperations};
+use crate::MAX_DIMENSION;
 use decaf377::Fq;
 
 /// Represents a matrix over `PrimeField` elements.
@@ -11,7 +13,7 @@ use decaf377::Fq;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Matrix {
     /// Elements of the matrix.
-    pub elements: Vec<Fq>,
+    pub elements: Vec<Fq, MAX_DIMENSION>,
     /// Number of columns.
     pub n_cols: usize,
     /// Number of rows.
@@ -19,7 +21,7 @@ pub struct Matrix {
 }
 
 impl MatrixOperations for Matrix {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq>) -> Self {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq, MAX_DIMENSION>) -> Self {
         if elements.len() != n_rows * n_cols {
             panic!("Matrix has an insufficient number of elements")
         }
@@ -30,7 +32,7 @@ impl MatrixOperations for Matrix {
         }
     }
 
-    fn elements(&self) -> &Vec<Fq> {
+    fn elements(&self) -> &Vec<Fq, MAX_DIMENSION> {
         &self.elements
     }
 
@@ -42,7 +44,7 @@ impl MatrixOperations for Matrix {
         self.elements[i * self.n_cols + j] = val
     }
 
-    fn rows(&self) -> Vec<&[Fq]> {
+    fn rows(&self) -> Vec<&[Fq], MAX_DIMENSION> {
         self.elements.chunks(self.n_cols).collect()
     }
 
@@ -55,11 +57,11 @@ impl MatrixOperations for Matrix {
     }
 
     fn transpose(&self) -> Self {
-        let mut transposed_elements = Vec::with_capacity(self.n_rows * self.n_cols);
+        let mut transposed_elements = Vec::<Fq, MAX_DIMENSION>::new();
 
         for j in 0..self.n_cols {
             for i in 0..self.n_rows {
-                transposed_elements.push(self.get_element(i, j))
+                transposed_elements.push(self.get_element(i, j));
             }
         }
         Self::new(self.n_cols, self.n_rows, transposed_elements)
@@ -73,7 +75,7 @@ impl MatrixOperations for Matrix {
             return Err(PoseidonParameterError::InvalidMatrixDimensions);
         }
 
-        let mut new_elements = Vec::with_capacity(self.n_rows * self.n_cols);
+        let mut new_elements = Vec::<Fq, MAX_DIMENSION>::new();
         for i in 0..self.n_rows {
             for j in 0..self.n_cols {
                 new_elements.push(self.get_element(i, j) * rhs.get_element(i, j));
@@ -90,7 +92,8 @@ impl Mul<Fq> for Matrix {
 
     fn mul(self, rhs: Fq) -> Self::Output {
         let elements = self.elements();
-        let new_elements: Vec<Fq> = elements.iter().map(|element| *element * rhs).collect();
+        let new_elements: Vec<Fq, MAX_DIMENSION> =
+            elements.iter().map(|element| *element * rhs).collect();
         Self::new(self.n_rows(), self.n_cols(), new_elements)
     }
 }
@@ -98,7 +101,7 @@ impl Mul<Fq> for Matrix {
 impl Matrix {
     /// Get row vector at a specified row index
     pub fn row_vector(&self, i: usize) -> Matrix {
-        let mut row_elements = Vec::with_capacity(self.n_cols);
+        let mut row_elements = Vec::<Fq, MAX_DIMENSION>::new();
         for j in 0..self.n_cols {
             row_elements.push(self.get_element(i, j));
         }
@@ -111,11 +114,11 @@ impl Matrix {
 pub struct SquareMatrix(pub Matrix);
 
 impl MatrixOperations for SquareMatrix {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq>) -> Self {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq, MAX_DIMENSION>) -> Self {
         Self(Matrix::new(n_rows, n_cols, elements))
     }
 
-    fn elements(&self) -> &Vec<Fq> {
+    fn elements(&self) -> &Vec<Fq, MAX_DIMENSION> {
         self.0.elements()
     }
 
@@ -127,7 +130,7 @@ impl MatrixOperations for SquareMatrix {
         self.0.set_element(i, j, val)
     }
 
-    fn rows(&self) -> Vec<&[Fq]> {
+    fn rows(&self) -> Vec<&[Fq], MAX_DIMENSION> {
         self.0.rows()
     }
 
@@ -157,10 +160,13 @@ impl SquareMatrixOperations for SquareMatrix {
         let identity = Self::identity(self.n_rows());
 
         if self.n_rows() == 1 {
-            return Ok(Self::from_vec(vec![self
-                .get_element(0, 0)
-                .inverse()
-                .expect("inverse of single element must exist for 1x1 matrix")]));
+            let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
+            elements.push(
+                self.get_element(0, 0)
+                    .inverse()
+                    .expect("inverse of single element must exist for 1x1 matrix"),
+            );
+            return Ok(Self::from_vec(elements));
         }
 
         let determinant = self.determinant();
@@ -186,7 +192,13 @@ impl SquareMatrixOperations for SquareMatrix {
 
     /// Construct a dim x dim identity matrix
     fn identity(dim: usize) -> Self {
-        let mut m = Self::from_vec(vec![Fq::zero(); dim * dim]);
+        let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
+        for _ in 0..dim {
+            for _ in 0..dim {
+                elements.push(Fq::zero());
+            }
+        }
+        let mut m = Self::from_vec(elements);
 
         // Set diagonals to 1
         for i in 0..dim {
@@ -200,34 +212,40 @@ impl SquareMatrixOperations for SquareMatrix {
     fn minors(&self) -> Self {
         match self.n_cols() {
             0 => panic!("matrix has no elements!"),
-            1 => Self::from_vec(vec![self.get_element(0, 0)]),
+            1 => {
+                let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
+                elements.push(self.get_element(0, 0));
+                Self::from_vec(elements)
+            }
             2 => {
+                let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
                 let a = self.get_element(0, 0);
                 let b = self.get_element(0, 1);
                 let c = self.get_element(1, 0);
                 let d = self.get_element(1, 1);
-                Self::from_vec(vec![d, c, b, a])
+                elements.extend_from_slice(&[a, c, b, a]);
+                Self::from_vec(elements)
             }
             _ => {
                 let dim = self.n_rows();
-                let mut minor_matrix_elements = Vec::with_capacity(dim * dim);
+                let mut minor_matrix_elements = Vec::<Fq, MAX_DIMENSION>::new();
                 for i in 0..dim {
                     for j in 0..dim {
-                        let mut elements: Vec<Fq> = Vec::new();
+                        let mut elements: Vec<Fq, MAX_DIMENSION> = Vec::new();
                         for k in 0..i {
                             for l in 0..j {
-                                elements.push(self.get_element(k, l))
+                                elements.push(self.get_element(k, l));
                             }
                             for l in (j + 1)..dim {
-                                elements.push(self.get_element(k, l))
+                                elements.push(self.get_element(k, l));
                             }
                         }
                         for k in i + 1..dim {
                             for l in 0..j {
-                                elements.push(self.get_element(k, l))
+                                elements.push(self.get_element(k, l));
                             }
                             for l in (j + 1)..dim {
-                                elements.push(self.get_element(k, l))
+                                elements.push(self.get_element(k, l));
                             }
                         }
                         let minor = Self::from_vec(elements);
@@ -242,12 +260,13 @@ impl SquareMatrixOperations for SquareMatrix {
     /// Compute the cofactor matrix, i.e. $C_{ij} = (-1)^{i+j}$
     fn cofactors(&self) -> Self {
         let dim = self.n_rows();
-        let mut elements = Vec::with_capacity(dim);
+        let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
+
         // TODO: non arkworks Fq::pow
         use crate::StuffThatNeedsToGoInDecaf377;
         for i in 0..dim {
             for j in 0..dim {
-                elements.push((-Fq::one()).pow([(i + j) as u64]))
+                elements.push((-Fq::one()).pow([(i + j) as u64]));
             }
         }
         Self::from_vec(elements)
@@ -287,15 +306,15 @@ impl SquareMatrixOperations for SquareMatrix {
                 let dim = self.n_rows();
 
                 for i in 0..dim {
-                    let mut elements: Vec<Fq> = Vec::new();
+                    let mut elements: Vec<Fq, MAX_DIMENSION> = Vec::new();
                     for k in 0..i {
                         for l in 1..dim {
-                            elements.push(self.get_element(k, l))
+                            elements.push(self.get_element(k, l));
                         }
                     }
                     for k in i + 1..dim {
                         for l in 1..dim {
-                            elements.push(self.get_element(k, l))
+                            elements.push(self.get_element(k, l));
                         }
                     }
                     let minor = Self::from_vec(elements);
@@ -319,14 +338,15 @@ impl Mul<Fq> for SquareMatrix {
 
     fn mul(self, rhs: Fq) -> Self::Output {
         let elements = self.0.elements();
-        let new_elements: Vec<Fq> = elements.iter().map(|element| *element * rhs).collect();
+        let new_elements: Vec<Fq, MAX_DIMENSION> =
+            elements.iter().map(|element| *element * rhs).collect();
         Self::from_vec(new_elements)
     }
 }
 
 impl SquareMatrix {
     /// Create a `SquareMatrix` from a vector of elements.
-    pub fn from_vec(elements: Vec<Fq>) -> Self {
+    pub fn from_vec(elements: Vec<Fq, MAX_DIMENSION>) -> Self {
         let length_of_elements_vec = elements.len();
         let dim = (length_of_elements_vec as f64).sqrt() as usize;
         if dim * dim != length_of_elements_vec {
@@ -342,6 +362,8 @@ impl SquareMatrix {
 
     /// Create a 2x2 `SquareMatrix` from four elements.
     pub fn new_2x2(a: Fq, b: Fq, c: Fq, d: Fq) -> SquareMatrix {
-        Self::from_vec(vec![a, b, c, d])
+        let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
+        elements.extend_from_slice(&[a, b, c, d]);
+        Self::from_vec(elements)
     }
 }
