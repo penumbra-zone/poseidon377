@@ -1,5 +1,8 @@
-use crate::{error::PoseidonParameterError, matrix::Matrix, matrix_ops::MatrixOperations};
+use crate::{
+    error::PoseidonParameterError, matrix::Matrix, matrix_ops::MatrixOperations, MAX_DIMENSION,
+};
 use decaf377::Fq;
+use heapless::Vec;
 
 /// Represents an matrix of round constants.
 ///
@@ -9,11 +12,11 @@ use decaf377::Fq;
 pub struct ArcMatrix(pub Matrix);
 
 impl MatrixOperations for ArcMatrix {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq>) -> Self {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq, MAX_DIMENSION>) -> Self {
         Self(Matrix::new(n_rows, n_cols, elements))
     }
 
-    fn elements(&self) -> &Vec<Fq> {
+    fn elements(&self) -> &Vec<Fq, MAX_DIMENSION> {
         self.0.elements()
     }
 
@@ -25,7 +28,7 @@ impl MatrixOperations for ArcMatrix {
         self.0.set_element(i, j, val)
     }
 
-    fn rows(&self) -> Vec<&[Fq]> {
+    fn rows(&self) -> Vec<&[Fq], MAX_DIMENSION> {
         self.0.rows()
     }
 
@@ -49,9 +52,9 @@ impl MatrixOperations for ArcMatrix {
     }
 }
 
-impl From<ArcMatrix> for Vec<Vec<Fq>> {
+impl From<ArcMatrix> for Vec<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION> {
     fn from(arc: ArcMatrix) -> Self {
-        let mut rows = Vec::<Vec<Fq>>::new();
+        let mut rows = Vec::<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION>::new();
         let m = &arc.0;
 
         for i in 0..arc.n_rows() {
@@ -78,11 +81,11 @@ pub struct OptimizedArcMatrix(pub ArcMatrix);
 
 impl MatrixOperations for OptimizedArcMatrix {
     /// Create a `OptimizedArcMatrix` from its elements.
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq>) -> Self {
+    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq, MAX_DIMENSION>) -> Self {
         Self(ArcMatrix::new(n_rows, n_cols, elements))
     }
 
-    fn elements(&self) -> &Vec<Fq> {
+    fn elements(&self) -> &Vec<Fq, MAX_DIMENSION> {
         self.0.elements()
     }
 
@@ -94,7 +97,7 @@ impl MatrixOperations for OptimizedArcMatrix {
         self.0.set_element(i, j, val)
     }
 
-    fn rows(&self) -> Vec<&[Fq]> {
+    fn rows(&self) -> Vec<&[Fq], MAX_DIMENSION> {
         self.0.rows()
     }
 
