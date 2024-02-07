@@ -247,6 +247,7 @@ impl SquareMatrixOperations for SquareMatrix {
         let dim = self.n_rows();
         let mut elements = Vec::with_capacity(dim);
         // TODO: non arkworks Fq::pow
+        use crate::StuffThatNeedsToGoInDecaf377;
         for i in 0..dim {
             for j in 0..dim {
                 elements.push((-Fq::one()).pow([(i + j) as u64]))
