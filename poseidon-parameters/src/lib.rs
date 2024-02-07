@@ -5,6 +5,8 @@
 //! The API here is split into [`v1`] and [`v2`] to avoid confusion
 //! between the two versions.
 
+use decaf377::Fq;
+
 mod alpha;
 mod arc_matrix;
 mod error;
@@ -21,3 +23,19 @@ pub mod v1;
 
 /// Structures related to Poseidon version 2 parameters.
 pub mod v2;
+
+pub trait StuffThatNeedsToGoInDecaf377 {
+    fn pow<S: AsRef<[u64]>>(&self, exp: S) -> Self;
+}
+
+// TEMP
+impl StuffThatNeedsToGoInDecaf377 for Fq {
+    fn pow<S: AsRef<[u64]>>(&self, exp: S) -> Self {
+        let mut res = Fq::one();
+        let exp_u64 = exp.as_ref();
+        for _ in 0..exp_u64[0] {
+            res *= self;
+        }
+        res
+    }
+}
