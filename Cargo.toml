@@ -10,3 +10,6 @@ members = [
 
 [profile.release]
 debug = true
+
+[workspace.dependencies]
+decaf377 = {default-features = false, git = "https://github.com/penumbra-zone/decaf377", rev = "c8f6a6c5e83736813e95277e82f546bff55ae90a"}
