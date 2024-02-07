@@ -1,8 +1,5 @@
 use core::ops::Mul;
 
-// TODO: This library needs to be replaced
-use num_integer::Roots;
-
 use crate::error::PoseidonParameterError;
 use crate::matrix_ops::{mat_mul, MatrixOperations, SquareMatrixOperations};
 use decaf377::Fq;
@@ -330,8 +327,9 @@ impl Mul<Fq> for SquareMatrix {
 impl SquareMatrix {
     /// Create a `SquareMatrix` from a vector of elements.
     pub fn from_vec(elements: Vec<Fq>) -> Self {
-        let dim = elements.len().sqrt();
-        if dim * dim != elements.len() {
+        let length_of_elements_vec = elements.len();
+        let dim = (length_of_elements_vec as f64).sqrt() as usize;
+        if dim * dim != length_of_elements_vec {
             panic!("SquareMatrix must be square")
         }
         Self(Matrix::new(dim, dim, elements))
