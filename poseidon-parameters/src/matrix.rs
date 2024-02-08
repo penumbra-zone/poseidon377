@@ -61,7 +61,9 @@ impl MatrixOperations for Matrix {
 
         for j in 0..self.n_cols {
             for i in 0..self.n_rows {
-                transposed_elements.push(self.get_element(i, j));
+                transposed_elements
+                    .push(self.get_element(i, j))
+                    .expect("capacity should not be exceeded");
             }
         }
         Self::new(self.n_cols, self.n_rows, transposed_elements)
@@ -78,7 +80,9 @@ impl MatrixOperations for Matrix {
         let mut new_elements = Vec::<Fq, MAX_DIMENSION>::new();
         for i in 0..self.n_rows {
             for j in 0..self.n_cols {
-                new_elements.push(self.get_element(i, j) * rhs.get_element(i, j));
+                new_elements
+                    .push(self.get_element(i, j) * rhs.get_element(i, j))
+                    .expect("capacity should not be exceeded");
             }
         }
 
@@ -103,7 +107,9 @@ impl Matrix {
     pub fn row_vector(&self, i: usize) -> Matrix {
         let mut row_elements = Vec::<Fq, MAX_DIMENSION>::new();
         for j in 0..self.n_cols {
-            row_elements.push(self.get_element(i, j));
+            row_elements
+                .push(self.get_element(i, j))
+                .expect("capacity should not be exceeded");
         }
         Matrix::new(1, self.n_cols, row_elements)
     }
@@ -161,11 +167,13 @@ impl SquareMatrixOperations for SquareMatrix {
 
         if self.n_rows() == 1 {
             let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
-            elements.push(
-                self.get_element(0, 0)
-                    .inverse()
-                    .expect("inverse of single element must exist for 1x1 matrix"),
-            );
+            elements
+                .push(
+                    self.get_element(0, 0)
+                        .inverse()
+                        .expect("inverse of single element must exist for 1x1 matrix"),
+                )
+                .expect("capacity should not be exceeded");
             return Ok(Self::from_vec(elements));
         }
 
@@ -195,7 +203,9 @@ impl SquareMatrixOperations for SquareMatrix {
         let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
         for _ in 0..dim {
             for _ in 0..dim {
-                elements.push(Fq::zero());
+                elements
+                    .push(Fq::zero())
+                    .expect("capacity should not be exceeded");
             }
         }
         let mut m = Self::from_vec(elements);
@@ -214,7 +224,9 @@ impl SquareMatrixOperations for SquareMatrix {
             0 => panic!("matrix has no elements!"),
             1 => {
                 let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
-                elements.push(self.get_element(0, 0));
+                elements
+                    .push(self.get_element(0, 0))
+                    .expect("capacity should not be exceeded");
                 Self::from_vec(elements)
             }
             2 => {
@@ -223,7 +235,9 @@ impl SquareMatrixOperations for SquareMatrix {
                 let b = self.get_element(0, 1);
                 let c = self.get_element(1, 0);
                 let d = self.get_element(1, 1);
-                elements.extend_from_slice(&[d, c, b, a]);
+                elements
+                    .extend_from_slice(&[d, c, b, a])
+                    .expect("capacity should not be exceeded");
                 Self::from_vec(elements)
             }
             _ => {
@@ -234,22 +248,32 @@ impl SquareMatrixOperations for SquareMatrix {
                         let mut elements: Vec<Fq, MAX_DIMENSION> = Vec::new();
                         for k in 0..i {
                             for l in 0..j {
-                                elements.push(self.get_element(k, l));
+                                elements
+                                    .push(self.get_element(k, l))
+                                    .expect("capacity should not be exceeded");
                             }
                             for l in (j + 1)..dim {
-                                elements.push(self.get_element(k, l));
+                                elements
+                                    .push(self.get_element(k, l))
+                                    .expect("capacity should not be exceeded");
                             }
                         }
                         for k in i + 1..dim {
                             for l in 0..j {
-                                elements.push(self.get_element(k, l));
+                                elements
+                                    .push(self.get_element(k, l))
+                                    .expect("capacity should not be exceeded");
                             }
                             for l in (j + 1)..dim {
-                                elements.push(self.get_element(k, l));
+                                elements
+                                    .push(self.get_element(k, l))
+                                    .expect("capacity should not be exceeded");
                             }
                         }
                         let minor = Self::from_vec(elements);
-                        minor_matrix_elements.push(minor.determinant());
+                        minor_matrix_elements
+                            .push(minor.determinant())
+                            .expect("capacity should not be exceeded");
                     }
                 }
                 Self::from_vec(minor_matrix_elements)
@@ -266,7 +290,9 @@ impl SquareMatrixOperations for SquareMatrix {
         use crate::StuffThatNeedsToGoInDecaf377;
         for i in 0..dim {
             for j in 0..dim {
-                elements.push((-Fq::one()).pow([(i + j) as u64]));
+                elements
+                    .push((-Fq::one()).pow([(i + j) as u64]))
+                    .expect("capacity should not be exceeded");
             }
         }
         Self::from_vec(elements)
@@ -309,12 +335,16 @@ impl SquareMatrixOperations for SquareMatrix {
                     let mut elements: Vec<Fq, MAX_DIMENSION> = Vec::new();
                     for k in 0..i {
                         for l in 1..dim {
-                            elements.push(self.get_element(k, l));
+                            elements
+                                .push(self.get_element(k, l))
+                                .expect("capacity should not be exceeded");
                         }
                     }
                     for k in i + 1..dim {
                         for l in 1..dim {
-                            elements.push(self.get_element(k, l));
+                            elements
+                                .push(self.get_element(k, l))
+                                .expect("capacity should not be exceeded");
                         }
                     }
                     let minor = Self::from_vec(elements);
@@ -363,7 +393,9 @@ impl SquareMatrix {
     /// Create a 2x2 `SquareMatrix` from four elements.
     pub fn new_2x2(a: Fq, b: Fq, c: Fq, d: Fq) -> SquareMatrix {
         let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
-        elements.extend_from_slice(&[a, b, c, d]);
+        elements
+            .extend_from_slice(&[a, b, c, d])
+            .expect("capacity should not be exceeded");
         Self::from_vec(elements)
     }
 }
