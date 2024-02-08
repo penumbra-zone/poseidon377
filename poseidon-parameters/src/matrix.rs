@@ -223,7 +223,7 @@ impl SquareMatrixOperations for SquareMatrix {
                 let b = self.get_element(0, 1);
                 let c = self.get_element(1, 0);
                 let d = self.get_element(1, 1);
-                elements.extend_from_slice(&[a, c, b, a]);
+                elements.extend_from_slice(&[d, c, b, a]);
                 Self::from_vec(elements)
             }
             _ => {
