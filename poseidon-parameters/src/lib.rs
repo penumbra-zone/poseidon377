@@ -18,7 +18,7 @@ mod round_numbers;
 #[cfg(test)]
 mod tests;
 
-const MAX_DIMENSION: usize = 100;
+pub const MAX_DIMENSION: usize = 100;
 
 /// Structures related to Poseidon version 1 parameters.
 pub mod v1;
