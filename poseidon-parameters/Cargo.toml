@@ -9,25 +9,19 @@ keywords = ["no_std"]
 repository = "https://github.com/penumbra-zone/poseidon377"
 
 [dependencies]
-ark-ff = { version = "^0.4.0", default-features = false, optional = true }
 decaf377 = { version="0.8.0", default-features = false }
 heapless = { version="0.8.0" }
 
 [dev-dependencies]
+ark-ff = { version = "^0.4.0", default-features = false }
 ark-ed-on-bls12-377 = "0.4"
 proptest = "1"
 
 [features]
-default = ["arkworks"]
+default = ["std"]
 alloc = [
     "decaf377/alloc"
 ]
-arkworks = [
-    "std",
-    "ark-ff",
-    "decaf377/arkworks",
-]
 std = [
-    "ark-ff/std",
     "decaf377/std",
 ]
