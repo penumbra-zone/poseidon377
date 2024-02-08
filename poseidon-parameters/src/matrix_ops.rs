@@ -147,9 +147,15 @@ mod tests {
     fn poly_evaluate() {
         // f(x) = 1 + 2x + 3x^2
         let mut coeffs_vec = Vec::<Fq, MAX_DIMENSION>::new();
-        coeffs_vec.push(Fq::from(1u64));
-        coeffs_vec.push(Fq::from(2u64));
-        coeffs_vec.push(Fq::from(3u64));
+        coeffs_vec
+            .push(Fq::from(1u64))
+            .expect("capacity should not be exceeded");
+        coeffs_vec
+            .push(Fq::from(2u64))
+            .expect("capacity should not be exceeded");
+        coeffs_vec
+            .push(Fq::from(3u64))
+            .expect("capacity should not be exceeded");
         let poly = Polynomial::new(coeffs_vec);
         assert_eq!(poly.max_degree(), 2);
         assert_eq!(poly.evaluate(Fq::from(2u64)), Fq::from(17u64));

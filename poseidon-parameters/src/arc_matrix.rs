@@ -60,9 +60,10 @@ impl From<ArcMatrix> for Vec<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION> {
         for i in 0..arc.n_rows() {
             let mut row = Vec::new();
             for j in 0..arc.n_cols() {
-                row.push(m.get_element(i, j));
+                row.push(m.get_element(i, j))
+                    .expect("capacity should not be exceeded");
             }
-            rows.push(row);
+            rows.push(row).expect("capacity should not be exceeded");
         }
         rows
     }

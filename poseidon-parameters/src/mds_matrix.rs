@@ -77,7 +77,9 @@ impl MdsMatrix {
     /// Ref: p.20 of the Poseidon paper
     pub fn v(&self) -> Matrix {
         let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
-        elements.extend_from_slice(&self.0 .0.elements()[1..self.0 .0.n_rows()]);
+        elements
+            .extend_from_slice(&self.0 .0.elements()[1..self.0 .0.n_rows()])
+            .expect("capacity should not be exceeded");
         Matrix::new(1, self.0.n_rows() - 1, elements)
     }
 
@@ -87,7 +89,9 @@ impl MdsMatrix {
     pub fn w(&self) -> Matrix {
         let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
         for i in 1..self.n_rows() {
-            elements.push(self.get_element(i, 0));
+            elements
+                .push(self.get_element(i, 0))
+                .expect("capacity should not be exceeded");
         }
         Matrix::new(&self.n_rows() - 1, 1, elements)
     }
@@ -102,7 +106,9 @@ impl MdsMatrix {
         let mut mhat_elements = Vec::<Fq, MAX_DIMENSION>::new();
         for i in 1..dim {
             for j in 1..dim {
-                mhat_elements.push(self.0.get_element(i, j));
+                mhat_elements
+                    .push(self.0.get_element(i, j))
+                    .expect("capacity should not be exceeded");
             }
         }
 
@@ -116,9 +122,10 @@ impl From<MdsMatrix> for Vec<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION> {
         for i in 0..val.0.n_rows() {
             let mut row = Vec::new();
             for j in 0..val.0.n_rows() {
-                row.push(val.0 .0.get_element(i, j));
+                row.push(val.0 .0.get_element(i, j))
+                    .expect("capacity should not be exceeded");
             }
-            rows.push(row);
+            rows.push(row).expect("capacity should not be exceeded");
         }
         rows
     }
