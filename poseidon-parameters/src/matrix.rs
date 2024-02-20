@@ -1,5 +1,5 @@
+use crate::Vec;
 use core::ops::Mul;
-use heapless::Vec;
 
 use crate::error::PoseidonParameterError;
 use crate::matrix_ops::{mat_mul, MatrixOperations, SquareMatrixOperations};

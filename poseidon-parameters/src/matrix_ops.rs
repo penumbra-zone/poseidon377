@@ -1,5 +1,5 @@
+use crate::Vec;
 use core::slice::Chunks;
-use heapless::Vec;
 
 use crate::error::PoseidonParameterError;
 use crate::MAX_DIMENSION;
