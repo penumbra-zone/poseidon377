@@ -1,8 +1,8 @@
+use crate::Vec;
 use crate::{
     error::PoseidonParameterError, matrix::Matrix, matrix_ops::MatrixOperations, MAX_DIMENSION,
 };
 use decaf377::Fq;
-use heapless::Vec;
 
 /// Represents an matrix of round constants.
 ///

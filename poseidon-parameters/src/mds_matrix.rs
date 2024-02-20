@@ -1,3 +1,4 @@
+use crate::Vec;
 use crate::{
     error::PoseidonParameterError,
     matrix::{Matrix, SquareMatrix},
@@ -5,7 +6,6 @@ use crate::{
     MAX_DIMENSION,
 };
 use decaf377::Fq;
-use heapless::Vec;
 
 /// Represents an MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]

@@ -14,6 +14,7 @@ mod matrix;
 mod matrix_ops;
 mod mds_matrix;
 mod round_numbers;
+mod vec;
 
 #[cfg(test)]
 mod tests;
@@ -25,6 +26,8 @@ pub mod v1;
 
 /// Structures related to Poseidon version 2 parameters.
 pub mod v2;
+
+pub use vec::Vec;
 
 pub trait StuffThatNeedsToGoInDecaf377 {
     fn pow<S: AsRef<[u64]>>(&self, exp: S) -> Self;
