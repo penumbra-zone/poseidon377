@@ -109,18 +109,18 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> Mul<Fq>
     }
 }
 
-// impl Matrix {
-//     /// Get row vector at a specified row index
-//     pub fn row_vector(&self, i: usize) -> Matrix {
-//         let mut row_elements = Vec::<Fq, MAX_DIMENSION>::new();
-//         for j in 0..self.n_cols {
-//             row_elements
-//                 .push(self.get_element(i, j))
-//                 .expect("capacity should not be exceeded");
-//         }
-//         Matrix::new(1, self.n_cols, row_elements)
-//     }
-// }
+impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>
+    Matrix<N_ROWS, N_COLS, N_ELEMENTS>
+{
+    /// Get row vector at a specified row index
+    pub fn row_vector(&self, i: usize) -> Matrix<1, N_COLS, N_ELEMENTS> {
+        let mut row_elements = [Fq::default(); N_COLS];
+        for j in 0..N_COLS {
+            row_elements[j] = self.get_element(i, j);
+        }
+        Matrix::new(&row_elements)
+    }
+}
 
 /// Represents a square matrix over `PrimeField` elements
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -389,28 +389,16 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> Mul<Fq>
     }
 }
 
-// impl SquareMatrix {
-//     /// Create a `SquareMatrix` from a vector of elements.
-//     pub fn from_vec(elements: Vec<Fq, MAX_DIMENSION>) -> Self {
-//         let length_of_elements_vec = elements.len();
-//         let dim = (length_of_elements_vec as f64).sqrt() as usize;
-//         if dim * dim != length_of_elements_vec {
-//             panic!("SquareMatrix must be square")
-//         }
-//         Self(Matrix::new(dim, dim, elements))
-//     }
+impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>
+    SquareMatrix<N_ROWS, N_COLS, N_ELEMENTS>
+{
+    /// Get row vector at a specified row index.
+    pub fn row_vector(&self, i: usize) -> Matrix<1, N_COLS, N_ELEMENTS> {
+        self.0.row_vector(i)
+    }
 
-//     /// Get row vector at a specified row index.
-//     pub fn row_vector(&self, i: usize) -> Matrix {
-//         self.0.row_vector(i)
-//     }
-
-//     /// Create a 2x2 `SquareMatrix` from four elements.
-//     pub fn new_2x2(a: Fq, b: Fq, c: Fq, d: Fq) -> SquareMatrix {
-//         let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
-//         elements
-//             .extend_from_slice(&[a, b, c, d])
-//             .expect("capacity should not be exceeded");
-//         Self::from_vec(elements)
-//     }
-// }
+    /// Create a 2x2 `SquareMatrix` from four elements.
+    pub fn new_2x2(a: Fq, b: Fq, c: Fq, d: Fq) -> SquareMatrix<2, 2, 4> {
+        SquareMatrix::<2, 2, 4>::new(&[a, b, c, d])
+    }
+}
