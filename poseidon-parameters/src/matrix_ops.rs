@@ -47,8 +47,8 @@ pub trait SquareMatrixOperations {
     fn inverse(&self) -> Result<Self, PoseidonParameterError>
     where
         Self: Sized;
-    /// Construct an n x n identity matrix
-    fn identity(n: usize) -> Self;
+    /// Construct an identity matrix
+    fn identity() -> Self;
     /// Compute the matrix of minors
     fn minors(&self) -> Self;
     /// Compute the matrix of cofactors

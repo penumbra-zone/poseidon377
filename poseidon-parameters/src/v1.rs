@@ -8,7 +8,6 @@ pub use crate::{
     matrix_ops::SquareMatrixOperations, mds_matrix::MdsMatrix, mds_matrix::OptimizedMdsMatrices,
 };
 
-// TODO: arc and mds could be collections
 /// A set of Poseidon1 parameters for a given set of input parameters.
 #[derive(Clone, Debug)]
 pub struct PoseidonParameters {
