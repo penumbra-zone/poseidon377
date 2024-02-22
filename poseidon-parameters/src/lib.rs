@@ -8,13 +8,12 @@
 use decaf377::Fq;
 
 mod alpha;
-mod arc_matrix;
+// mod arc_matrix;
 mod error;
-mod matrix;
-mod matrix_ops;
-mod mds_matrix;
+// mod matrix;
+// mod matrix_ops;
+// mod mds_matrix;
 mod round_numbers;
-mod vec;
 
 #[cfg(test)]
 mod tests;
@@ -22,12 +21,10 @@ mod tests;
 pub const MAX_DIMENSION: usize = 100;
 
 /// Structures related to Poseidon version 1 parameters.
-pub mod v1;
+// pub mod v1;
 
 /// Structures related to Poseidon version 2 parameters.
-pub mod v2;
-
-pub use vec::Vec;
+// pub mod v2;
 
 pub trait StuffThatNeedsToGoInDecaf377 {
     fn pow<S: AsRef<[u64]>>(&self, exp: S) -> Self;
