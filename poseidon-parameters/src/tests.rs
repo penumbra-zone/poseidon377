@@ -4,8 +4,7 @@ use proptest::prelude::*;
 use super::*;
 
 // use crate::matrix_ops::mat_mul;
-// use crate::matrix_ops::MatrixOperations;
-// use crate::MAX_DIMENSION;
+use crate::{matrix::Matrix, matrix_ops::MatrixOperations};
 // use crate::{matrix::SquareMatrix, matrix_ops::SquareMatrixOperations};
 // use v1::Matrix;
 
@@ -66,29 +65,26 @@ use super::*;
 //     assert_eq!(res.get_element(2, 2), Fq::from(61u64));
 // }
 
-// #[test]
-// fn hadamard_product() {
-//     let mut test_elements = Vec::<Fq, MAX_DIMENSION>::new();
-//     test_elements
-//         .extend_from_slice(&[
-//             Fq::one(),
-//             Fq::from(2u64),
-//             Fq::from(3u64),
-//             Fq::from(4u64),
-//             Fq::from(5u64),
-//             Fq::from(6u64),
-//         ])
-//         .expect("capacity should not be exceeded");
-//     let matrix_2x3 = Matrix::new(3, 2, test_elements);
+#[test]
+fn hadamard_product() {
+    let test_elements: [Fq; 6] = [
+        Fq::one(),
+        Fq::from(2u64),
+        Fq::from(3u64),
+        Fq::from(4u64),
+        Fq::from(5u64),
+        Fq::from(6u64),
+    ];
+    let matrix_3x2 = Matrix::<3, 2, 6>::new(&test_elements);
 
-//     let res = matrix_2x3.hadamard_product(&matrix_2x3).expect("is ok");
-//     assert_eq!(res.get_element(0, 0), Fq::from(1u64));
-//     assert_eq!(res.get_element(0, 1), Fq::from(4u64));
-//     assert_eq!(res.get_element(1, 0), Fq::from(9u64));
-//     assert_eq!(res.get_element(1, 1), Fq::from(16u64));
-//     assert_eq!(res.get_element(2, 0), Fq::from(25u64));
-//     assert_eq!(res.get_element(2, 1), Fq::from(36u64));
-// }
+    let res = matrix_3x2.hadamard_product(&matrix_3x2).expect("is ok");
+    assert_eq!(res.get_element(0, 0), Fq::from(1u64));
+    assert_eq!(res.get_element(0, 1), Fq::from(4u64));
+    assert_eq!(res.get_element(1, 0), Fq::from(9u64));
+    assert_eq!(res.get_element(1, 1), Fq::from(16u64));
+    assert_eq!(res.get_element(2, 0), Fq::from(25u64));
+    assert_eq!(res.get_element(2, 1), Fq::from(36u64));
+}
 
 // #[test]
 // fn transpose() {

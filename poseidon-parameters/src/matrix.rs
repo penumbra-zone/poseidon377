@@ -1,8 +1,8 @@
+use core::convert::TryInto;
 use core::ops::Mul;
 
 use crate::error::PoseidonParameterError;
-use crate::matrix_ops::{mat_mul, MatrixOperations, SquareMatrixOperations};
-use crate::MAX_DIMENSION;
+use crate::matrix_ops::{MatrixOperations, SquareMatrixOperations};
 use decaf377::Fq;
 
 /// Represents a matrix over `PrimeField` elements.
@@ -10,391 +10,395 @@ use decaf377::Fq;
 /// This matrix can be used to represent row or column
 /// vectors.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Matrix {
-    /// Elements of the matrix.
-    pub elements: Vec<Fq, MAX_DIMENSION>,
-    /// Number of columns.
-    pub n_cols: usize,
-    /// Number of rows.
-    pub n_rows: usize,
+pub struct Matrix<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> {
+    /// Elements of the matrix, stored in a fixed-size array.
+    ///
+    pub elements: [Fq; N_ELEMENTS],
 }
 
-impl MatrixOperations for Matrix {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq, MAX_DIMENSION>) -> Self {
-        if elements.len() != n_rows * n_cols {
+impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOperations
+    for Matrix<N_ROWS, N_COLS, N_ELEMENTS>
+{
+    fn new(elements: &[Fq]) -> Self {
+        // Note: We use a third const generic to denote the number of elements in the
+        // matrix here due to `generic_const_exprs` being an unstable Rust feature at
+        // the time of writing.
+        if N_ELEMENTS != N_ROWS * N_COLS {
             panic!("Matrix has an insufficient number of elements")
         }
-        Self {
-            elements,
-            n_cols,
-            n_rows,
-        }
+
+        let elements: [Fq; N_ELEMENTS] = elements
+            .try_into()
+            .expect("Matrix has the correct number of elements");
+
+        Self { elements }
     }
 
-    fn elements(&self) -> &Vec<Fq, MAX_DIMENSION> {
+    fn elements(&self) -> &[Fq] {
         &self.elements
     }
 
     fn get_element(&self, i: usize, j: usize) -> Fq {
-        self.elements[i * self.n_cols + j]
+        self.elements[i * N_COLS + j]
     }
 
     fn set_element(&mut self, i: usize, j: usize, val: Fq) {
-        self.elements[i * self.n_cols + j] = val
+        self.elements[i * N_COLS + j] = val
     }
 
-    fn rows(&self) -> Vec<&[Fq], MAX_DIMENSION> {
-        self.elements.chunks(self.n_cols).collect()
+    fn rows(&self) -> &[&[Fq]] {
+        // self.elements.chunks(self.n_cols()).collect()
+        todo!()
     }
 
     fn n_rows(&self) -> usize {
-        self.n_rows
+        N_ROWS
     }
 
     fn n_cols(&self) -> usize {
-        self.n_cols
+        N_COLS
     }
 
     fn transpose(&self) -> Self {
-        let mut transposed_elements = Vec::<Fq, MAX_DIMENSION>::new();
+        let mut transposed_elements = [Fq::default(); N_ELEMENTS];
 
-        for j in 0..self.n_cols {
-            for i in 0..self.n_rows {
-                transposed_elements
-                    .push(self.get_element(i, j))
-                    .expect("capacity should not be exceeded");
+        let mut index = 0;
+        for j in 0..self.n_cols() {
+            for i in 0..self.n_rows() {
+                transposed_elements[index] = self.get_element(i, j);
+                index += 1;
             }
         }
-        Self::new(self.n_cols, self.n_rows, transposed_elements)
+        Self::new(&transposed_elements)
     }
 
     fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
     where
         Self: Sized,
     {
-        if self.n_rows != rhs.n_rows || self.n_cols != rhs.n_cols {
+        if self.n_rows() != rhs.n_rows() || self.n_cols() != rhs.n_cols() {
             return Err(PoseidonParameterError::InvalidMatrixDimensions);
         }
 
-        let mut new_elements = Vec::<Fq, MAX_DIMENSION>::new();
-        for i in 0..self.n_rows {
-            for j in 0..self.n_cols {
-                new_elements
-                    .push(self.get_element(i, j) * rhs.get_element(i, j))
-                    .expect("capacity should not be exceeded");
+        let mut new_elements = [Fq::default(); N_ELEMENTS];
+        let mut index = 0;
+        for i in 0..self.n_rows() {
+            for j in 0..self.n_cols() {
+                new_elements[index] = self.get_element(i, j) * rhs.get_element(i, j);
+                index += 1;
             }
         }
 
-        Ok(Self::new(self.n_rows, self.n_cols, new_elements))
+        Ok(Self::new(&new_elements))
     }
 }
 
-/// Multiply scalar by Matrix
-impl Mul<Fq> for Matrix {
-    type Output = Matrix;
+// /// Multiply scalar by Matrix
+// impl Mul<Fq> for Matrix {
+//     type Output = Matrix;
 
-    fn mul(self, rhs: Fq) -> Self::Output {
-        let elements = self.elements();
-        let new_elements: Vec<Fq, MAX_DIMENSION> =
-            elements.iter().map(|element| *element * rhs).collect();
-        Self::new(self.n_rows(), self.n_cols(), new_elements)
-    }
-}
+//     fn mul(self, rhs: Fq) -> Self::Output {
+//         let elements = self.elements();
+//         let new_elements: Vec<Fq, MAX_DIMENSION> =
+//             elements.iter().map(|element| *element * rhs).collect();
+//         Self::new(self.n_rows(), self.n_cols(), new_elements)
+//     }
+// }
 
-impl Matrix {
-    /// Get row vector at a specified row index
-    pub fn row_vector(&self, i: usize) -> Matrix {
-        let mut row_elements = Vec::<Fq, MAX_DIMENSION>::new();
-        for j in 0..self.n_cols {
-            row_elements
-                .push(self.get_element(i, j))
-                .expect("capacity should not be exceeded");
-        }
-        Matrix::new(1, self.n_cols, row_elements)
-    }
-}
+// impl Matrix {
+//     /// Get row vector at a specified row index
+//     pub fn row_vector(&self, i: usize) -> Matrix {
+//         let mut row_elements = Vec::<Fq, MAX_DIMENSION>::new();
+//         for j in 0..self.n_cols {
+//             row_elements
+//                 .push(self.get_element(i, j))
+//                 .expect("capacity should not be exceeded");
+//         }
+//         Matrix::new(1, self.n_cols, row_elements)
+//     }
+// }
 
-/// Represents a square matrix over `PrimeField` elements
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SquareMatrix(pub Matrix);
+// /// Represents a square matrix over `PrimeField` elements
+// #[derive(Clone, Debug, PartialEq, Eq)]
+// pub struct SquareMatrix(pub Matrix);
 
-impl MatrixOperations for SquareMatrix {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq, MAX_DIMENSION>) -> Self {
-        Self(Matrix::new(n_rows, n_cols, elements))
-    }
+// impl MatrixOperations for SquareMatrix {
+//     fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq, MAX_DIMENSION>) -> Self {
+//         Self(Matrix::new(n_rows, n_cols, elements))
+//     }
 
-    fn elements(&self) -> &Vec<Fq, MAX_DIMENSION> {
-        self.0.elements()
-    }
+//     fn elements(&self) -> &Vec<Fq, MAX_DIMENSION> {
+//         self.0.elements()
+//     }
 
-    fn get_element(&self, i: usize, j: usize) -> Fq {
-        self.0.get_element(i, j)
-    }
+//     fn get_element(&self, i: usize, j: usize) -> Fq {
+//         self.0.get_element(i, j)
+//     }
 
-    fn set_element(&mut self, i: usize, j: usize, val: Fq) {
-        self.0.set_element(i, j, val)
-    }
+//     fn set_element(&mut self, i: usize, j: usize, val: Fq) {
+//         self.0.set_element(i, j, val)
+//     }
 
-    fn rows(&self) -> Vec<&[Fq], MAX_DIMENSION> {
-        self.0.rows()
-    }
+//     fn rows(&self) -> Vec<&[Fq], MAX_DIMENSION> {
+//         self.0.rows()
+//     }
 
-    fn n_rows(&self) -> usize {
-        self.0.n_rows
-    }
+//     fn n_rows(&self) -> usize {
+//         self.0.n_rows
+//     }
 
-    fn n_cols(&self) -> usize {
-        self.0.n_cols
-    }
+//     fn n_cols(&self) -> usize {
+//         self.0.n_cols
+//     }
 
-    fn transpose(&self) -> Self {
-        Self(self.0.transpose())
-    }
+//     fn transpose(&self) -> Self {
+//         Self(self.0.transpose())
+//     }
 
-    fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
-    where
-        Self: Sized,
-    {
-        Ok(Self(self.0.hadamard_product(&rhs.0)?))
-    }
-}
+//     fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
+//     where
+//         Self: Sized,
+//     {
+//         Ok(Self(self.0.hadamard_product(&rhs.0)?))
+//     }
+// }
 
-impl SquareMatrixOperations for SquareMatrix {
-    /// Compute the inverse of the matrix
-    fn inverse(&self) -> Result<Self, PoseidonParameterError> {
-        let identity = Self::identity(self.n_rows());
+// impl SquareMatrixOperations for SquareMatrix {
+//     /// Compute the inverse of the matrix
+//     fn inverse(&self) -> Result<Self, PoseidonParameterError> {
+//         let identity = Self::identity(self.n_rows());
 
-        if self.n_rows() == 1 {
-            let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
-            elements
-                .push(
-                    self.get_element(0, 0)
-                        .inverse()
-                        .expect("inverse of single element must exist for 1x1 matrix"),
-                )
-                .expect("capacity should not be exceeded");
-            return Ok(Self::from_vec(elements));
-        }
+//         if self.n_rows() == 1 {
+//             let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
+//             elements
+//                 .push(
+//                     self.get_element(0, 0)
+//                         .inverse()
+//                         .expect("inverse of single element must exist for 1x1 matrix"),
+//                 )
+//                 .expect("capacity should not be exceeded");
+//             return Ok(Self::from_vec(elements));
+//         }
 
-        let determinant = self.determinant();
-        if determinant == Fq::zero() {
-            return Err(PoseidonParameterError::NoMatrixInverse);
-        }
+//         let determinant = self.determinant();
+//         if determinant == Fq::zero() {
+//             return Err(PoseidonParameterError::NoMatrixInverse);
+//         }
 
-        let minors = self.minors();
-        let cofactor_matrix = self.cofactors();
-        let signed_minors = minors
-            .hadamard_product(&cofactor_matrix)
-            .expect("minor and cofactor matrix have correct dimensions");
-        let adj = signed_minors.transpose();
-        let matrix_inverse = adj * (Fq::one() / determinant);
+//         let minors = self.minors();
+//         let cofactor_matrix = self.cofactors();
+//         let signed_minors = minors
+//             .hadamard_product(&cofactor_matrix)
+//             .expect("minor and cofactor matrix have correct dimensions");
+//         let adj = signed_minors.transpose();
+//         let matrix_inverse = adj * (Fq::one() / determinant);
 
-        debug_assert_eq!(
-            mat_mul(self, &matrix_inverse)
-                .expect("matrix and its inverse should have same dimensions"),
-            identity
-        );
-        Ok(matrix_inverse)
-    }
+//         debug_assert_eq!(
+//             mat_mul(self, &matrix_inverse)
+//                 .expect("matrix and its inverse should have same dimensions"),
+//             identity
+//         );
+//         Ok(matrix_inverse)
+//     }
 
-    /// Construct a dim x dim identity matrix
-    fn identity(dim: usize) -> Self {
-        let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
-        for _ in 0..dim {
-            for _ in 0..dim {
-                elements
-                    .push(Fq::zero())
-                    .expect("capacity should not be exceeded");
-            }
-        }
-        let mut m = Self::from_vec(elements);
+//     /// Construct a dim x dim identity matrix
+//     fn identity(dim: usize) -> Self {
+//         let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
+//         for _ in 0..dim {
+//             for _ in 0..dim {
+//                 elements
+//                     .push(Fq::zero())
+//                     .expect("capacity should not be exceeded");
+//             }
+//         }
+//         let mut m = Self::from_vec(elements);
 
-        // Set diagonals to 1
-        for i in 0..dim {
-            m.set_element(i, i, Fq::one());
-        }
+//         // Set diagonals to 1
+//         for i in 0..dim {
+//             m.set_element(i, i, Fq::one());
+//         }
 
-        m
-    }
+//         m
+//     }
 
-    /// Compute the (unsigned) minors of this matrix
-    fn minors(&self) -> Self {
-        match self.n_cols() {
-            0 => panic!("matrix has no elements!"),
-            1 => {
-                let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
-                elements
-                    .push(self.get_element(0, 0))
-                    .expect("capacity should not be exceeded");
-                Self::from_vec(elements)
-            }
-            2 => {
-                let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
-                let a = self.get_element(0, 0);
-                let b = self.get_element(0, 1);
-                let c = self.get_element(1, 0);
-                let d = self.get_element(1, 1);
-                elements
-                    .extend_from_slice(&[d, c, b, a])
-                    .expect("capacity should not be exceeded");
-                Self::from_vec(elements)
-            }
-            _ => {
-                let dim = self.n_rows();
-                let mut minor_matrix_elements = Vec::<Fq, MAX_DIMENSION>::new();
-                for i in 0..dim {
-                    for j in 0..dim {
-                        let mut elements: Vec<Fq, MAX_DIMENSION> = Vec::new();
-                        for k in 0..i {
-                            for l in 0..j {
-                                elements
-                                    .push(self.get_element(k, l))
-                                    .expect("capacity should not be exceeded");
-                            }
-                            for l in (j + 1)..dim {
-                                elements
-                                    .push(self.get_element(k, l))
-                                    .expect("capacity should not be exceeded");
-                            }
-                        }
-                        for k in i + 1..dim {
-                            for l in 0..j {
-                                elements
-                                    .push(self.get_element(k, l))
-                                    .expect("capacity should not be exceeded");
-                            }
-                            for l in (j + 1)..dim {
-                                elements
-                                    .push(self.get_element(k, l))
-                                    .expect("capacity should not be exceeded");
-                            }
-                        }
-                        let minor = Self::from_vec(elements);
-                        minor_matrix_elements
-                            .push(minor.determinant())
-                            .expect("capacity should not be exceeded");
-                    }
-                }
-                Self::from_vec(minor_matrix_elements)
-            }
-        }
-    }
+//     /// Compute the (unsigned) minors of this matrix
+//     fn minors(&self) -> Self {
+//         match self.n_cols() {
+//             0 => panic!("matrix has no elements!"),
+//             1 => {
+//                 let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
+//                 elements
+//                     .push(self.get_element(0, 0))
+//                     .expect("capacity should not be exceeded");
+//                 Self::from_vec(elements)
+//             }
+//             2 => {
+//                 let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
+//                 let a = self.get_element(0, 0);
+//                 let b = self.get_element(0, 1);
+//                 let c = self.get_element(1, 0);
+//                 let d = self.get_element(1, 1);
+//                 elements
+//                     .extend_from_slice(&[d, c, b, a])
+//                     .expect("capacity should not be exceeded");
+//                 Self::from_vec(elements)
+//             }
+//             _ => {
+//                 let dim = self.n_rows();
+//                 let mut minor_matrix_elements = Vec::<Fq, MAX_DIMENSION>::new();
+//                 for i in 0..dim {
+//                     for j in 0..dim {
+//                         let mut elements: Vec<Fq, MAX_DIMENSION> = Vec::new();
+//                         for k in 0..i {
+//                             for l in 0..j {
+//                                 elements
+//                                     .push(self.get_element(k, l))
+//                                     .expect("capacity should not be exceeded");
+//                             }
+//                             for l in (j + 1)..dim {
+//                                 elements
+//                                     .push(self.get_element(k, l))
+//                                     .expect("capacity should not be exceeded");
+//                             }
+//                         }
+//                         for k in i + 1..dim {
+//                             for l in 0..j {
+//                                 elements
+//                                     .push(self.get_element(k, l))
+//                                     .expect("capacity should not be exceeded");
+//                             }
+//                             for l in (j + 1)..dim {
+//                                 elements
+//                                     .push(self.get_element(k, l))
+//                                     .expect("capacity should not be exceeded");
+//                             }
+//                         }
+//                         let minor = Self::from_vec(elements);
+//                         minor_matrix_elements
+//                             .push(minor.determinant())
+//                             .expect("capacity should not be exceeded");
+//                     }
+//                 }
+//                 Self::from_vec(minor_matrix_elements)
+//             }
+//         }
+//     }
 
-    /// Compute the cofactor matrix, i.e. $C_{ij} = (-1)^{i+j}$
-    fn cofactors(&self) -> Self {
-        let dim = self.n_rows();
-        let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
+//     /// Compute the cofactor matrix, i.e. $C_{ij} = (-1)^{i+j}$
+//     fn cofactors(&self) -> Self {
+//         let dim = self.n_rows();
+//         let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
 
-        // TODO: non arkworks Fq::pow
-        use crate::StuffThatNeedsToGoInDecaf377;
-        for i in 0..dim {
-            for j in 0..dim {
-                elements
-                    .push((-Fq::one()).pow([(i + j) as u64]))
-                    .expect("capacity should not be exceeded");
-            }
-        }
-        Self::from_vec(elements)
-    }
+//         // TODO: non arkworks Fq::pow
+//         use crate::StuffThatNeedsToGoInDecaf377;
+//         for i in 0..dim {
+//             for j in 0..dim {
+//                 elements
+//                     .push((-Fq::one()).pow([(i + j) as u64]))
+//                     .expect("capacity should not be exceeded");
+//             }
+//         }
+//         Self::from_vec(elements)
+//     }
 
-    /// Compute the matrix determinant
-    fn determinant(&self) -> Fq {
-        match self.n_cols() {
-            0 => panic!("matrix has no elements!"),
-            1 => self.get_element(0, 0),
-            2 => {
-                let a11 = self.get_element(0, 0);
-                let a12 = self.get_element(0, 1);
-                let a21 = self.get_element(1, 0);
-                let a22 = self.get_element(1, 1);
-                a11 * a22 - a21 * a12
-            }
-            3 => {
-                let a11 = self.get_element(0, 0);
-                let a12 = self.get_element(0, 1);
-                let a13 = self.get_element(0, 2);
-                let a21 = self.get_element(1, 0);
-                let a22 = self.get_element(1, 1);
-                let a23 = self.get_element(1, 2);
-                let a31 = self.get_element(2, 0);
-                let a32 = self.get_element(2, 1);
-                let a33 = self.get_element(2, 2);
+//     /// Compute the matrix determinant
+//     fn determinant(&self) -> Fq {
+//         match self.n_cols() {
+//             0 => panic!("matrix has no elements!"),
+//             1 => self.get_element(0, 0),
+//             2 => {
+//                 let a11 = self.get_element(0, 0);
+//                 let a12 = self.get_element(0, 1);
+//                 let a21 = self.get_element(1, 0);
+//                 let a22 = self.get_element(1, 1);
+//                 a11 * a22 - a21 * a12
+//             }
+//             3 => {
+//                 let a11 = self.get_element(0, 0);
+//                 let a12 = self.get_element(0, 1);
+//                 let a13 = self.get_element(0, 2);
+//                 let a21 = self.get_element(1, 0);
+//                 let a22 = self.get_element(1, 1);
+//                 let a23 = self.get_element(1, 2);
+//                 let a31 = self.get_element(2, 0);
+//                 let a32 = self.get_element(2, 1);
+//                 let a33 = self.get_element(2, 2);
 
-                a11 * (Self::new_2x2(a22, a23, a32, a33).determinant())
-                    - a12 * (Self::new_2x2(a21, a23, a31, a33).determinant())
-                    + a13 * (Self::new_2x2(a21, a22, a31, a32).determinant())
-            }
-            _ => {
-                // Unoptimized, but MDS matrices are fairly small, so we do the naive thing
-                let mut det = Fq::zero();
-                let mut levi_civita = true;
-                let dim = self.n_rows();
+//                 a11 * (Self::new_2x2(a22, a23, a32, a33).determinant())
+//                     - a12 * (Self::new_2x2(a21, a23, a31, a33).determinant())
+//                     + a13 * (Self::new_2x2(a21, a22, a31, a32).determinant())
+//             }
+//             _ => {
+//                 // Unoptimized, but MDS matrices are fairly small, so we do the naive thing
+//                 let mut det = Fq::zero();
+//                 let mut levi_civita = true;
+//                 let dim = self.n_rows();
 
-                for i in 0..dim {
-                    let mut elements: Vec<Fq, MAX_DIMENSION> = Vec::new();
-                    for k in 0..i {
-                        for l in 1..dim {
-                            elements
-                                .push(self.get_element(k, l))
-                                .expect("capacity should not be exceeded");
-                        }
-                    }
-                    for k in i + 1..dim {
-                        for l in 1..dim {
-                            elements
-                                .push(self.get_element(k, l))
-                                .expect("capacity should not be exceeded");
-                        }
-                    }
-                    let minor = Self::from_vec(elements);
-                    if levi_civita {
-                        det += self.get_element(i, 0) * minor.determinant();
-                    } else {
-                        det -= self.get_element(i, 0) * minor.determinant();
-                    }
-                    levi_civita = !levi_civita;
-                }
+//                 for i in 0..dim {
+//                     let mut elements: Vec<Fq, MAX_DIMENSION> = Vec::new();
+//                     for k in 0..i {
+//                         for l in 1..dim {
+//                             elements
+//                                 .push(self.get_element(k, l))
+//                                 .expect("capacity should not be exceeded");
+//                         }
+//                     }
+//                     for k in i + 1..dim {
+//                         for l in 1..dim {
+//                             elements
+//                                 .push(self.get_element(k, l))
+//                                 .expect("capacity should not be exceeded");
+//                         }
+//                     }
+//                     let minor = Self::from_vec(elements);
+//                     if levi_civita {
+//                         det += self.get_element(i, 0) * minor.determinant();
+//                     } else {
+//                         det -= self.get_element(i, 0) * minor.determinant();
+//                     }
+//                     levi_civita = !levi_civita;
+//                 }
 
-                det
-            }
-        }
-    }
-}
+//                 det
+//             }
+//         }
+//     }
+// }
 
-/// Multiply scalar by SquareMatrix
-impl Mul<Fq> for SquareMatrix {
-    type Output = SquareMatrix;
+// /// Multiply scalar by SquareMatrix
+// impl Mul<Fq> for SquareMatrix {
+//     type Output = SquareMatrix;
 
-    fn mul(self, rhs: Fq) -> Self::Output {
-        let elements = self.0.elements();
-        let new_elements: Vec<Fq, MAX_DIMENSION> =
-            elements.iter().map(|element| *element * rhs).collect();
-        Self::from_vec(new_elements)
-    }
-}
+//     fn mul(self, rhs: Fq) -> Self::Output {
+//         let elements = self.0.elements();
+//         let new_elements: Vec<Fq, MAX_DIMENSION> =
+//             elements.iter().map(|element| *element * rhs).collect();
+//         Self::from_vec(new_elements)
+//     }
+// }
 
-impl SquareMatrix {
-    /// Create a `SquareMatrix` from a vector of elements.
-    pub fn from_vec(elements: Vec<Fq, MAX_DIMENSION>) -> Self {
-        let length_of_elements_vec = elements.len();
-        let dim = (length_of_elements_vec as f64).sqrt() as usize;
-        if dim * dim != length_of_elements_vec {
-            panic!("SquareMatrix must be square")
-        }
-        Self(Matrix::new(dim, dim, elements))
-    }
+// impl SquareMatrix {
+//     /// Create a `SquareMatrix` from a vector of elements.
+//     pub fn from_vec(elements: Vec<Fq, MAX_DIMENSION>) -> Self {
+//         let length_of_elements_vec = elements.len();
+//         let dim = (length_of_elements_vec as f64).sqrt() as usize;
+//         if dim * dim != length_of_elements_vec {
+//             panic!("SquareMatrix must be square")
+//         }
+//         Self(Matrix::new(dim, dim, elements))
+//     }
 
-    /// Get row vector at a specified row index.
-    pub fn row_vector(&self, i: usize) -> Matrix {
-        self.0.row_vector(i)
-    }
+//     /// Get row vector at a specified row index.
+//     pub fn row_vector(&self, i: usize) -> Matrix {
+//         self.0.row_vector(i)
+//     }
 
-    /// Create a 2x2 `SquareMatrix` from four elements.
-    pub fn new_2x2(a: Fq, b: Fq, c: Fq, d: Fq) -> SquareMatrix {
-        let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
-        elements
-            .extend_from_slice(&[a, b, c, d])
-            .expect("capacity should not be exceeded");
-        Self::from_vec(elements)
-    }
-}
+//     /// Create a 2x2 `SquareMatrix` from four elements.
+//     pub fn new_2x2(a: Fq, b: Fq, c: Fq, d: Fq) -> SquareMatrix {
+//         let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
+//         elements
+//             .extend_from_slice(&[a, b, c, d])
+//             .expect("capacity should not be exceeded");
+//         Self::from_vec(elements)
+//     }
+// }

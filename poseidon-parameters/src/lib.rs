@@ -10,7 +10,7 @@ use decaf377::Fq;
 mod alpha;
 // mod arc_matrix;
 mod error;
-// mod matrix;
+mod matrix;
 mod matrix_ops;
 // mod mds_matrix;
 mod round_numbers;
