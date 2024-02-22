@@ -1,4 +1,3 @@
-use crate::Vec;
 use core::ops::Mul;
 
 use crate::error::PoseidonParameterError;
