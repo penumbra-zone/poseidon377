@@ -8,7 +8,7 @@ pub struct RoundNumbers {
 }
 
 impl RoundNumbers {
-    /// Number of full rounds.    
+    /// Number of full rounds.
     pub fn full(&self) -> usize {
         self.r_F
     }
@@ -18,7 +18,7 @@ impl RoundNumbers {
         &mut self.r_F
     }
 
-    /// Number of partial rounds.    
+    /// Number of partial rounds.
     pub fn partial(&self) -> usize {
         self.r_P
     }
