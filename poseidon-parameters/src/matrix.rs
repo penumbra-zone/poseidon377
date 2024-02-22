@@ -93,17 +93,21 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
     }
 }
 
-// /// Multiply scalar by Matrix
-// impl Mul<Fq> for Matrix {
-//     type Output = Matrix;
+/// Multiply scalar by Matrix
+impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> Mul<Fq>
+    for Matrix<N_ROWS, N_COLS, N_ELEMENTS>
+{
+    type Output = Matrix<N_ROWS, N_COLS, N_ELEMENTS>;
 
-//     fn mul(self, rhs: Fq) -> Self::Output {
-//         let elements = self.elements();
-//         let new_elements: Vec<Fq, MAX_DIMENSION> =
-//             elements.iter().map(|element| *element * rhs).collect();
-//         Self::new(self.n_rows(), self.n_cols(), new_elements)
-//     }
-// }
+    fn mul(self, rhs: Fq) -> Self::Output {
+        let elements = self.elements();
+        let mut new_elements = [Fq::default(); N_ELEMENTS];
+        for (i, &element) in elements.iter().enumerate() {
+            new_elements[i] = element * rhs;
+        }
+        Self::new(&new_elements)
+    }
+}
 
 // impl Matrix {
 //     /// Get row vector at a specified row index
@@ -118,50 +122,54 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
 //     }
 // }
 
-// /// Represents a square matrix over `PrimeField` elements
-// #[derive(Clone, Debug, PartialEq, Eq)]
-// pub struct SquareMatrix(pub Matrix);
+/// Represents a square matrix over `PrimeField` elements
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SquareMatrix<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>(
+    pub Matrix<N_ROWS, N_COLS, N_ELEMENTS>,
+);
 
-// impl MatrixOperations for SquareMatrix {
-//     fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq, MAX_DIMENSION>) -> Self {
-//         Self(Matrix::new(n_rows, n_cols, elements))
-//     }
+impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOperations
+    for SquareMatrix<N_ROWS, N_COLS, N_ELEMENTS>
+{
+    fn new(elements: &[Fq]) -> Self {
+        Self(Matrix::new(elements))
+    }
 
-//     fn elements(&self) -> &Vec<Fq, MAX_DIMENSION> {
-//         self.0.elements()
-//     }
+    fn elements(&self) -> &[Fq] {
+        self.0.elements()
+    }
 
-//     fn get_element(&self, i: usize, j: usize) -> Fq {
-//         self.0.get_element(i, j)
-//     }
+    fn get_element(&self, i: usize, j: usize) -> Fq {
+        self.0.get_element(i, j)
+    }
 
-//     fn set_element(&mut self, i: usize, j: usize, val: Fq) {
-//         self.0.set_element(i, j, val)
-//     }
+    fn set_element(&mut self, i: usize, j: usize, val: Fq) {
+        self.0.set_element(i, j, val)
+    }
 
-//     fn rows(&self) -> Vec<&[Fq], MAX_DIMENSION> {
-//         self.0.rows()
-//     }
+    fn rows(&self) -> &[&[Fq]] {
+        todo!()
+    }
 
-//     fn n_rows(&self) -> usize {
-//         self.0.n_rows
-//     }
+    fn n_rows(&self) -> usize {
+        N_ROWS
+    }
 
-//     fn n_cols(&self) -> usize {
-//         self.0.n_cols
-//     }
+    fn n_cols(&self) -> usize {
+        N_COLS
+    }
 
-//     fn transpose(&self) -> Self {
-//         Self(self.0.transpose())
-//     }
+    fn transpose(&self) -> Self {
+        Self(self.0.transpose())
+    }
 
-//     fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
-//     where
-//         Self: Sized,
-//     {
-//         Ok(Self(self.0.hadamard_product(&rhs.0)?))
-//     }
-// }
+    fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
+    where
+        Self: Sized,
+    {
+        Ok(Self(self.0.hadamard_product(&rhs.0)?))
+    }
+}
 
 // impl SquareMatrixOperations for SquareMatrix {
 //     /// Compute the inverse of the matrix
@@ -365,17 +373,21 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
 //     }
 // }
 
-// /// Multiply scalar by SquareMatrix
-// impl Mul<Fq> for SquareMatrix {
-//     type Output = SquareMatrix;
+/// Multiply scalar by SquareMatrix
+impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> Mul<Fq>
+    for SquareMatrix<N_ROWS, N_COLS, N_ELEMENTS>
+{
+    type Output = SquareMatrix<N_ROWS, N_COLS, N_ELEMENTS>;
 
-//     fn mul(self, rhs: Fq) -> Self::Output {
-//         let elements = self.0.elements();
-//         let new_elements: Vec<Fq, MAX_DIMENSION> =
-//             elements.iter().map(|element| *element * rhs).collect();
-//         Self::from_vec(new_elements)
-//     }
-// }
+    fn mul(self, rhs: Fq) -> Self::Output {
+        let elements = self.elements();
+        let mut new_elements = [Fq::default(); N_ELEMENTS];
+        for (i, &element) in elements.iter().enumerate() {
+            new_elements[i] = element * rhs;
+        }
+        Self::new(&new_elements)
+    }
+}
 
 // impl SquareMatrix {
 //     /// Create a `SquareMatrix` from a vector of elements.
