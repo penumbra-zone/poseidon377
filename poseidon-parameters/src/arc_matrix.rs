@@ -1,7 +1,4 @@
-use crate::Vec;
-use crate::{
-    error::PoseidonParameterError, matrix::Matrix, matrix_ops::MatrixOperations, MAX_DIMENSION,
-};
+use crate::{error::PoseidonParameterError, matrix::Matrix, matrix_ops::MatrixOperations};
 use decaf377::Fq;
 
 /// Represents an matrix of round constants.
@@ -9,14 +6,18 @@ use decaf377::Fq;
 /// Arc stands for `AddRoundConstant` which is the
 /// step in the permutation where this matrix is used.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ArcMatrix(pub Matrix);
+pub struct ArcMatrix<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>(
+    pub Matrix<N_ROWS, N_COLS, N_ELEMENTS>,
+);
 
-impl MatrixOperations for ArcMatrix {
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq, MAX_DIMENSION>) -> Self {
-        Self(Matrix::new(n_rows, n_cols, elements))
+impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOperations
+    for ArcMatrix<N_ROWS, N_COLS, N_ELEMENTS>
+{
+    fn new(elements: &[Fq]) -> Self {
+        Self(Matrix::new(elements))
     }
 
-    fn elements(&self) -> &Vec<Fq, MAX_DIMENSION> {
+    fn elements(&self) -> &[Fq] {
         self.0.elements()
     }
 
@@ -28,7 +29,7 @@ impl MatrixOperations for ArcMatrix {
         self.0.set_element(i, j, val)
     }
 
-    fn rows(&self) -> Vec<&[Fq], MAX_DIMENSION> {
+    fn rows(&self) -> &[&[Fq]] {
         self.0.rows()
     }
 
@@ -52,22 +53,22 @@ impl MatrixOperations for ArcMatrix {
     }
 }
 
-impl From<ArcMatrix> for Vec<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION> {
-    fn from(arc: ArcMatrix) -> Self {
-        let mut rows = Vec::<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION>::new();
-        let m = &arc.0;
+// impl From<ArcMatrix> for Vec<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION> {
+//     fn from(arc: ArcMatrix) -> Self {
+//         let mut rows = Vec::<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION>::new();
+//         let m = &arc.0;
 
-        for i in 0..arc.n_rows() {
-            let mut row = Vec::new();
-            for j in 0..arc.n_cols() {
-                row.push(m.get_element(i, j))
-                    .expect("capacity should not be exceeded");
-            }
-            rows.push(row).expect("capacity should not be exceeded");
-        }
-        rows
-    }
-}
+//         for i in 0..arc.n_rows() {
+//             let mut row = Vec::new();
+//             for j in 0..arc.n_cols() {
+//                 row.push(m.get_element(i, j))
+//                     .expect("capacity should not be exceeded");
+//             }
+//             rows.push(row).expect("capacity should not be exceeded");
+//         }
+//         rows
+//     }
+// }
 
 /// Represents an optimized matrix of round constants.
 ///
@@ -78,15 +79,19 @@ impl From<ArcMatrix> for Vec<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION> {
 /// This method follows `calc_equivalent_constants` from Appendix B's
 /// `poseidonperm_x3_64_24_optimized.sage`.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct OptimizedArcMatrix(pub ArcMatrix);
+pub struct OptimizedArcMatrix<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>(
+    pub ArcMatrix<N_ROWS, N_COLS, N_ELEMENTS>,
+);
 
-impl MatrixOperations for OptimizedArcMatrix {
+impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOperations
+    for OptimizedArcMatrix<N_ROWS, N_COLS, N_ELEMENTS>
+{
     /// Create a `OptimizedArcMatrix` from its elements.
-    fn new(n_rows: usize, n_cols: usize, elements: Vec<Fq, MAX_DIMENSION>) -> Self {
-        Self(ArcMatrix::new(n_rows, n_cols, elements))
+    fn new(elements: &[Fq]) -> Self {
+        Self(ArcMatrix::new(elements))
     }
 
-    fn elements(&self) -> &Vec<Fq, MAX_DIMENSION> {
+    fn elements(&self) -> &[Fq] {
         self.0.elements()
     }
 
@@ -98,7 +103,7 @@ impl MatrixOperations for OptimizedArcMatrix {
         self.0.set_element(i, j, val)
     }
 
-    fn rows(&self) -> Vec<&[Fq], MAX_DIMENSION> {
+    fn rows(&self) -> &[&[Fq]] {
         self.0.rows()
     }
 

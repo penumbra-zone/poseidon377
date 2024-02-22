@@ -8,7 +8,7 @@
 use decaf377::Fq;
 
 mod alpha;
-// mod arc_matrix;
+mod arc_matrix;
 mod error;
 mod matrix;
 mod matrix_ops;
