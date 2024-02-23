@@ -210,7 +210,7 @@ impl<const N_ROWS: usize, const N_ELEMENTS: usize> SquareMatrixOperations
 
     /// Construct an identity matrix
     fn identity() -> Self {
-        let mut elements = [Fq::zero(); N_ELEMENTS];
+        let elements = [Fq::zero(); N_ELEMENTS];
         let mut m = Self::new(&elements);
 
         // Set diagonals to 1

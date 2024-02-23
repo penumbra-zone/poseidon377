@@ -5,17 +5,16 @@ use super::*;
 
 // use crate::matrix_ops::mat_mul;
 use crate::{matrix::Matrix, matrix_ops::MatrixOperations};
-// use crate::{matrix::SquareMatrix, matrix_ops::SquareMatrixOperations};
-// use v1::Matrix;
+use crate::{matrix::SquareMatrix, matrix_ops::SquareMatrixOperations};
 
-// #[test]
-// fn identity_matrix() {
-//     let identity = SquareMatrix::identity(2);
-//     assert_eq!(identity.get_element(0, 0), Fq::one());
-//     assert_eq!(identity.get_element(0, 1), Fq::zero());
-//     assert_eq!(identity.get_element(1, 1), Fq::one());
-//     assert_eq!(identity.get_element(1, 0), Fq::zero());
-// }
+#[test]
+fn identity_matrix() {
+    let identity = SquareMatrix::<2, 4>::identity();
+    assert_eq!(identity.get_element(0, 0), Fq::one());
+    assert_eq!(identity.get_element(0, 1), Fq::zero());
+    assert_eq!(identity.get_element(1, 1), Fq::one());
+    assert_eq!(identity.get_element(1, 0), Fq::zero());
+}
 
 // #[test]
 // fn square_matmul() {
@@ -86,63 +85,51 @@ fn hadamard_product() {
     assert_eq!(res.get_element(2, 1), Fq::from(36u64));
 }
 
-// #[test]
-// fn transpose() {
-//     let mut test_elements = Vec::<Fq, MAX_DIMENSION>::new();
-//     test_elements
-//         .extend_from_slice(&[
-//             Fq::one(),
-//             Fq::from(2u64),
-//             Fq::from(3u64),
-//             Fq::from(4u64),
-//             Fq::from(5u64),
-//             Fq::from(6u64),
-//         ])
-//         .expect("capacity should not be exceeded");
-//     let matrix_2x3 = Matrix::new(3, 2, test_elements);
-//     assert_eq!(matrix_2x3.get_element(0, 1), Fq::from(2u64));
-//     assert_eq!(matrix_2x3.get_element(1, 0), Fq::from(3u64));
-//     assert_eq!(matrix_2x3.get_element(1, 1), Fq::from(4u64));
-//     assert_eq!(matrix_2x3.get_element(2, 0), Fq::from(5u64));
-//     assert_eq!(matrix_2x3.get_element(2, 1), Fq::from(6u64));
-//     let res = matrix_2x3.transpose();
-//     assert_eq!(res.get_element(1, 0), Fq::from(2u64));
-//     assert_eq!(res.get_element(0, 1), Fq::from(3u64));
-//     assert_eq!(res.get_element(1, 1), Fq::from(4u64));
-//     assert_eq!(res.get_element(0, 2), Fq::from(5u64));
-//     assert_eq!(res.get_element(1, 2), Fq::from(6u64));
+#[test]
+fn transpose() {
+    let test_elements = &[
+        Fq::one(),
+        Fq::from(2u64),
+        Fq::from(3u64),
+        Fq::from(4u64),
+        Fq::from(5u64),
+        Fq::from(6u64),
+    ];
+    let matrix_2x3 = Matrix::<3, 2, 6>::new(test_elements);
+    assert_eq!(matrix_2x3.get_element(0, 1), Fq::from(2u64));
+    assert_eq!(matrix_2x3.get_element(1, 0), Fq::from(3u64));
+    assert_eq!(matrix_2x3.get_element(1, 1), Fq::from(4u64));
+    assert_eq!(matrix_2x3.get_element(2, 0), Fq::from(5u64));
+    assert_eq!(matrix_2x3.get_element(2, 1), Fq::from(6u64));
+    let res = matrix_2x3.transpose();
+    assert_eq!(res.get_element(1, 0), Fq::from(2u64));
+    assert_eq!(res.get_element(0, 1), Fq::from(3u64));
+    assert_eq!(res.get_element(1, 1), Fq::from(4u64));
+    assert_eq!(res.get_element(0, 2), Fq::from(5u64));
+    assert_eq!(res.get_element(1, 2), Fq::from(6u64));
 
-//     let mut test_elements = Vec::<Fq, MAX_DIMENSION>::new();
-//     test_elements
-//         .extend_from_slice(&[Fq::one(), Fq::from(2u64), Fq::from(3u64), Fq::from(4u64)])
-//         .expect("capacity should not be exceeded");
-//     let matrix_2x2 = SquareMatrix::from_vec(test_elements);
+    let test_elements = &[Fq::one(), Fq::from(2u64), Fq::from(3u64), Fq::from(4u64)];
+    let matrix_2x2 = SquareMatrix::<2, 4>::new(test_elements);
 
-//     let res = matrix_2x2.transpose();
-//     assert_eq!(res.get_element(0, 0), Fq::one());
-//     assert_eq!(res.get_element(0, 1), Fq::from(3u64));
-//     assert_eq!(res.get_element(1, 0), Fq::from(2u64));
-//     assert_eq!(res.get_element(1, 1), Fq::from(4u64));
-// }
+    let res = matrix_2x2.transpose();
+    assert_eq!(res.get_element(0, 0), Fq::one());
+    assert_eq!(res.get_element(0, 1), Fq::from(3u64));
+    assert_eq!(res.get_element(1, 0), Fq::from(2u64));
+    assert_eq!(res.get_element(1, 1), Fq::from(4u64));
+}
 
-// #[test]
-// fn cofactors() {
-//     let identity_1x1 = SquareMatrix::identity(1);
-//     let mut test_elements = Vec::<Fq, MAX_DIMENSION>::new();
-//     test_elements
-//         .extend_from_slice(&[Fq::one()])
-//         .expect("capacity should not be exceeded");
-//     let expected_res = SquareMatrix::from_vec(test_elements);
-//     assert_eq!(identity_1x1.cofactors(), expected_res);
+#[test]
+fn cofactors() {
+    let identity_1x1 = SquareMatrix::<1, 1>::identity();
+    let test_elements = &[Fq::one()];
+    let expected_res = SquareMatrix::new(test_elements);
+    assert_eq!(identity_1x1.cofactors(), expected_res);
 
-//     let identity_2x2 = SquareMatrix::identity(2);
-//     let mut test_elements = Vec::<Fq, MAX_DIMENSION>::new();
-//     test_elements
-//         .extend_from_slice(&[Fq::one(), -Fq::one(), -Fq::one(), Fq::one()])
-//         .expect("capacity should not be exceeded");
-//     let expected_res = SquareMatrix::from_vec(test_elements);
-//     assert_eq!(identity_2x2.cofactors(), expected_res);
-// }
+    let identity_2x2 = SquareMatrix::<2, 4>::identity();
+    let test_elements = &[Fq::one(), -Fq::one(), -Fq::one(), Fq::one()];
+    let expected_res = SquareMatrix::new(test_elements);
+    assert_eq!(identity_2x2.cofactors(), expected_res);
+}
 
 // fn fq_strategy() -> BoxedStrategy<Fq> {
 //     any::<[u64; 4]>().prop_map(Fq::from_le_limbs).boxed()
