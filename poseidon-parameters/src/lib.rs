@@ -19,7 +19,7 @@ mod round_numbers;
 mod tests;
 
 /// Structures related to Poseidon version 1 parameters.
-// pub mod v1;
+pub mod v1;
 
 /// Structures related to Poseidon version 2 parameters.
 pub mod v2;
