@@ -124,12 +124,12 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>
 
 /// Represents a square matrix over `PrimeField` elements
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SquareMatrix<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>(
-    pub Matrix<N_ROWS, N_COLS, N_ELEMENTS>,
+pub struct SquareMatrix<const N_ROWS: usize, const N_ELEMENTS: usize>(
+    pub Matrix<N_ROWS, N_ROWS, N_ELEMENTS>,
 );
 
-impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOperations
-    for SquareMatrix<N_ROWS, N_COLS, N_ELEMENTS>
+impl<const N_ROWS: usize, const N_ELEMENTS: usize> MatrixOperations
+    for SquareMatrix<N_ROWS, N_ELEMENTS>
 {
     fn new(elements: &[Fq]) -> Self {
         Self(Matrix::new(elements))
@@ -156,7 +156,8 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
     }
 
     fn n_cols(&self) -> usize {
-        N_COLS
+        // Matrix is square
+        N_ROWS
     }
 
     fn transpose(&self) -> Self {
@@ -171,8 +172,8 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
     }
 }
 
-impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> SquareMatrixOperations
-    for SquareMatrix<N_ROWS, N_COLS, N_ELEMENTS>
+impl<const N_ROWS: usize, const N_ELEMENTS: usize> SquareMatrixOperations
+    for SquareMatrix<N_ROWS, N_ELEMENTS>
 {
     /// Compute the inverse of the matrix
     fn inverse(&self) -> Result<Self, PoseidonParameterError> {
@@ -213,7 +214,7 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> SquareMa
         let mut m = Self::new(&elements);
 
         // Set diagonals to 1
-        for i in 0..N_COLS {
+        for i in 0..N_ROWS {
             m.set_element(i, i, Fq::one());
         }
 
@@ -222,7 +223,7 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> SquareMa
 
     /// Compute the (unsigned) minors of this matrix
     fn minors(&self) -> Self {
-        match N_COLS {
+        match N_ROWS {
             0 => panic!("matrix has no elements!"),
             1 => Self::new(&[self.get_element(0, 0)]),
             2 => {
@@ -360,10 +361,8 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> SquareMa
 }
 
 /// Multiply scalar by SquareMatrix
-impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> Mul<Fq>
-    for SquareMatrix<N_ROWS, N_COLS, N_ELEMENTS>
-{
-    type Output = SquareMatrix<N_ROWS, N_COLS, N_ELEMENTS>;
+impl<const N_ROWS: usize, const N_ELEMENTS: usize> Mul<Fq> for SquareMatrix<N_ROWS, N_ELEMENTS> {
+    type Output = SquareMatrix<N_ROWS, N_ELEMENTS>;
 
     fn mul(self, rhs: Fq) -> Self::Output {
         let elements = self.elements();
@@ -375,16 +374,14 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> Mul<Fq>
     }
 }
 
-impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>
-    SquareMatrix<N_ROWS, N_COLS, N_ELEMENTS>
-{
+impl<const N_ROWS: usize, const N_ELEMENTS: usize> SquareMatrix<N_ROWS, N_ELEMENTS> {
     /// Get row vector at a specified row index.
-    pub fn row_vector(&self, i: usize) -> Matrix<1, N_COLS, N_ELEMENTS> {
+    pub fn row_vector(&self, i: usize) -> Matrix<1, N_ROWS, N_ELEMENTS> {
         self.0.row_vector(i)
     }
 
     /// Create a 2x2 `SquareMatrix` from four elements.
-    pub fn new_2x2(a: Fq, b: Fq, c: Fq, d: Fq) -> SquareMatrix<2, 2, 4> {
-        SquareMatrix::<2, 2, 4>::new(&[a, b, c, d])
+    pub fn new_2x2(a: Fq, b: Fq, c: Fq, d: Fq) -> SquareMatrix<2, 4> {
+        SquareMatrix::<2, 4>::new(&[a, b, c, d])
     }
 }
