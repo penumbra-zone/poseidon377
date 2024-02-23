@@ -12,13 +12,11 @@ mod arc_matrix;
 mod error;
 mod matrix;
 mod matrix_ops;
-// mod mds_matrix;
+mod mds_matrix;
 mod round_numbers;
 
 #[cfg(test)]
 mod tests;
-
-pub const MAX_DIMENSION: usize = 100;
 
 /// Structures related to Poseidon version 1 parameters.
 // pub mod v1;
