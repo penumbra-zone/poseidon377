@@ -22,7 +22,7 @@ mod tests;
 // pub mod v1;
 
 /// Structures related to Poseidon version 2 parameters.
-// pub mod v2;
+pub mod v2;
 
 pub trait StuffThatNeedsToGoInDecaf377 {
     fn pow<S: AsRef<[u64]>>(&self, exp: S) -> Self;
