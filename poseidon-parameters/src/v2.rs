@@ -12,6 +12,9 @@ pub use crate::{matrix_ops::MatrixOperations, matrix_ops::SquareMatrixOperations
 ///
 /// The const `NUM_MDS_ELEMENTS` corresponds to the number of elements in the MDS matrices, which
 /// should equal `STATE_SIZE * STATE_SIZE`.
+///
+/// The const `NUM_ROUND_ROWS`, `NUM_ROUND_COLS`, and `NUM_ROUND_ELEMENTS` correspond to the number
+/// of rows in the round constants matrix.
 #[derive(Clone, Debug)]
 pub struct PoseidonParameters<
     const STATE_SIZE: usize,
