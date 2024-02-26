@@ -10,6 +10,14 @@ pub struct ArcMatrix<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS:
     pub Matrix<N_ROWS, N_COLS, N_ELEMENTS>,
 );
 
+impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>
+    ArcMatrix<N_ROWS, N_COLS, N_ELEMENTS>
+{
+    pub fn transpose(&self) -> ArcMatrix<N_COLS, N_ROWS, N_ELEMENTS> {
+        ArcMatrix(self.0.transpose())
+    }
+}
+
 impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOperations
     for ArcMatrix<N_ROWS, N_COLS, N_ELEMENTS>
 {
@@ -39,10 +47,6 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
 
     fn n_cols(&self) -> usize {
         self.0.n_cols()
-    }
-
-    fn transpose(&self) -> Self {
-        Self(self.0.transpose())
     }
 
     fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
@@ -83,6 +87,14 @@ pub struct OptimizedArcMatrix<const N_ROWS: usize, const N_COLS: usize, const N_
     pub ArcMatrix<N_ROWS, N_COLS, N_ELEMENTS>,
 );
 
+impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>
+    OptimizedArcMatrix<N_ROWS, N_COLS, N_ELEMENTS>
+{
+    pub fn transpose(&self) -> OptimizedArcMatrix<N_COLS, N_ROWS, N_ELEMENTS> {
+        OptimizedArcMatrix(self.0.transpose())
+    }
+}
+
 impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOperations
     for OptimizedArcMatrix<N_ROWS, N_COLS, N_ELEMENTS>
 {
@@ -113,10 +125,6 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
 
     fn n_cols(&self) -> usize {
         self.0.n_cols()
-    }
-
-    fn transpose(&self) -> Self {
-        Self(self.0.transpose())
     }
 
     fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
