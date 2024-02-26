@@ -420,3 +420,30 @@ impl<const N_ROWS: usize, const N_ELEMENTS: usize> SquareMatrix<N_ROWS, N_ELEMEN
         SquareMatrix::<2, 4>::new(&[a, b, c, d])
     }
 }
+
+/// Multiply two matrices
+pub fn square_mat_mul<
+    const LHS_N_ROWS: usize,
+    const LHS_N_ELEMENTS: usize,
+    const RHS_N_ROWS: usize,
+    const RHS_N_ELEMENTS: usize,
+    const RESULT_N_ELEMENTS: usize,
+>(
+    lhs: &SquareMatrix<LHS_N_ROWS, LHS_N_ELEMENTS>,
+    rhs: &SquareMatrix<RHS_N_ROWS, RHS_N_ELEMENTS>,
+) -> SquareMatrix<LHS_N_ROWS, RESULT_N_ELEMENTS> {
+    let rhs_T = rhs.transpose();
+
+    let mut new_elements = [Fq::default(); RESULT_N_ELEMENTS];
+
+    let mut index = 0;
+    for row in lhs.iter_rows() {
+        // Rows of the transposed matrix are the columns of the original matrix
+        for column in rhs_T.iter_rows() {
+            new_elements[index] = dot_product(row, column);
+            index += 1;
+        }
+    }
+
+    SquareMatrix::<LHS_N_ROWS, RESULT_N_ELEMENTS>::new(&new_elements)
+}
