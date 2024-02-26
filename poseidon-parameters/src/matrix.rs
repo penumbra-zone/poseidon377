@@ -80,10 +80,6 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
     where
         Self: Sized,
     {
-        if self.n_rows() != rhs.n_rows() || self.n_cols() != rhs.n_cols() {
-            return Err(PoseidonParameterError::InvalidMatrixDimensions);
-        }
-
         let mut new_elements = [Fq::default(); N_ELEMENTS];
         let mut index = 0;
         for i in 0..self.n_rows() {
