@@ -3,7 +3,7 @@ use proptest::prelude::*;
 
 use super::*;
 
-use crate::matrix::mat_mul;
+use crate::matrix::{mat_mul, square_mat_mul};
 use crate::{matrix::Matrix, matrix_ops::MatrixOperations};
 use crate::{matrix::SquareMatrix, matrix_ops::SquareMatrixOperations};
 
@@ -16,22 +16,19 @@ fn identity_matrix() {
     assert_eq!(identity.get_element(1, 0), Fq::zero());
 }
 
-// #[test]
-// fn square_matmul() {
-//     let identity = SquareMatrix::identity(2);
+#[test]
+fn square_matmul() {
+    let identity = SquareMatrix::<2, 4>::identity();
 
-//     let mut elements = Vec::<Fq, MAX_DIMENSION>::new();
-//     elements
-//         .extend_from_slice(&[Fq::one(), Fq::from(2u64), Fq::from(3u64), Fq::from(4u64)])
-//         .expect("capacity should not be exceeded");
-//     let matrix_2x2 = SquareMatrix::from_vec(elements);
+    let elements = &[Fq::one(), Fq::from(2u64), Fq::from(3u64), Fq::from(4u64)];
+    let matrix_2x2 = SquareMatrix::<2, 4>::new(elements);
 
-//     let res = mat_mul(&matrix_2x2, &identity).unwrap();
-//     assert_eq!(res.get_element(0, 0), Fq::one());
-//     assert_eq!(res.get_element(0, 1), Fq::from(2u64));
-//     assert_eq!(res.get_element(1, 0), Fq::from(3u64));
-//     assert_eq!(res.get_element(1, 1), Fq::from(4u64));
-// }
+    let res: SquareMatrix<2, 4> = square_mat_mul(&matrix_2x2, &identity);
+    assert_eq!(res.get_element(0, 0), Fq::one());
+    assert_eq!(res.get_element(0, 1), Fq::from(2u64));
+    assert_eq!(res.get_element(1, 0), Fq::from(3u64));
+    assert_eq!(res.get_element(1, 1), Fq::from(4u64));
+}
 
 #[test]
 fn nonsquare_matmul_happy() {
