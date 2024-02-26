@@ -122,9 +122,9 @@ fn cofactors() {
     assert_eq!(identity_2x2.cofactors(), expected_res);
 }
 
-// fn fq_strategy() -> BoxedStrategy<Fq> {
-//     any::<[u64; 4]>().prop_map(Fq::from_le_limbs).boxed()
-// }
+fn fq_strategy() -> BoxedStrategy<Fq> {
+    any::<[u64; 4]>().prop_map(Fq::from_le_limbs).boxed()
+}
 
 // proptest! {
 //     #[test]
@@ -228,29 +228,50 @@ fn create_matrix_from_array() {
     assert_eq!(matrix_2x3.get_element(1, 2), Fq::from(6u64));
 }
 
-// #[test]
-// fn determinant() {
-//     let matrix_1x1 = SquareMatrix::<1, 1>::new(&[Fq::one()]);
-//     assert_eq!(matrix_1x1.determinant(), Fq::one());
+#[test]
+fn determinant() {
+    let matrix_1x1 = SquareMatrix::<1, 1>::new(&[Fq::one()]);
+    assert_eq!(matrix_1x1.determinant(), Fq::one());
 
-//     let a = Fq::one();
-//     let b = Fq::one() + Fq::one();
-//     let c = Fq::from(3u64);
-//     let d = Fq::from(4u64);
-//     let matrix_2x2 = SquareMatrix::<2, 4>::new(&[a, b, c, d]);
-//     assert_eq!(matrix_2x2.determinant(), -Fq::from(2u64));
+    let a = Fq::one();
+    let b = Fq::one() + Fq::one();
+    let c = Fq::from(3u64);
+    let d = Fq::from(4u64);
+    let matrix_2x2 = SquareMatrix::<2, 4>::new(&[a, b, c, d]);
+    assert_eq!(matrix_2x2.determinant(), -Fq::from(2u64));
 
-//     let e = Fq::from(5u64);
-//     let f = Fq::from(6u64);
-//     let g = Fq::from(7u64);
-//     let h = Fq::from(8u64);
-//     let i = Fq::from(9u64);
-//     let matrix_3x3 = SquareMatrix::<3, 9>::new(&[a, b, c, d, e, f, g, h, i]);
-//     assert_eq!(matrix_3x3.determinant(), Fq::from(0u64));
+    let e = Fq::from(5u64);
+    let f = Fq::from(6u64);
+    let g = Fq::from(7u64);
+    let h = Fq::from(8u64);
+    let i = Fq::from(9u64);
+    let matrix_3x3 = SquareMatrix::<3, 9>::new(&[a, b, c, d, e, f, g, h, i]);
+    assert_eq!(matrix_3x3.determinant(), Fq::from(0u64));
 
-//     let elem = Fq::from(10u64);
-//     let matrix_4x4 = SquareMatrix::<4, 16>::new(&[
-//         a, b, c, d, e, f, g, h, i, elem, elem, elem, elem, elem, elem, elem,
-//     ]);
-//     assert_eq!(matrix_4x4.determinant(), Fq::from(0u64));
-// }
+    let elem = Fq::from(10u64);
+    let matrix_4x4 = SquareMatrix::<4, 16>::new(&[
+        a, b, c, d, e, f, g, h, i, elem, elem, elem, elem, elem, elem, elem,
+    ]);
+    assert_eq!(matrix_4x4.determinant(), Fq::from(0u64));
+
+    let matrix_5x5 = SquareMatrix::<5, 25>::new(&[
+        a, b, c, d, e, f, g, h, i, elem, elem, elem, elem, elem, elem, elem, elem, elem, elem,
+        elem, elem, elem, elem, elem, elem,
+    ]);
+    assert_eq!(matrix_5x5.determinant(), Fq::from(0u64));
+
+    let mut elements = vec![a, b, c, d, e, f, g, h, i];
+    elements.extend_from_slice(&[elem; 27]);
+    let matrix_6x6 = SquareMatrix::<6, 36>::new(&elements[..]);
+    assert_eq!(matrix_6x6.determinant(), Fq::from(0u64));
+
+    let mut elements = vec![a, b, c, d, e, f, g, h, i];
+    elements.extend_from_slice(&[elem; 40]);
+    let matrix_7x7 = SquareMatrix::<7, 49>::new(&elements[..]);
+    assert_eq!(matrix_7x7.determinant(), Fq::from(0u64));
+
+    let mut elements = vec![a, b, c, d, e, f, g, h, i];
+    elements.extend_from_slice(&[elem; 55]);
+    let matrix_8x8 = SquareMatrix::<8, 64>::new(&elements[..]);
+    assert_eq!(matrix_8x8.determinant(), Fq::from(0u64));
+}
