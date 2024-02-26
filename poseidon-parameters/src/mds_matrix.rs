@@ -69,7 +69,7 @@ impl<const STATE_SIZE: usize, const STATE_SIZE_MINUS_1: usize, const NUM_ELEMENT
         Self(SquareMatrix::new(elements))
     }
 
-    fn transpose(&self) -> Self {
+    pub fn transpose(&self) -> Self {
         Self(self.0.transpose())
     }
 
@@ -85,7 +85,7 @@ impl<const STATE_SIZE: usize, const STATE_SIZE_MINUS_1: usize, const NUM_ELEMENT
     /// Ref: p.20 of the Poseidon paper
     pub fn v(&self) -> Matrix<1, STATE_SIZE_MINUS_1, STATE_SIZE_MINUS_1> {
         let elements = &self.0 .0.elements()[1..self.0 .0.n_rows()];
-        Matrix::new(&elements)
+        Matrix::new(elements)
     }
 
     /// Return the elements M_{1,0} .. M_{t,0} from the first column
