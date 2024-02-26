@@ -22,15 +22,11 @@ pub trait MatrixOperations {
     fn n_rows(&self) -> usize;
     /// Number of columns
     fn n_cols(&self) -> usize;
-    /// Take transpose of the matrix
-    fn transpose(&self) -> Self;
     /// Compute Hadamard (element-wise) product
     fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
     where
         Self: Sized;
 }
-
-// TODO: mat_mul
 
 /// Compute vector dot product
 pub fn dot_product(a: &[Fq], b: &[Fq]) -> Fq {
