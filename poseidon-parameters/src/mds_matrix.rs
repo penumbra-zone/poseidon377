@@ -11,14 +11,21 @@ pub struct MdsMatrix<
     const STATE_SIZE: usize,
     const STATE_SIZE_MINUS_1: usize,
     const NUM_ELEMENTS: usize,
+    const NUM_ELEMENTS_STATE_SIZE_MINUS_1_2: usize,
 >(pub SquareMatrix<STATE_SIZE, NUM_ELEMENTS>);
 
-impl<const STATE_SIZE: usize, const STATE_SIZE_MINUS_1: usize, const NUM_ELEMENTS: usize>
-    MatrixOperations for MdsMatrix<STATE_SIZE, STATE_SIZE_MINUS_1, NUM_ELEMENTS>
+impl<
+        const STATE_SIZE: usize,
+        const STATE_SIZE_MINUS_1: usize,
+        const NUM_ELEMENTS: usize,
+        const NUM_ELEMENTS_STATE_SIZE_MINUS_1_2: usize,
+    > MatrixOperations
+    for MdsMatrix<STATE_SIZE, STATE_SIZE_MINUS_1, NUM_ELEMENTS, NUM_ELEMENTS_STATE_SIZE_MINUS_1_2>
 {
     fn new(elements: &[Fq]) -> Self {
         assert!(STATE_SIZE == STATE_SIZE_MINUS_1 + 1);
         assert!(STATE_SIZE * STATE_SIZE == NUM_ELEMENTS);
+        assert!(STATE_SIZE_MINUS_1 * STATE_SIZE_MINUS_1 == NUM_ELEMENTS_STATE_SIZE_MINUS_1_2);
         Self(SquareMatrix::new(elements))
     }
 
@@ -54,8 +61,12 @@ impl<const STATE_SIZE: usize, const STATE_SIZE_MINUS_1: usize, const NUM_ELEMENT
     }
 }
 
-impl<const STATE_SIZE: usize, const STATE_SIZE_MINUS_1: usize, const NUM_ELEMENTS: usize>
-    MdsMatrix<STATE_SIZE, STATE_SIZE_MINUS_1, NUM_ELEMENTS>
+impl<
+        const STATE_SIZE: usize,
+        const STATE_SIZE_MINUS_1: usize,
+        const NUM_ELEMENTS: usize,
+        const NUM_ELEMENTS_STATE_SIZE_MINUS_1_2: usize,
+    > MdsMatrix<STATE_SIZE, STATE_SIZE_MINUS_1, NUM_ELEMENTS, NUM_ELEMENTS_STATE_SIZE_MINUS_1_2>
 {
     /// Instantiate an MDS matrix from a list of elements.
     ///
@@ -99,24 +110,23 @@ impl<const STATE_SIZE: usize, const STATE_SIZE_MINUS_1: usize, const NUM_ELEMENT
         Matrix::new(&elements)
     }
 
-    // /// Compute the (t - 1) x (t - 1) Mhat matrix from the MDS matrix
-    // ///
-    // /// This is simply the MDS matrix with the first row and column removed
-    // ///
-    // /// Ref: p.20 of the Poseidon paper
-    // TODO: Need a const generic parameter for the number of elements in the Mhat matrix
-    // pub fn hat(&self) -> SquareMatrix<STATE_SIZE_MINUS_1, STATE_SIZE_MINUS_1> {
-    //     let dim = self.n_rows();
-    //     let mut mhat_elements = Vec::<Fq, MAX_DIMENSION>::new();
-    //     for i in 1..dim {
-    //         for j in 1..dim {
-    //             mhat_elements
-    //                 .push(self.0.get_element(i, j))
-    //                 .expect("capacity should not be exceeded");
-    //         }
-    //     }
-    //     SquareMatrix::from_vec(mhat_elements)
-    // }
+    /// Compute the (t - 1) x (t - 1) Mhat matrix from the MDS matrix
+    ///
+    /// This is simply the MDS matrix with the first row and column removed
+    ///
+    /// Ref: p.20 of the Poseidon paper
+    pub fn hat(&self) -> SquareMatrix<STATE_SIZE_MINUS_1, NUM_ELEMENTS_STATE_SIZE_MINUS_1_2> {
+        let dim = self.n_rows();
+        let mut mhat_elements = [Fq::zero(); NUM_ELEMENTS_STATE_SIZE_MINUS_1_2];
+        let mut index = 0;
+        for i in 1..dim {
+            for j in 1..dim {
+                mhat_elements[index] = self.0.get_element(i, j);
+                index += 1;
+            }
+        }
+        SquareMatrix::new(&mhat_elements)
+    }
 }
 
 // impl From<MdsMatrix> for Vec<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION> {

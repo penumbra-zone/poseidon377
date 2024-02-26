@@ -19,6 +19,7 @@ pub struct PoseidonParameters<
     const STATE_SIZE: usize,
     const STATE_SIZE_MINUS_1: usize,
     const NUM_MDS_ELEMENTS: usize,
+    const NUM_STATE_SIZE_MINUS_1_ELEMENTS: usize,
     const NUM_ROUND_ROWS: usize,
     const NUM_ROUND_COLS: usize,
     const NUM_ROUND_ELEMENTS: usize,
@@ -35,7 +36,12 @@ pub struct PoseidonParameters<
     pub rounds: RoundNumbers,
 
     /// `t x t` MDS matrix used in the `MixLayer` step
-    pub mds: MdsMatrix<STATE_SIZE, STATE_SIZE_MINUS_1, NUM_MDS_ELEMENTS>,
+    pub mds: MdsMatrix<
+        STATE_SIZE,
+        STATE_SIZE_MINUS_1,
+        NUM_MDS_ELEMENTS,
+        NUM_STATE_SIZE_MINUS_1_ELEMENTS,
+    >,
 
     /// `num_total_rounds x t` matrix of constants used in the `AddRoundConstant` step
     pub arc: ArcMatrix<NUM_ROUND_ROWS, NUM_ROUND_COLS, NUM_ROUND_ELEMENTS>,

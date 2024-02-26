@@ -383,8 +383,6 @@ impl<const N_ROWS: usize, const N_ELEMENTS: usize> SquareMatrixOperations
                 //     }
                 //     levi_civita = !levi_civita;
                 // }
-
-                // det
                 todo!()
             }
         }
