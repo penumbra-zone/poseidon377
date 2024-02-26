@@ -12,4 +12,4 @@ members = [
 debug = true
 
 [workspace.dependencies]
-decaf377 = {default-features = false, git = "https://github.com/penumbra-zone/decaf377", branch = "update-deps-rev"}
+decaf377 = {default-features = false, git = "https://github.com/penumbra-zone/decaf377", rev = "a6627615663c384191a1c719703f683dbef08ee3"}
