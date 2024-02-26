@@ -46,10 +46,6 @@ impl<const STATE_SIZE: usize, const STATE_SIZE_MINUS_1: usize, const NUM_ELEMENT
         self.0.n_cols()
     }
 
-    fn transpose(&self) -> Self {
-        Self(self.0.transpose())
-    }
-
     fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
     where
         Self: Sized,
@@ -71,6 +67,10 @@ impl<const STATE_SIZE: usize, const STATE_SIZE_MINUS_1: usize, const NUM_ELEMENT
     /// paper.
     pub fn from_elements(elements: &[Fq]) -> Self {
         Self(SquareMatrix::new(elements))
+    }
+
+    fn transpose(&self) -> Self {
+        Self(self.0.transpose())
     }
 
     /// Compute inverse of MDS matrix

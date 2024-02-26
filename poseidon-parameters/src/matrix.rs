@@ -2,7 +2,7 @@ use core::convert::TryInto;
 use core::ops::Mul;
 
 use crate::error::PoseidonParameterError;
-use crate::matrix_ops::{MatrixOperations, SquareMatrixOperations};
+use crate::matrix_ops::{dot_product, MatrixOperations, SquareMatrixOperations};
 use decaf377::Fq;
 
 /// Represents a matrix over `PrimeField` elements.
@@ -14,6 +14,23 @@ pub struct Matrix<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: us
     /// Elements of the matrix, stored in a fixed-size array.
     ///
     pub elements: [Fq; N_ELEMENTS],
+}
+
+impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>
+    Matrix<N_ROWS, N_COLS, N_ELEMENTS>
+{
+    pub fn transpose(&self) -> Matrix<N_COLS, N_ROWS, N_ELEMENTS> {
+        let mut transposed_elements = [Fq::default(); N_ELEMENTS];
+
+        let mut index = 0;
+        for j in 0..self.n_cols() {
+            for i in 0..self.n_rows() {
+                transposed_elements[index] = self.get_element(i, j);
+                index += 1;
+            }
+        }
+        Matrix::<N_COLS, N_ROWS, N_ELEMENTS>::new(&transposed_elements)
+    }
 }
 
 impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOperations
@@ -59,19 +76,6 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
         N_COLS
     }
 
-    fn transpose(&self) -> Self {
-        let mut transposed_elements = [Fq::default(); N_ELEMENTS];
-
-        let mut index = 0;
-        for j in 0..self.n_cols() {
-            for i in 0..self.n_rows() {
-                transposed_elements[index] = self.get_element(i, j);
-                index += 1;
-            }
-        }
-        Self::new(&transposed_elements)
-    }
-
     fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
     where
         Self: Sized,
@@ -91,6 +95,35 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
 
         Ok(Self::new(&new_elements))
     }
+}
+
+/// Multiply two matrices
+pub fn mat_mul<
+    const LHS_N_ROWS: usize,
+    const LHS_N_COLS: usize,
+    const LHS_N_ELEMENTS: usize,
+    const RHS_N_ROWS: usize,
+    const RHS_N_COLS: usize,
+    const RHS_N_ELEMENTS: usize,
+    const RESULT_N_ELEMENTS: usize,
+>(
+    lhs: &Matrix<LHS_N_ROWS, LHS_N_COLS, LHS_N_ELEMENTS>,
+    rhs: &Matrix<RHS_N_ROWS, RHS_N_COLS, RHS_N_ELEMENTS>,
+) -> Matrix<LHS_N_ROWS, RHS_N_COLS, RESULT_N_ELEMENTS> {
+    let rhs_T = rhs.transpose();
+
+    let mut new_elements = [Fq::default(); RESULT_N_ELEMENTS];
+
+    let mut index = 0;
+    for row in lhs.iter_rows() {
+        // Rows of the transposed matrix are the columns of the original matrix
+        for column in rhs_T.iter_rows() {
+            new_elements[index] = dot_product(row, column);
+            index += 1;
+        }
+    }
+
+    Matrix::<LHS_N_ROWS, RHS_N_COLS, RESULT_N_ELEMENTS>::new(&new_elements)
 }
 
 /// Multiply scalar by Matrix
@@ -119,6 +152,12 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>
             row_elements[j] = self.get_element(i, j);
         }
         Matrix::new(&row_elements)
+    }
+}
+
+impl<const N_ROWS: usize, const N_ELEMENTS: usize> SquareMatrix<N_ROWS, N_ELEMENTS> {
+    pub fn transpose(&self) -> Self {
+        Self(self.0.transpose())
     }
 }
 
@@ -158,10 +197,6 @@ impl<const N_ROWS: usize, const N_ELEMENTS: usize> MatrixOperations
     fn n_cols(&self) -> usize {
         // Matrix is square
         N_ROWS
-    }
-
-    fn transpose(&self) -> Self {
-        Self(self.0.transpose())
     }
 
     fn hadamard_product(&self, rhs: &Self) -> Result<Self, PoseidonParameterError>
