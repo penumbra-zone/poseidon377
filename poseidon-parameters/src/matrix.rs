@@ -260,46 +260,14 @@ impl<const N_ROWS: usize, const N_ELEMENTS: usize> SquareMatrixOperations
                 let d = self.get_element(1, 1);
                 Self::new(&[d, c, b, a])
             }
+            3 => minor_matrix::<N_ROWS, 2, N_ELEMENTS, 4>(self),
+            4 => minor_matrix::<N_ROWS, 3, N_ELEMENTS, 9>(self),
+            5 => minor_matrix::<N_ROWS, 4, N_ELEMENTS, 16>(self),
+            6 => minor_matrix::<N_ROWS, 5, N_ELEMENTS, 25>(self),
+            7 => minor_matrix::<N_ROWS, 6, N_ELEMENTS, 36>(self),
+            8 => minor_matrix::<N_ROWS, 7, N_ELEMENTS, 49>(self),
             _ => {
-                // // Tricky because we can't do the const expression N_ROWS - 1
-                // // to actually construct the minor matrix...
-                // let dim = self.n_rows();
-                // let mut minor_matrix_elements = Vec::<Fq, MAX_DIMENSION>::new();
-                // for i in 0..dim {
-                //     for j in 0..dim {
-                //         let mut elements: Vec<Fq, MAX_DIMENSION> = Vec::new();
-                //         for k in 0..i {
-                //             for l in 0..j {
-                //                 elements
-                //                     .push(self.get_element(k, l))
-                //                     .expect("capacity should not be exceeded");
-                //             }
-                //             for l in (j + 1)..dim {
-                //                 elements
-                //                     .push(self.get_element(k, l))
-                //                     .expect("capacity should not be exceeded");
-                //             }
-                //         }
-                //         for k in i + 1..dim {
-                //             for l in 0..j {
-                //                 elements
-                //                     .push(self.get_element(k, l))
-                //                     .expect("capacity should not be exceeded");
-                //             }
-                //             for l in (j + 1)..dim {
-                //                 elements
-                //                     .push(self.get_element(k, l))
-                //                     .expect("capacity should not be exceeded");
-                //             }
-                //         }
-                //         let minor = Self::from_vec(elements);
-                //         minor_matrix_elements
-                //             .push(minor.determinant())
-                //             .expect("capacity should not be exceeded");
-                //     }
-                // }
-                // SquareMatrix::<N_ROWS, N_COLS, N_ELEMENTS>::new(&minor_matrix_elements)
-                todo!()
+                unimplemented!("poseidon-parameters only supports square matrices up to 8")
             }
         }
     }
@@ -802,4 +770,47 @@ pub fn square_mat_mul<
     }
 
     SquareMatrix::<LHS_N_ROWS, RESULT_N_ELEMENTS>::new(&new_elements)
+}
+
+/// Helper function for computing matrix minor
+fn minor_matrix<
+    const DIM: usize,
+    const DIM_MINUS_1: usize,
+    const N_ELEMENTS: usize,
+    const N_ELEMENTS_DIM_MINUS_1: usize,
+>(
+    matrix: &SquareMatrix<DIM, N_ELEMENTS>,
+) -> SquareMatrix<DIM, N_ELEMENTS> {
+    let mut minor_matrix_elements = [Fq::default(); N_ELEMENTS];
+    let mut outer_index = 0;
+    for i in 0..DIM {
+        for j in 0..DIM {
+            let mut elements = [Fq::default(); N_ELEMENTS_DIM_MINUS_1];
+            let mut index = 0;
+            for k in 0..i {
+                for l in 0..j {
+                    elements[index] = matrix.get_element(k, l);
+                    index += 1;
+                }
+                for l in (j + 1)..DIM {
+                    elements[index] = matrix.get_element(k, l);
+                    index += 1;
+                }
+            }
+            for k in i + 1..DIM {
+                for l in 0..j {
+                    elements[index] = matrix.get_element(k, l);
+                    index += 1;
+                }
+                for l in (j + 1)..DIM {
+                    elements[index] = matrix.get_element(k, l);
+                    index += 1;
+                }
+            }
+            let minor = SquareMatrix::<DIM_MINUS_1, N_ELEMENTS_DIM_MINUS_1>::new(&elements);
+            minor_matrix_elements[outer_index] = minor.determinant();
+            outer_index += 1;
+        }
+    }
+    SquareMatrix::<DIM, N_ELEMENTS>::new(&minor_matrix_elements)
 }
