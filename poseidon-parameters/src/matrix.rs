@@ -63,11 +63,6 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
         self.elements[i * N_COLS + j] = val
     }
 
-    fn rows(&self) -> &[&[Fq]] {
-        // self.elements.chunks(self.n_cols()).collect()
-        todo!()
-    }
-
     fn n_rows(&self) -> usize {
         N_ROWS
     }
@@ -93,7 +88,8 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
     }
 }
 
-/// Multiply two matrices
+#[allow(dead_code)]
+/// Multiply two `Matrix`
 pub fn mat_mul<
     const LHS_N_ROWS: usize,
     const LHS_N_COLS: usize,
@@ -180,10 +176,6 @@ impl<const N_ROWS: usize, const N_ELEMENTS: usize> MatrixOperations
 
     fn set_element(&mut self, i: usize, j: usize, val: Fq) {
         self.0.set_element(i, j, val)
-    }
-
-    fn rows(&self) -> &[&[Fq]] {
-        todo!()
     }
 
     fn n_rows(&self) -> usize {
