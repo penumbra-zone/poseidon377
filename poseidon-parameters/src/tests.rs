@@ -126,82 +126,67 @@ fn fq_strategy() -> BoxedStrategy<Fq> {
     any::<[u64; 4]>().prop_map(Fq::from_le_limbs).boxed()
 }
 
-// proptest! {
-//     #[test]
-//     fn inverse_2x2(a in fq_strategy(), b in fq_strategy(), c in fq_strategy(), d in fq_strategy()) {
-//         let mut test_elements = &[a, b, c, d];
-//         let matrix_2x2 = SquareMatrix::new(test_elements);
+proptest! {
+    #[test]
+    fn inverse_2x2(a in fq_strategy(), b in fq_strategy(), c in fq_strategy(), d in fq_strategy()) {
+        let matrix_2x2 = SquareMatrix::<2, 4>::new(&[a, b, c, d]);
 
-//         let res = matrix_2x2.inverse().unwrap();
-//         assert_eq!(mat_mul(&matrix_2x2, &res).unwrap(), SquareMatrix::identity(2));
-//     }
-// }
+        let res = matrix_2x2.inverse().unwrap();
+        assert_eq!(square_mat_mul(&matrix_2x2, &res), SquareMatrix::<2, 4>::identity());
+    }
+}
 
-// #[test]
-// fn inverse() {
-//     let mut test_elements = Vec::<Fq, MAX_DIMENSION>::new();
-//     test_elements
-//         .push(Fq::from(2u64))
-//         .expect("capacity should not be exceeded");
-//     let matrix_1x1 = SquareMatrix::from_vec(test_elements);
-//     let res = matrix_1x1.inverse().unwrap();
-//     assert_eq!(
-//         mat_mul(&matrix_1x1, &res).unwrap(),
-//         SquareMatrix::identity(1)
-//     );
+#[test]
+fn inverse() {
+    let matrix_1x1 = SquareMatrix::<1, 1>::new(&[Fq::from(2u64)]);
+    let res = matrix_1x1.inverse().unwrap();
+    assert_eq!(
+        square_mat_mul(&matrix_1x1, &res),
+        SquareMatrix::<1, 1>::identity()
+    );
 
-//     let mut test_elements = Vec::<Fq, MAX_DIMENSION>::new();
-//     test_elements
-//         .extend_from_slice(&[Fq::one(), Fq::from(2u64), Fq::from(3u64), Fq::from(4u64)])
-//         .expect("capacity should not be exceeded");
-//     let matrix_2x2 = SquareMatrix::from_vec(test_elements);
+    let matrix_2x2 =
+        SquareMatrix::<2, 4>::new(&[Fq::one(), Fq::from(2u64), Fq::from(3u64), Fq::from(4u64)]);
 
-//     let res = matrix_2x2.inverse().unwrap();
-//     assert_eq!(
-//         mat_mul(&matrix_2x2, &res).unwrap(),
-//         SquareMatrix::identity(2)
-//     );
+    let res = matrix_2x2.inverse().unwrap();
+    assert_eq!(
+        square_mat_mul(&matrix_2x2, &res),
+        SquareMatrix::<2, 4>::identity()
+    );
 
-//     let identity_3x3 = SquareMatrix::identity(3);
-//     assert_eq!(identity_3x3, identity_3x3.inverse().unwrap());
+    let identity_3x3 = SquareMatrix::<3, 9>::identity();
+    assert_eq!(identity_3x3, identity_3x3.inverse().unwrap());
 
-//     let mut test_elements = Vec::<Fq, MAX_DIMENSION>::new();
-//     test_elements
-//         .extend_from_slice(&[
-//             Fq::from(3u64),
-//             Fq::from(0u64),
-//             Fq::from(2u64),
-//             Fq::from(2u64),
-//             Fq::from(0u64),
-//             -Fq::from(2u64),
-//             Fq::from(0u64),
-//             Fq::from(1u64),
-//             Fq::from(1u64),
-//         ])
-//         .expect("capacity should not be exceeded");
-//     let matrix_3x3 = SquareMatrix::from_vec(test_elements);
-//     let res = matrix_3x3.inverse().unwrap();
-//     assert_eq!(
-//         mat_mul(&matrix_3x3, &res).unwrap(),
-//         SquareMatrix::identity(3)
-//     );
-//     let mut test_elements = Vec::<Fq, MAX_DIMENSION>::new();
-//     test_elements
-//         .extend_from_slice(&[
-//             Fq::from(2u64),
-//             Fq::from(2u64),
-//             Fq::from(0u64),
-//             -Fq::from(2u64),
-//             Fq::from(3u64),
-//             Fq::from(10u64),
-//             Fq::from(2u64),
-//             -Fq::from(3u64),
-//             Fq::from(0u64),
-//         ])
-//         .expect("capacity should not be exceeded");
-//     let expected_res = SquareMatrix::from_vec(test_elements) * (Fq::one() / Fq::from(10u64));
-//     assert_eq!(res, expected_res);
-// }
+    let matrix_3x3 = SquareMatrix::<3, 9>::new(&[
+        Fq::from(3u64),
+        Fq::from(0u64),
+        Fq::from(2u64),
+        Fq::from(2u64),
+        Fq::from(0u64),
+        -Fq::from(2u64),
+        Fq::from(0u64),
+        Fq::from(1u64),
+        Fq::from(1u64),
+    ]);
+    let res = matrix_3x3.inverse().unwrap();
+    assert_eq!(
+        square_mat_mul(&matrix_3x3, &res),
+        SquareMatrix::<3, 9>::identity()
+    );
+
+    let expected_res = SquareMatrix::<3, 9>::new(&[
+        Fq::from(2u64),
+        Fq::from(2u64),
+        Fq::from(0u64),
+        -Fq::from(2u64),
+        Fq::from(3u64),
+        Fq::from(10u64),
+        Fq::from(2u64),
+        -Fq::from(3u64),
+        Fq::from(0u64),
+    ]) * (Fq::one() / Fq::from(10u64));
+    assert_eq!(res, expected_res);
+}
 
 #[test]
 fn create_matrix_from_array() {
