@@ -37,10 +37,6 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
         self.0.set_element(i, j, val)
     }
 
-    fn rows(&self) -> &[&[Fq]] {
-        self.0.rows()
-    }
-
     fn n_rows(&self) -> usize {
         self.0.n_rows()
     }
@@ -56,23 +52,6 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
         Ok(Self(self.0.hadamard_product(&rhs.0)?))
     }
 }
-
-// impl From<ArcMatrix> for Vec<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION> {
-//     fn from(arc: ArcMatrix) -> Self {
-//         let mut rows = Vec::<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION>::new();
-//         let m = &arc.0;
-
-//         for i in 0..arc.n_rows() {
-//             let mut row = Vec::new();
-//             for j in 0..arc.n_cols() {
-//                 row.push(m.get_element(i, j))
-//                     .expect("capacity should not be exceeded");
-//             }
-//             rows.push(row).expect("capacity should not be exceeded");
-//         }
-//         rows
-//     }
-// }
 
 /// Represents an optimized matrix of round constants.
 ///
@@ -113,10 +92,6 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
 
     fn set_element(&mut self, i: usize, j: usize, val: Fq) {
         self.0.set_element(i, j, val)
-    }
-
-    fn rows(&self) -> &[&[Fq]] {
-        self.0.rows()
     }
 
     fn n_rows(&self) -> usize {
