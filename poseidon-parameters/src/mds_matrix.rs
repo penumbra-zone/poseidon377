@@ -41,10 +41,6 @@ impl<
         self.0.set_element(i, j, val)
     }
 
-    fn rows(&self) -> &[&[Fq]] {
-        self.0.rows()
-    }
-
     fn n_rows(&self) -> usize {
         self.0.n_rows()
     }
@@ -128,21 +124,6 @@ impl<
         SquareMatrix::new(&mhat_elements)
     }
 }
-
-// impl From<MdsMatrix> for Vec<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION> {
-//     fn from(val: MdsMatrix) -> Self {
-//         let mut rows = Vec::<Vec<Fq, MAX_DIMENSION>, MAX_DIMENSION>::new();
-//         for i in 0..val.0.n_rows() {
-//             let mut row = Vec::new();
-//             for j in 0..val.0.n_rows() {
-//                 row.push(val.0 .0.get_element(i, j))
-//                     .expect("capacity should not be exceeded");
-//             }
-//             rows.push(row).expect("capacity should not be exceeded");
-//         }
-//         rows
-//     }
-// }
 
 /// Represents an optimized MDS (maximum distance separable) matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]

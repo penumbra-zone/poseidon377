@@ -13,8 +13,6 @@ pub trait MatrixOperations {
     /// Set element[i,j]
     fn set_element(&mut self, i: usize, j: usize, val: Fq);
     /// Get rows
-    fn rows(&self) -> &[&[Fq]];
-    /// Get rows in chunks
     fn iter_rows(&self) -> Chunks<Fq> {
         self.elements().chunks(self.n_cols())
     }
