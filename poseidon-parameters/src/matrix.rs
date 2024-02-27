@@ -291,427 +291,16 @@ impl<const N_ROWS: usize, const N_ELEMENTS: usize> SquareMatrixOperations
 
     /// Compute the matrix determinant
     fn determinant(&self) -> Fq {
-        match self.n_cols() {
+        match N_ROWS {
             0 => panic!("matrix has no elements!"),
             1 => self.get_element(0, 0),
-            2 => {
-                let a11 = self.get_element(0, 0);
-                let a12 = self.get_element(0, 1);
-                let a21 = self.get_element(1, 0);
-                let a22 = self.get_element(1, 1);
-                a11 * a22 - a21 * a12
-            }
-            3 => {
-                let a11 = self.get_element(0, 0);
-                let a12 = self.get_element(0, 1);
-                let a13 = self.get_element(0, 2);
-                let a21 = self.get_element(1, 0);
-                let a22 = self.get_element(1, 1);
-                let a23 = self.get_element(1, 2);
-                let a31 = self.get_element(2, 0);
-                let a32 = self.get_element(2, 1);
-                let a33 = self.get_element(2, 2);
-
-                a11 * (Self::new_2x2(a22, a23, a32, a33).determinant())
-                    - a12 * (Self::new_2x2(a21, a23, a31, a33).determinant())
-                    + a13 * (Self::new_2x2(a21, a22, a31, a32).determinant())
-            }
-            4 => {
-                let a11 = self.get_element(0, 0);
-                let a12 = self.get_element(0, 1);
-                let a13 = self.get_element(0, 2);
-                let a14 = self.get_element(0, 3);
-                let a21 = self.get_element(1, 0);
-                let a22 = self.get_element(1, 1);
-                let a23 = self.get_element(1, 2);
-                let a24 = self.get_element(1, 3);
-                let a31 = self.get_element(2, 0);
-                let a32 = self.get_element(2, 1);
-                let a33 = self.get_element(2, 2);
-                let a34 = self.get_element(2, 3);
-                let a41 = self.get_element(3, 0);
-                let a42 = self.get_element(3, 1);
-                let a43 = self.get_element(3, 2);
-                let a44 = self.get_element(3, 3);
-
-                a11 * (SquareMatrix::<3, 9>::new(&[a22, a23, a24, a32, a33, a34, a42, a43, a44])
-                    .determinant())
-                    - a12
-                        * (SquareMatrix::<3, 9>::new(&[
-                            a21, a23, a24, a31, a33, a34, a41, a43, a44,
-                        ])
-                        .determinant())
-                    + a13
-                        * (SquareMatrix::<3, 9>::new(&[
-                            a21, a22, a24, a31, a32, a34, a41, a42, a44,
-                        ])
-                        .determinant())
-                    - a14
-                        * (SquareMatrix::<3, 9>::new(&[
-                            a21, a22, a23, a31, a32, a33, a41, a42, a43,
-                        ])
-                        .determinant())
-            }
-            5 => {
-                let a11 = self.get_element(0, 0);
-                let a12 = self.get_element(0, 1);
-                let a13 = self.get_element(0, 2);
-                let a14 = self.get_element(0, 3);
-                let a15 = self.get_element(0, 4);
-                let a21 = self.get_element(1, 0);
-                let a22 = self.get_element(1, 1);
-                let a23 = self.get_element(1, 2);
-                let a24 = self.get_element(1, 3);
-                let a25 = self.get_element(1, 4);
-                let a31 = self.get_element(2, 0);
-                let a32 = self.get_element(2, 1);
-                let a33 = self.get_element(2, 2);
-                let a34 = self.get_element(2, 3);
-                let a35 = self.get_element(2, 4);
-                let a41 = self.get_element(3, 0);
-                let a42 = self.get_element(3, 1);
-                let a43 = self.get_element(3, 2);
-                let a44 = self.get_element(3, 3);
-                let a45 = self.get_element(3, 4);
-                let a51 = self.get_element(4, 0);
-                let a52 = self.get_element(4, 1);
-                let a53 = self.get_element(4, 2);
-                let a54 = self.get_element(4, 3);
-                let a55 = self.get_element(4, 4);
-
-                a11 * (SquareMatrix::<4, 16>::new(&[
-                    a22, a23, a24, a25, a32, a33, a34, a35, a42, a43, a44, a45, a52, a53, a54, a55,
-                ])
-                .determinant())
-                    - a12
-                        * (SquareMatrix::<4, 16>::new(&[
-                            a21, a23, a24, a25, a31, a33, a34, a35, a41, a43, a44, a45, a51, a53,
-                            a54, a55,
-                        ])
-                        .determinant())
-                    + a13
-                        * (SquareMatrix::<4, 16>::new(&[
-                            a21, a22, a24, a25, a31, a32, a34, a35, a41, a42, a44, a45, a51, a52,
-                            a54, a55,
-                        ])
-                        .determinant())
-                    - a14
-                        * (SquareMatrix::<4, 16>::new(&[
-                            a21, a22, a23, a25, a31, a32, a33, a35, a41, a42, a43, a45, a51, a52,
-                            a53, a55,
-                        ])
-                        .determinant())
-                    + a15
-                        * (SquareMatrix::<4, 16>::new(&[
-                            a21, a22, a23, a24, a31, a32, a33, a34, a41, a42, a43, a44, a51, a52,
-                            a53, a54,
-                        ])
-                        .determinant())
-            }
-            6 => {
-                let a11 = self.get_element(0, 0);
-                let a12 = self.get_element(0, 1);
-                let a13 = self.get_element(0, 2);
-                let a14 = self.get_element(0, 3);
-                let a15 = self.get_element(0, 4);
-                let a16 = self.get_element(0, 5);
-                let a21 = self.get_element(1, 0);
-                let a22 = self.get_element(1, 1);
-                let a23 = self.get_element(1, 2);
-                let a24 = self.get_element(1, 3);
-                let a25 = self.get_element(1, 4);
-                let a26 = self.get_element(1, 5);
-                let a31 = self.get_element(2, 0);
-                let a32 = self.get_element(2, 1);
-                let a33 = self.get_element(2, 2);
-                let a34 = self.get_element(2, 3);
-                let a35 = self.get_element(2, 4);
-                let a36 = self.get_element(2, 5);
-                let a41 = self.get_element(3, 0);
-                let a42 = self.get_element(3, 1);
-                let a43 = self.get_element(3, 2);
-                let a44 = self.get_element(3, 3);
-                let a45 = self.get_element(3, 4);
-                let a46 = self.get_element(3, 5);
-                let a51 = self.get_element(4, 0);
-                let a52 = self.get_element(4, 1);
-                let a53 = self.get_element(4, 2);
-                let a54 = self.get_element(4, 3);
-                let a55 = self.get_element(4, 4);
-                let a56 = self.get_element(4, 5);
-                let a61 = self.get_element(5, 0);
-                let a62 = self.get_element(5, 1);
-                let a63 = self.get_element(5, 2);
-                let a64 = self.get_element(5, 3);
-                let a65 = self.get_element(5, 4);
-                let a66 = self.get_element(5, 5);
-
-                a11 * (SquareMatrix::<5, 25>::new(&[
-                    a22, a23, a24, a25, a26, a32, a33, a34, a35, a36, a42, a43, a44, a45, a46, a52,
-                    a53, a54, a55, a56, a62, a63, a64, a65, a66,
-                ])
-                .determinant())
-                    - a12
-                        * (SquareMatrix::<5, 25>::new(&[
-                            a21, a23, a24, a25, a26, a31, a33, a34, a35, a36, a41, a43, a44, a45,
-                            a46, a51, a53, a54, a55, a56, a61, a63, a64, a65, a66,
-                        ])
-                        .determinant())
-                    + a13
-                        * (SquareMatrix::<5, 25>::new(&[
-                            a21, a22, a24, a25, a26, a31, a32, a34, a35, a36, a41, a42, a44, a45,
-                            a46, a51, a52, a54, a55, a56, a61, a62, a64, a65, a66,
-                        ])
-                        .determinant())
-                    - a14
-                        * (SquareMatrix::<5, 25>::new(&[
-                            a21, a22, a23, a25, a26, a31, a32, a33, a35, a36, a41, a42, a43, a45,
-                            a46, a51, a52, a53, a55, a56, a61, a62, a63, a65, a66,
-                        ])
-                        .determinant())
-                    + a15
-                        * (SquareMatrix::<5, 25>::new(&[
-                            a21, a22, a23, a24, a26, a31, a32, a33, a34, a36, a41, a42, a43, a44,
-                            a46, a51, a52, a53, a54, a56, a61, a62, a63, a64, a66,
-                        ])
-                        .determinant())
-                    - a16
-                        * (SquareMatrix::<5, 25>::new(&[
-                            a21, a22, a23, a24, a25, a31, a32, a33, a34, a35, a41, a42, a43, a44,
-                            a45, a51, a52, a53, a54, a56, a61, a62, a63, a64, a66,
-                        ])
-                        .determinant())
-            }
-            7 => {
-                let a11 = self.get_element(0, 0);
-                let a12 = self.get_element(0, 1);
-                let a13 = self.get_element(0, 2);
-                let a14 = self.get_element(0, 3);
-                let a15 = self.get_element(0, 4);
-                let a16 = self.get_element(0, 5);
-                let a17 = self.get_element(0, 6);
-                let a21 = self.get_element(1, 0);
-                let a22 = self.get_element(1, 1);
-                let a23 = self.get_element(1, 2);
-                let a24 = self.get_element(1, 3);
-                let a25 = self.get_element(1, 4);
-                let a26 = self.get_element(1, 5);
-                let a27 = self.get_element(1, 6);
-                let a31 = self.get_element(2, 0);
-                let a32 = self.get_element(2, 1);
-                let a33 = self.get_element(2, 2);
-                let a34 = self.get_element(2, 3);
-                let a35 = self.get_element(2, 4);
-                let a36 = self.get_element(2, 5);
-                let a37 = self.get_element(2, 6);
-                let a41 = self.get_element(3, 0);
-                let a42 = self.get_element(3, 1);
-                let a43 = self.get_element(3, 2);
-                let a44 = self.get_element(3, 3);
-                let a45 = self.get_element(3, 4);
-                let a46 = self.get_element(3, 5);
-                let a47 = self.get_element(3, 6);
-                let a51 = self.get_element(4, 0);
-                let a52 = self.get_element(4, 1);
-                let a53 = self.get_element(4, 2);
-                let a54 = self.get_element(4, 3);
-                let a55 = self.get_element(4, 4);
-                let a56 = self.get_element(4, 5);
-                let a57 = self.get_element(4, 6);
-                let a61 = self.get_element(5, 0);
-                let a62 = self.get_element(5, 1);
-                let a63 = self.get_element(5, 2);
-                let a64 = self.get_element(5, 3);
-                let a65 = self.get_element(5, 4);
-                let a66 = self.get_element(5, 5);
-                let a67 = self.get_element(5, 6);
-                let a71 = self.get_element(6, 0);
-                let a72 = self.get_element(6, 1);
-                let a73 = self.get_element(6, 2);
-                let a74 = self.get_element(6, 3);
-                let a75 = self.get_element(6, 4);
-                let a76 = self.get_element(6, 5);
-                let a77 = self.get_element(6, 6);
-
-                a11 * (SquareMatrix::<6, 36>::new(&[
-                    a22, a23, a24, a25, a26, a27, a32, a33, a34, a35, a36, a37, a42, a43, a44, a45,
-                    a46, a47, a52, a53, a54, a55, a56, a57, a62, a63, a64, a65, a66, a67, a72, a73,
-                    a74, a75, a76, a77,
-                ])
-                .determinant())
-                    - a12
-                        * (SquareMatrix::<6, 36>::new(&[
-                            a21, a23, a24, a25, a26, a27, a31, a33, a34, a35, a36, a37, a41, a43,
-                            a44, a45, a46, a47, a51, a53, a54, a55, a56, a57, a61, a63, a64, a65,
-                            a66, a67, a71, a73, a74, a75, a76, a77,
-                        ])
-                        .determinant())
-                    + a13
-                        * (SquareMatrix::<6, 36>::new(&[
-                            a21, a22, a24, a25, a26, a27, a31, a32, a34, a35, a36, a37, a41, a42,
-                            a44, a45, a46, a47, a51, a52, a54, a55, a56, a57, a61, a62, a64, a65,
-                            a66, a67, a71, a72, a74, a75, a76, a77,
-                        ])
-                        .determinant())
-                    - a14
-                        * (SquareMatrix::<6, 36>::new(&[
-                            a21, a22, a23, a25, a26, a27, a31, a32, a33, a35, a36, a37, a41, a42,
-                            a43, a45, a46, a47, a51, a52, a53, a55, a56, a57, a61, a62, a63, a65,
-                            a66, a67, a71, a72, a73, a75, a76, a77,
-                        ])
-                        .determinant())
-                    + a15
-                        * (SquareMatrix::<6, 36>::new(&[
-                            a21, a22, a23, a24, a26, a27, a31, a32, a33, a34, a36, a37, a41, a42,
-                            a43, a44, a46, a47, a51, a52, a53, a54, a56, a57, a61, a62, a63, a64,
-                            a66, a67, a71, a72, a73, a74, a76, a77,
-                        ])
-                        .determinant())
-                    - a16
-                        * (SquareMatrix::<6, 36>::new(&[
-                            a21, a22, a23, a24, a25, a27, a31, a32, a33, a34, a35, a37, a41, a42,
-                            a43, a44, a45, a47, a51, a52, a53, a54, a55, a57, a61, a62, a63, a64,
-                            a65, a67, a71, a72, a73, a74, a75, a77,
-                        ])
-                        .determinant())
-                    + a17
-                        * (SquareMatrix::<6, 36>::new(&[
-                            a21, a22, a23, a24, a25, a26, a31, a32, a33, a34, a35, a36, a41, a42,
-                            a43, a44, a45, a46, a51, a52, a53, a54, a55, a56, a61, a62, a63, a64,
-                            a65, a66, a71, a72, a73, a74, a75, a76,
-                        ])
-                        .determinant())
-            }
-            8 => {
-                let a11 = self.get_element(0, 0);
-                let a12 = self.get_element(0, 1);
-                let a13 = self.get_element(0, 2);
-                let a14 = self.get_element(0, 3);
-                let a15 = self.get_element(0, 4);
-                let a16 = self.get_element(0, 5);
-                let a17 = self.get_element(0, 6);
-                let a18 = self.get_element(0, 7);
-                let a21 = self.get_element(1, 0);
-                let a22 = self.get_element(1, 1);
-                let a23 = self.get_element(1, 2);
-                let a24 = self.get_element(1, 3);
-                let a25 = self.get_element(1, 4);
-                let a26 = self.get_element(1, 5);
-                let a27 = self.get_element(1, 6);
-                let a28 = self.get_element(1, 7);
-                let a31 = self.get_element(2, 0);
-                let a32 = self.get_element(2, 1);
-                let a33 = self.get_element(2, 2);
-                let a34 = self.get_element(2, 3);
-                let a35 = self.get_element(2, 4);
-                let a36 = self.get_element(2, 5);
-                let a37 = self.get_element(2, 6);
-                let a38 = self.get_element(2, 7);
-                let a41 = self.get_element(3, 0);
-                let a42 = self.get_element(3, 1);
-                let a43 = self.get_element(3, 2);
-                let a44 = self.get_element(3, 3);
-                let a45 = self.get_element(3, 4);
-                let a46 = self.get_element(3, 5);
-                let a47 = self.get_element(3, 6);
-                let a48 = self.get_element(3, 7);
-                let a51 = self.get_element(4, 0);
-                let a52 = self.get_element(4, 1);
-                let a53 = self.get_element(4, 2);
-                let a54 = self.get_element(4, 3);
-                let a55 = self.get_element(4, 4);
-                let a56 = self.get_element(4, 5);
-                let a57 = self.get_element(4, 6);
-                let a58 = self.get_element(4, 7);
-                let a61 = self.get_element(5, 0);
-                let a62 = self.get_element(5, 1);
-                let a63 = self.get_element(5, 2);
-                let a64 = self.get_element(5, 3);
-                let a65 = self.get_element(5, 4);
-                let a66 = self.get_element(5, 5);
-                let a67 = self.get_element(5, 6);
-                let a68 = self.get_element(5, 7);
-                let a71 = self.get_element(6, 0);
-                let a72 = self.get_element(6, 1);
-                let a73 = self.get_element(6, 2);
-                let a74 = self.get_element(6, 3);
-                let a75 = self.get_element(6, 4);
-                let a76 = self.get_element(6, 5);
-                let a77 = self.get_element(6, 6);
-                let a78 = self.get_element(6, 7);
-                let a81 = self.get_element(7, 0);
-                let a82 = self.get_element(7, 1);
-                let a83 = self.get_element(7, 2);
-                let a84 = self.get_element(7, 3);
-                let a85 = self.get_element(7, 4);
-                let a86 = self.get_element(7, 5);
-                let a87 = self.get_element(7, 6);
-                let a88 = self.get_element(7, 7);
-
-                a11 * (SquareMatrix::<7, 49>::new(&[
-                    a22, a23, a24, a25, a26, a27, a28, a32, a33, a34, a35, a36, a37, a38, a42, a43,
-                    a44, a45, a46, a47, a48, a52, a53, a54, a55, a56, a57, a58, a62, a63, a64, a65,
-                    a66, a67, a68, a72, a73, a74, a75, a76, a77, a78, a82, a83, a84, a85, a86, a87,
-                    a88,
-                ])
-                .determinant())
-                    - a12
-                        * (SquareMatrix::<7, 49>::new(&[
-                            a21, a23, a24, a25, a26, a27, a28, a31, a33, a34, a35, a36, a37, a38,
-                            a41, a43, a44, a45, a46, a47, a48, a51, a53, a54, a55, a56, a57, a58,
-                            a61, a63, a64, a65, a66, a67, a68, a71, a73, a74, a75, a76, a77, a78,
-                            a81, a83, a84, a85, a86, a87, a88,
-                        ])
-                        .determinant())
-                    + a13
-                        * (SquareMatrix::<7, 49>::new(&[
-                            a21, a22, a24, a25, a26, a27, a28, a31, a32, a34, a35, a36, a37, a38,
-                            a41, a42, a44, a45, a46, a47, a48, a51, a52, a54, a55, a56, a57, a58,
-                            a61, a62, a64, a65, a66, a67, a68, a71, a72, a74, a75, a76, a77, a78,
-                            a81, a82, a84, a85, a86, a87, a88,
-                        ])
-                        .determinant())
-                    - a14
-                        * (SquareMatrix::<7, 49>::new(&[
-                            a21, a22, a23, a25, a26, a27, a28, a31, a32, a33, a35, a36, a37, a38,
-                            a41, a42, a43, a45, a46, a47, a48, a51, a52, a53, a55, a56, a57, a58,
-                            a61, a62, a63, a65, a66, a67, a68, a71, a72, a73, a75, a76, a77, a78,
-                            a81, a82, a83, a85, a86, a87, a88,
-                        ])
-                        .determinant())
-                    + a15
-                        * (SquareMatrix::<7, 49>::new(&[
-                            a21, a22, a23, a24, a26, a27, a28, a31, a32, a33, a34, a36, a37, a38,
-                            a41, a42, a43, a44, a46, a47, a48, a51, a52, a53, a54, a56, a57, a58,
-                            a61, a62, a63, a64, a66, a67, a68, a71, a72, a73, a74, a76, a77, a78,
-                            a81, a82, a83, a84, a86, a87, a88,
-                        ])
-                        .determinant())
-                    - a16
-                        * (SquareMatrix::<7, 49>::new(&[
-                            a21, a22, a23, a24, a25, a27, a28, a31, a32, a33, a34, a35, a37, a38,
-                            a41, a42, a43, a44, a45, a47, a48, a51, a52, a53, a54, a55, a57, a58,
-                            a61, a62, a63, a64, a65, a67, a68, a71, a72, a73, a74, a75, a77, a78,
-                            a81, a82, a83, a84, a85, a87, a88,
-                        ])
-                        .determinant())
-                    + a17
-                        * (SquareMatrix::<7, 49>::new(&[
-                            a21, a22, a23, a24, a25, a26, a28, a31, a32, a33, a34, a35, a36, a38,
-                            a41, a42, a43, a44, a45, a46, a48, a51, a52, a53, a54, a55, a56, a58,
-                            a61, a62, a63, a64, a65, a66, a68, a71, a72, a73, a74, a75, a76, a78,
-                            a81, a82, a83, a84, a85, a86, a88,
-                        ])
-                        .determinant())
-                    - a18
-                        * (SquareMatrix::<7, 49>::new(&[
-                            a21, a22, a23, a24, a25, a26, a27, a31, a32, a33, a34, a35, a36, a37,
-                            a41, a42, a43, a44, a45, a46, a47, a51, a52, a53, a54, a55, a56, a57,
-                            a61, a62, a63, a64, a65, a66, a67, a71, a72, a73, a74, a75, a76, a77,
-                            a81, a82, a83, a84, a85, a86, a87,
-                        ])
-                        .determinant())
-            }
+            2 => determinant::<N_ROWS, 1, N_ELEMENTS, 1>(self),
+            3 => determinant::<N_ROWS, 2, N_ELEMENTS, 4>(self),
+            4 => determinant::<N_ROWS, 3, N_ELEMENTS, 9>(self),
+            5 => determinant::<N_ROWS, 4, N_ELEMENTS, 16>(self),
+            6 => determinant::<N_ROWS, 5, N_ELEMENTS, 25>(self),
+            7 => determinant::<N_ROWS, 6, N_ELEMENTS, 36>(self),
+            8 => determinant::<N_ROWS, 7, N_ELEMENTS, 49>(self),
             _ => {
                 unimplemented!("poseidon-parameters only supports square matrices up to 8")
             }
@@ -772,7 +361,7 @@ pub fn square_mat_mul<
     SquareMatrix::<LHS_N_ROWS, RESULT_N_ELEMENTS>::new(&new_elements)
 }
 
-/// Helper function for computing matrix minor
+/// Helper function for computing matrix minors
 fn minor_matrix<
     const DIM: usize,
     const DIM_MINUS_1: usize,
@@ -813,4 +402,42 @@ fn minor_matrix<
         }
     }
     SquareMatrix::<DIM, N_ELEMENTS>::new(&minor_matrix_elements)
+}
+
+/// Helper function for computing matrix determinant
+fn determinant<
+    const DIM: usize,
+    const DIM_MINUS_1: usize,
+    const N_ELEMENTS: usize,
+    const N_ELEMENTS_DIM_MINUS_1: usize,
+>(
+    matrix: &SquareMatrix<DIM, N_ELEMENTS>,
+) -> Fq {
+    let mut det = Fq::zero();
+    let mut levi_civita = true;
+
+    for i in 0..DIM {
+        let mut elements = [Fq::default(); N_ELEMENTS_DIM_MINUS_1];
+        let mut index = 0;
+        for k in 0..i {
+            for l in 1..DIM {
+                elements[index] = matrix.get_element(k, l);
+                index += 1;
+            }
+        }
+        for k in i + 1..DIM {
+            for l in 1..DIM {
+                elements[index] = matrix.get_element(k, l);
+                index += 1;
+            }
+        }
+        let minor = SquareMatrix::<DIM_MINUS_1, N_ELEMENTS_DIM_MINUS_1>::new(&elements);
+        if levi_civita {
+            det += matrix.get_element(i, 0) * minor.determinant();
+        } else {
+            det -= matrix.get_element(i, 0) * minor.determinant();
+        }
+        levi_civita = !levi_civita;
+    }
+    det
 }
