@@ -1,7 +1,8 @@
 # Modified from Appendix B in the Poseidon paper, width 3 hash for BLS12-377
 import time
 
-# M = 128
+# M is the targeted security level
+M = 128
 alpha = 17
 t = 3
 prime = 8444461749428370424248824938781546531375899335154063827935233455917409239041
@@ -10,6 +11,47 @@ R_P = 31
 R_F = 8
 R_f = R_F / 2
 R_T = R_F + R_P
+
+# Omega is the linear algebra constant
+# See Poseidon paper p. 24
+# Varies between 2-3, here we assume $\omega=2$
+omega = 2
+
+# d in the paper is alpha for us
+# D is the F_q vector space dimension
+d = alpha
+
+def resist_eigenpolynomial_computation(r_in, r_out):
+    D = d ** (2 * r_in * R_f + R_P)
+    # r_in is the input rate of poseidon
+    # kappa in the paper is the targeted security level, M here
+    print((log(min(r_in, r_out),2).n() + omega * log(D, 2)).n())
+    return (log(min(r_in, r_out),2).n() + omega * log(D, 2)).n() >= M
+
+print("instances secure vs iacr/2024/310 generic eigenpolynomial computation?")
+print(resist_eigenpolynomial_computation(2, 1))
+print(resist_eigenpolynomial_computation(3, 1))
+print(resist_eigenpolynomial_computation(4, 1))
+print(resist_eigenpolynomial_computation(6, 1))
+print(resist_eigenpolynomial_computation(7, 1))
+print(resist_eigenpolynomial_computation(8, 1))
+
+def resist_root_extraction(r_in):
+    D = d ** (2 * r_in * R_f + R_P)
+    q = log(prime, 2)
+    if D <= q:
+        return (D * log(D) * log(log(D)) * (log(D) + log(q))).n() >= M
+    else:
+        return (q * log(q) * log(log(q)) * (log(q) + log(D))).n() >= M
+
+print("instances secure vs iacr/2024/310 generic root extraction?")
+print(resist_root_extraction(2))
+print(resist_root_extraction(3))
+print(resist_root_extraction(4))
+print(resist_root_extraction(5))
+print(resist_root_extraction(6))
+print(resist_root_extraction(7))
+print(resist_root_extraction(8))
 
 round_constants = [308026635595114235070436728341841505234226384644787941764356225291780075012,
 686850750308311448868354907988153221833589417264043199872750834851275630399,
@@ -129,7 +171,7 @@ round_constants = [3080266355951142350704367283418415052342263846447879417643562
 5337014110345479543678006017350943272815297410632902615031016645483782346794,
 6325608705322012724565293795590543306557376953836287094512934948871034460300]
 
-MDS_matrix = [[5629641166285580282832549959187697687583932890102709218623488970611606159361, 6333346312071277818186618704086159898531924501365547870951425091938056929281, 6755569399542696339399059951025237225100719468123251062348186764733927391233], 
+MDS_matrix = [[5629641166285580282832549959187697687583932890102709218623488970611606159361, 6333346312071277818186618704086159898531924501365547870951425091938056929281, 6755569399542696339399059951025237225100719468123251062348186764733927391233],
 [6333346312071277818186618704086159898531924501365547870951425091938056929281, 6755569399542696339399059951025237225100719468123251062348186764733927391233, 7037051457856975353540687448984622109479916112628386523279361213264507699201],
 [6755569399542696339399059951025237225100719468123251062348186764733927391233, 7037051457856975353540687448984622109479916112628386523279361213264507699201, 7238110070938603220784707090384182741179342287274911852515914390786350776321]]
 
@@ -199,7 +241,7 @@ def perm(input_words):
     [M_i, v_collection, w_hat_collection] = calc_equivalent_matrices()
     M_0_0 = MDS_matrix_field[0, 0]
     #[M_i, test_mat] = calc_equivalent_matrices()
-    
+
     global timer_start, timer_end
 
     timer_start = time.time()
@@ -253,14 +295,14 @@ def perm(input_words):
         round_constants_round_counter += 1
 
     timer_end = time.time()
-    
+
     return state_words
 
 def perm_original(input_words):
     round_constants_field_new = [round_constants_field[index:index+t] for index in range(0, len(round_constants_field), t)]
 
     global timer_start, timer_end
-    
+
     timer_start = time.time()
 
     R_f = int(R_F / 2)
@@ -297,7 +339,7 @@ def perm_original(input_words):
             state_words[i] = (state_words[i])^alpha
         state_words = list(MDS_matrix_field * vector(state_words))
         round_constants_round_counter += 1
-    
+
     timer_end = time.time()
 
     return state_words
