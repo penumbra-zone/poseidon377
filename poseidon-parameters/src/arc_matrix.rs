@@ -16,6 +16,10 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>
     pub fn transpose(&self) -> ArcMatrix<N_COLS, N_ROWS, N_ELEMENTS> {
         ArcMatrix(self.0.transpose())
     }
+
+    pub fn inner_elements(&self) -> [Fq; N_ELEMENTS] {
+        self.0.elements
+    }
 }
 
 impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOperations
