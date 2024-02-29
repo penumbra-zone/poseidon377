@@ -71,7 +71,7 @@ pub fn generate<F: PrimeField>(t: usize) -> SquareMatrix<F> {
 
 #[cfg(test)]
 mod tests {
-    use ark_ed_on_bls12_377::Fq;
+    use decaf377::Fq;
 
     use super::*;
 

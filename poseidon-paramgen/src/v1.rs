@@ -30,7 +30,6 @@ pub fn generate<F: PrimeField>(
 
     PoseidonParameters::<F> {
         M: input.M,
-        t: input.t,
         alpha,
         rounds,
         mds,

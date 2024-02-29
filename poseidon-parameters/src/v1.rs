@@ -1,10 +1,7 @@
 pub use crate::alpha::Alpha;
 pub use crate::round_numbers::RoundNumbers;
 
-pub use crate::{matrix::Matrix, matrix::SquareMatrix};
-
-// pub use crate::matrix_ops::mat_mul;
-
+pub use crate::matrix::{mat_mul, square_mat_mul, Matrix, SquareMatrix};
 pub use crate::{
     arc_matrix::ArcMatrix, arc_matrix::OptimizedArcMatrix, matrix_ops::MatrixOperations,
     matrix_ops::SquareMatrixOperations, mds_matrix::MdsMatrix, mds_matrix::OptimizedMdsMatrices,
@@ -48,7 +45,13 @@ pub struct PoseidonParameters<
 
     /// Optimized round constants.
     pub optimized_arc: OptimizedArcMatrix<NUM_ROUND_ROWS, NUM_ROUND_COLS, NUM_ROUND_ELEMENTS>,
-    // TODO:
-    // /// Optimized MDS matrices.
-    //pub optimized_mds: OptimizedMdsMatrices,
+
+    /// Optimized MDS matrices.
+    pub optimized_mds: OptimizedMdsMatrices<
+        NUM_ROUND_ROWS,
+        STATE_SIZE,
+        STATE_SIZE_MINUS_1,
+        NUM_MDS_ELEMENTS,
+        NUM_STATE_SIZE_MINUS_1_ELEMENTS,
+    >,
 }

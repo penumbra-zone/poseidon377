@@ -88,7 +88,6 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOp
     }
 }
 
-#[allow(dead_code)]
 /// Multiply two `Matrix`
 pub fn mat_mul<
     const LHS_N_ROWS: usize,

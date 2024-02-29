@@ -33,7 +33,6 @@ pub fn generate<F: PrimeField>(
     if t < 4 {
         PoseidonParameters::<F> {
             M: input.M,
-            t: input.t,
             alpha,
             rounds,
             arc,
@@ -44,7 +43,6 @@ pub fn generate<F: PrimeField>(
         let m_e = external::generate(t);
         PoseidonParameters::<F> {
             M: input.M,
-            t: input.t,
             alpha,
             rounds,
             arc,

@@ -3,13 +3,14 @@ name = "poseidon-permutation"
 version = "1.0.0"
 edition = "2018"
 authors = ["Penumbra <team@penumbralabs.xyz>", "redshiftzero <jen@penumbralabs.xyz>"]
-description = "An instantiation of the Poseidon permutation"
+description = "An instantiation of the Poseidon permutation for decaf377"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/penumbra-zone/poseidon377"
 
 [dependencies]
-ark-ff = { version = "0.4", default-features = false }
-ark-std = { version = "^0.4.0", default-features = false }
+decaf377 = { version="0.8", default-features = false }
+ark-ff = { version = "0.4", default-features = false, optional=true }
+ark-std = { version = "^0.4.0", default-features = false, optional=true }
 ark-r1cs-std = {version = "0.4", default-features = false, optional=true }
 ark-relations = { version="0.4", default-features = false, optional=true }
 
@@ -17,7 +18,7 @@ poseidon-parameters = { path = "../poseidon-parameters", default-features = fals
 
 [features]
 default = ["std"]
-r1cs = ["ark-r1cs-std", "ark-relations"]
+r1cs = ["std", "ark-ff/std", "ark-r1cs-std", "ark-relations", "decaf377/r1cs"]
 std = [
     "ark-ff/std",
     "ark-std/std",
