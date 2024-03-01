@@ -12,4 +12,4 @@ members = [
 debug = true
 
 [workspace.dependencies]
-decaf377 = {default-features = false, git = "https://github.com/penumbra-zone/decaf377", rev = "69171e407483aa4fcf66438d4ac4d706e6455da7"}
+decaf377 = {default-features = false, git = "https://github.com/penumbra-zone/decaf377", branch = "visibility"}
