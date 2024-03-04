@@ -11,7 +11,7 @@ repository = "https://github.com/penumbra-zone/poseidon377"
 poseidon-parameters = { path = "../poseidon-parameters" }
 poseidon-paramgen = { path = "../poseidon-paramgen", default-features = false }
 poseidon-permutation = { path="../poseidon-permutation", default-features = false }
-decaf377 = { version = "0.4", default-features = false }
+decaf377 = { version = "0.8", default-features = false }
 
 [dev-dependencies]
 criterion = { version = "0.4", features=["html_reports"] }
