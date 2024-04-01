@@ -1,4 +1,5 @@
-use core::str::FromStr;
+use ark_std::str::FromStr;
+// use core::str::FromStr;
 use decaf377::Fq;
 use poseidon_parameters::v1::{
     Alpha, ArcMatrix, Matrix, MatrixOperations, MdsMatrix, OptimizedArcMatrix,
@@ -10,11 +11,12 @@ pub fn rate_1() -> PoseidonParameters<2, 1, 4, 1, 39, 2, 78, 31> {
     PoseidonParameters {
         M: 128,
         arc: ArcMatrix::<39, 2, 78>::new(&[
-            Fq::from_str(
-                "5966135783811619788946141430599740285333890476176239487053701755282483259229",
-            )
-            .map_err(|_| ())
-            .unwrap(),
+            Fq::from_montgomery_limbs([
+                6258896775460530561,
+                1267570262938364784,
+                10583705394133388288,
+                4331270346116315,
+            ]),
             Fq::from_str(
                 "8248386181461625724624937953920458307783934991095828229311948662109703846229",
             )

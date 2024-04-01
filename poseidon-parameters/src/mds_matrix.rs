@@ -99,7 +99,7 @@ impl<
     ///
     /// Ref: p.20 of the Poseidon paper
     pub fn w(&self) -> Matrix<STATE_SIZE_MINUS_1, 1, STATE_SIZE_MINUS_1> {
-        let mut elements = [Fq::zero(); STATE_SIZE_MINUS_1];
+        let mut elements = [Fq::from(0u64); STATE_SIZE_MINUS_1];
         for i in 1..self.n_rows() {
             elements[i - 1] = self.get_element(i, 0);
         }
@@ -113,7 +113,7 @@ impl<
     /// Ref: p.20 of the Poseidon paper
     pub fn hat(&self) -> SquareMatrix<STATE_SIZE_MINUS_1, NUM_ELEMENTS_STATE_SIZE_MINUS_1_2> {
         let dim = self.n_rows();
-        let mut mhat_elements = [Fq::zero(); NUM_ELEMENTS_STATE_SIZE_MINUS_1_2];
+        let mut mhat_elements = [Fq::from(0u64); NUM_ELEMENTS_STATE_SIZE_MINUS_1_2];
         let mut index = 0;
         for i in 1..dim {
             for j in 1..dim {

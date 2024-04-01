@@ -31,7 +31,7 @@ pub trait StuffThatNeedsToGoInDecaf377 {
 // TEMP
 impl StuffThatNeedsToGoInDecaf377 for Fq {
     fn pow<S: AsRef<[u64]>>(&self, exp: S) -> Self {
-        let mut res = Fq::one();
+        let mut res = Fq::from(1u64);
         let exp_u64 = exp.as_ref();
         for _ in 0..exp_u64[0] {
             res *= self;

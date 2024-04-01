@@ -74,7 +74,7 @@ impl<
     ) -> Self {
         Self {
             parameters,
-            state_words: [Fq::zero(); STATE_SIZE],
+            state_words: [Fq::from(0u64); STATE_SIZE],
         }
     }
 
@@ -222,7 +222,7 @@ impl<
     fn partial_sub_words(&mut self) {
         match self.parameters.alpha {
             Alpha::Exponent(exp) => self.state_words[0] = (self.state_words[0]).pow([exp as u64]),
-            Alpha::Inverse => self.state_words[0] = Fq::one() / self.state_words[0],
+            Alpha::Inverse => self.state_words[0] = Fq::from(1u64) / self.state_words[0],
         }
     }
 
@@ -236,7 +236,7 @@ impl<
             }
             Alpha::Inverse => {
                 for i in 0..STATE_SIZE {
-                    self.state_words[i] = Fq::one() / self.state_words[i];
+                    self.state_words[i] = Fq::from(1u64) / self.state_words[i];
                 }
             }
         }
@@ -244,7 +244,7 @@ impl<
 
     /// Applies the `MixLayer` using the M_i matrix.
     fn mix_layer_mi(&mut self) {
-        let mut new_state_words = [Fq::zero(); STATE_SIZE];
+        let mut new_state_words = [Fq::from(0u64); STATE_SIZE];
         for (i, row) in self.parameters.optimized_mds.M_i.iter_rows().enumerate() {
             let sum = row
                 .iter()
@@ -258,7 +258,7 @@ impl<
 
     /// Applies the `MixLayer` using the MDS matrix.
     fn mix_layer_mds(&mut self) {
-        let mut new_state_words = [Fq::zero(); STATE_SIZE];
+        let mut new_state_words = [Fq::from(0u64); STATE_SIZE];
 
         for (i, row) in self.parameters.mds.0 .0.iter_rows().enumerate() {
             let sum = row
@@ -275,7 +275,7 @@ impl<
     fn sparse_mat_mul(&mut self, round_number: usize) {
         // mul_row = [(state_words[0] * v[i]) for i in range(0, t-1)]
         // add_row = [(mul_row[i] + state_words[i+1]) for i in range(0, t-1)]
-        let mut add_row = [Fq::zero(); STATE_SIZE_MINUS_1];
+        let mut add_row = [Fq::from(0u64); STATE_SIZE_MINUS_1];
         for (i, x) in self.parameters.optimized_mds.v_collection[round_number]
             .elements
             .iter()

@@ -13,9 +13,7 @@ ark-groth16 = { version = "0.4", default-features = false, optional=true }
 ark-r1cs-std = {version = "0.4", default-features = false, optional=true }
 ark-relations = { version="0.4", default-features = false, optional=true }
 ark-snark = { version = "0.4", default-features = false, optional=true }
-decaf377 = { version="0.8", default-features = false, features = ["r1cs"] }
-num-bigint = { version = "0.4.3", default-features = false }
-once_cell = { version = "1.8", default-features = false }
+decaf377 = { git = "https://github.com/penumbra-zone/decaf377.git", branch="for-poseidon377", default-features = false }
 poseidon-parameters = { version="1.0", path = "../poseidon-parameters", default-features = false }
 poseidon-permutation = { version="1.0", path = "../poseidon-permutation", default-features = false }
 
@@ -37,7 +35,7 @@ ark-test-curves = { version = "0.4", features = ["bls12_381_curve", "mnt4_753_cu
 
 [features]
 default = ["arkworks"]
-alloc = ["once_cell/alloc"]
+alloc = ["decaf377/alloc"]
 arkworks = ["std",
     "decaf377/arkworks",
     "ark-ff/std",
@@ -49,8 +47,6 @@ arkworks = ["std",
     "ark-serialize/std"]
 std = [
     "alloc",
-    "num-bigint/std",
-    "once_cell/std",
 ]
 r1cs = [
     "arkworks",
