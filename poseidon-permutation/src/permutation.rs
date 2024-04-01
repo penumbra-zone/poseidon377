@@ -18,6 +18,7 @@ pub struct Instance<
     const NUM_ROUND_ROWS: usize,
     const NUM_ROUND_COLS: usize,
     const NUM_ROUND_ELEMENTS: usize,
+    const NUM_PARTIAL_ROUNDS: usize,
 > {
     /// Parameters for this instance of Poseidon.
     parameters: &'a PoseidonParameters<
@@ -28,6 +29,7 @@ pub struct Instance<
         NUM_ROUND_ROWS,
         NUM_ROUND_COLS,
         NUM_ROUND_ELEMENTS,
+        NUM_PARTIAL_ROUNDS,
     >,
 
     /// Inner state.
@@ -43,6 +45,7 @@ impl<
         const NUM_ROUND_ROWS: usize,
         const NUM_ROUND_COLS: usize,
         const NUM_ROUND_ELEMENTS: usize,
+        const NUM_PARTIAL_ROUNDS: usize,
     >
     Instance<
         'a,
@@ -53,6 +56,7 @@ impl<
         NUM_ROUND_ROWS,
         NUM_ROUND_COLS,
         NUM_ROUND_ELEMENTS,
+        NUM_PARTIAL_ROUNDS,
     >
 {
     /// Instantiate a new hash function over Fq given `Parameters`.
@@ -65,6 +69,7 @@ impl<
             NUM_ROUND_ROWS,
             NUM_ROUND_COLS,
             NUM_ROUND_ELEMENTS,
+            NUM_PARTIAL_ROUNDS,
         >,
     ) -> Self {
         Self {

@@ -2,7 +2,7 @@
 
 members = [
     "poseidon377",
-    "poseidon-paramgen",
+#    "poseidon-paramgen",
     "poseidon-permutation",
     "poseidon-consistency",
     "poseidon-parameters",

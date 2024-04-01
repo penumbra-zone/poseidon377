@@ -15,6 +15,7 @@ pub struct InstanceVar<
     const NUM_ROUND_ROWS: usize,
     const NUM_ROUND_COLS: usize,
     const NUM_ROUND_ELEMENTS: usize,
+    const NUM_PARTIAL_ROUNDS: usize,
 > {
     /// Parameters for this instance of Poseidon.
     pub parameters: PoseidonParameters<
@@ -25,6 +26,7 @@ pub struct InstanceVar<
         NUM_ROUND_ROWS,
         NUM_ROUND_COLS,
         NUM_ROUND_ELEMENTS,
+        NUM_PARTIAL_ROUNDS,
     >,
 
     /// Constraint system
@@ -42,6 +44,7 @@ impl<
         const NUM_ROUND_ROWS: usize,
         const NUM_ROUND_COLS: usize,
         const NUM_ROUND_ELEMENTS: usize,
+        const NUM_PARTIAL_ROUNDS: usize,
     >
     InstanceVar<
         STATE_SIZE,
@@ -51,6 +54,7 @@ impl<
         NUM_ROUND_ROWS,
         NUM_ROUND_COLS,
         NUM_ROUND_ELEMENTS,
+        NUM_PARTIAL_ROUNDS,
     >
 {
     /// Fixed width hash from n:1. Outputs a Fq given `t` input words.
@@ -63,6 +67,7 @@ impl<
             NUM_ROUND_ROWS,
             NUM_ROUND_COLS,
             NUM_ROUND_ELEMENTS,
+            NUM_PARTIAL_ROUNDS,
         >,
         cs: ConstraintSystemRef<Fq>,
         input_words: [FpVar<Fq>; STATE_SIZE],

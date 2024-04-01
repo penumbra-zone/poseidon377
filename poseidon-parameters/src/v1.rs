@@ -7,7 +7,7 @@ pub use crate::{
     matrix_ops::SquareMatrixOperations, mds_matrix::MdsMatrix, mds_matrix::OptimizedMdsMatrices,
 };
 
-/// A set of Poseidon1 parameters for a given set of input parameters.
+/// A set of Poseidon1 parameters for a given set of input parameters over decaf377::Fq.
 ///
 /// The const `STATE_SIZE` corresponds to $t$ in the paper, the width of the hash function,
 /// e.g. $t=3$ corresponds to a 2-to-1 hash.
@@ -20,6 +20,7 @@ pub struct PoseidonParameters<
     const NUM_ROUND_ROWS: usize,
     const NUM_ROUND_COLS: usize,
     const NUM_ROUND_ELEMENTS: usize,
+    const NUM_PARTIAL_ROUNDS: usize,
 > {
     // Input parameters.
     /// Security level.
@@ -49,6 +50,7 @@ pub struct PoseidonParameters<
     /// Optimized MDS matrices.
     pub optimized_mds: OptimizedMdsMatrices<
         NUM_ROUND_ROWS,
+        NUM_PARTIAL_ROUNDS,
         STATE_SIZE,
         STATE_SIZE_MINUS_1,
         NUM_MDS_ELEMENTS,
