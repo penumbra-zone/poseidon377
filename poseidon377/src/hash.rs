@@ -2,8 +2,9 @@ use crate::{Fq, Instance};
 
 /// Hash a single [`Fq`] element with the provided `domain_separator`.
 pub fn hash_1(domain_separator: &Fq, value: Fq) -> Fq {
-    let params = &crate::RATE_1_PARAMS;
-    let mut state = Instance::new(params);
+    //let params = &crate::RATE_1_PARAMS;
+    let params = crate::params::rate_1();
+    let mut state = Instance::new(&params);
     state.n_to_1_fixed_hash(&[*domain_separator, value])
 }
 

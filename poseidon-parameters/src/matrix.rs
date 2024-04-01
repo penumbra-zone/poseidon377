@@ -210,7 +210,7 @@ impl<const N_ROWS: usize, const N_ELEMENTS: usize> SquareMatrixOperations
         }
 
         let determinant = self.determinant();
-        if determinant == Fq::zero() {
+        if determinant == Fq::from(0u64) {
             return Err(PoseidonParameterError::NoMatrixInverse);
         }
 
@@ -220,7 +220,7 @@ impl<const N_ROWS: usize, const N_ELEMENTS: usize> SquareMatrixOperations
             .hadamard_product(&cofactor_matrix)
             .expect("minor and cofactor matrix have correct dimensions");
         let adj = signed_minors.transpose();
-        let matrix_inverse = adj * (Fq::one() / determinant);
+        let matrix_inverse = adj * (Fq::from(1u64) / determinant);
 
         debug_assert_eq!(square_mat_mul(self, &matrix_inverse), identity);
         Ok(matrix_inverse)
@@ -228,12 +228,12 @@ impl<const N_ROWS: usize, const N_ELEMENTS: usize> SquareMatrixOperations
 
     /// Construct an identity matrix
     fn identity() -> Self {
-        let elements = [Fq::zero(); N_ELEMENTS];
+        let elements = [Fq::from(0u64); N_ELEMENTS];
         let mut m = Self::new(&elements);
 
         // Set diagonals to 1
         for i in 0..N_ROWS {
-            m.set_element(i, i, Fq::one());
+            m.set_element(i, i, Fq::from(1u64));
         }
 
         m
@@ -266,14 +266,14 @@ impl<const N_ROWS: usize, const N_ELEMENTS: usize> SquareMatrixOperations
     /// Compute the cofactor matrix, i.e. $C_{ij} = (-1)^{i+j}$
     fn cofactors(&self) -> Self {
         let dim = self.n_rows();
-        let mut elements = [Fq::zero(); N_ELEMENTS];
+        let mut elements = [Fq::from(0u64); N_ELEMENTS];
 
         // TODO: non arkworks Fq::pow
         use crate::StuffThatNeedsToGoInDecaf377;
         let mut index = 0;
         for i in 0..dim {
             for j in 0..dim {
-                elements[index] = (-Fq::one()).pow([(i + j) as u64]);
+                elements[index] = (-Fq::from(1u64)).pow([(i + j) as u64]);
                 index += 1;
             }
         }
@@ -404,7 +404,7 @@ fn determinant<
 >(
     matrix: &SquareMatrix<DIM, N_ELEMENTS>,
 ) -> Fq {
-    let mut det = Fq::zero();
+    let mut det = Fq::from(0u64);
     let mut levi_civita = true;
 
     for i in 0..DIM {

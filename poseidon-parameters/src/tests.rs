@@ -10,21 +10,26 @@ use crate::{matrix::SquareMatrix, matrix_ops::SquareMatrixOperations};
 #[test]
 fn identity_matrix() {
     let identity = SquareMatrix::<2, 4>::identity();
-    assert_eq!(identity.get_element(0, 0), Fq::one());
-    assert_eq!(identity.get_element(0, 1), Fq::zero());
-    assert_eq!(identity.get_element(1, 1), Fq::one());
-    assert_eq!(identity.get_element(1, 0), Fq::zero());
+    assert_eq!(identity.get_element(0, 0), Fq::from(1u64));
+    assert_eq!(identity.get_element(0, 1), Fq::from(0u64));
+    assert_eq!(identity.get_element(1, 1), Fq::from(1u64));
+    assert_eq!(identity.get_element(1, 0), Fq::from(0u64));
 }
 
 #[test]
 fn square_matmul() {
     let identity = SquareMatrix::<2, 4>::identity();
 
-    let elements = &[Fq::one(), Fq::from(2u64), Fq::from(3u64), Fq::from(4u64)];
+    let elements = &[
+        Fq::from(1u64),
+        Fq::from(2u64),
+        Fq::from(3u64),
+        Fq::from(4u64),
+    ];
     let matrix_2x2 = SquareMatrix::<2, 4>::new(elements);
 
     let res: SquareMatrix<2, 4> = square_mat_mul(&matrix_2x2, &identity);
-    assert_eq!(res.get_element(0, 0), Fq::one());
+    assert_eq!(res.get_element(0, 0), Fq::from(1u64));
     assert_eq!(res.get_element(0, 1), Fq::from(2u64));
     assert_eq!(res.get_element(1, 0), Fq::from(3u64));
     assert_eq!(res.get_element(1, 1), Fq::from(4u64));
@@ -33,7 +38,7 @@ fn square_matmul() {
 #[test]
 fn nonsquare_matmul_happy() {
     let test_elements = &[
-        Fq::one(),
+        Fq::from(1u64),
         Fq::from(2u64),
         Fq::from(3u64),
         Fq::from(4u64),
@@ -58,7 +63,7 @@ fn nonsquare_matmul_happy() {
 #[test]
 fn hadamard_product() {
     let test_elements: [Fq; 6] = [
-        Fq::one(),
+        Fq::from(1u64),
         Fq::from(2u64),
         Fq::from(3u64),
         Fq::from(4u64),
@@ -79,7 +84,7 @@ fn hadamard_product() {
 #[test]
 fn transpose() {
     let test_elements = &[
-        Fq::one(),
+        Fq::from(1u64),
         Fq::from(2u64),
         Fq::from(3u64),
         Fq::from(4u64),
@@ -99,11 +104,16 @@ fn transpose() {
     assert_eq!(res.get_element(0, 2), Fq::from(5u64));
     assert_eq!(res.get_element(1, 2), Fq::from(6u64));
 
-    let test_elements = &[Fq::one(), Fq::from(2u64), Fq::from(3u64), Fq::from(4u64)];
+    let test_elements = &[
+        Fq::from(1u64),
+        Fq::from(2u64),
+        Fq::from(3u64),
+        Fq::from(4u64),
+    ];
     let matrix_2x2 = SquareMatrix::<2, 4>::new(test_elements);
 
     let res = matrix_2x2.transpose();
-    assert_eq!(res.get_element(0, 0), Fq::one());
+    assert_eq!(res.get_element(0, 0), Fq::from(1u64));
     assert_eq!(res.get_element(0, 1), Fq::from(3u64));
     assert_eq!(res.get_element(1, 0), Fq::from(2u64));
     assert_eq!(res.get_element(1, 1), Fq::from(4u64));
@@ -112,18 +122,25 @@ fn transpose() {
 #[test]
 fn cofactors() {
     let identity_1x1 = SquareMatrix::<1, 1>::identity();
-    let test_elements = &[Fq::one()];
+    let test_elements = &[Fq::from(1u64)];
     let expected_res = SquareMatrix::new(test_elements);
     assert_eq!(identity_1x1.cofactors(), expected_res);
 
     let identity_2x2 = SquareMatrix::<2, 4>::identity();
-    let test_elements = &[Fq::one(), -Fq::one(), -Fq::one(), Fq::one()];
+    let test_elements = &[
+        Fq::from(1u64),
+        -Fq::from(1u64),
+        -Fq::from(1u64),
+        Fq::from(1u64),
+    ];
     let expected_res = SquareMatrix::new(test_elements);
     assert_eq!(identity_2x2.cofactors(), expected_res);
 }
 
 fn fq_strategy() -> BoxedStrategy<Fq> {
-    any::<[u64; 4]>().prop_map(Fq::from_le_limbs).boxed()
+    any::<[u8; 16]>()
+        .prop_map(|bytes| Fq::from_le_bytes_mod_order(&bytes[..]))
+        .boxed()
 }
 
 proptest! {
@@ -145,8 +162,12 @@ fn inverse() {
         SquareMatrix::<1, 1>::identity()
     );
 
-    let matrix_2x2 =
-        SquareMatrix::<2, 4>::new(&[Fq::one(), Fq::from(2u64), Fq::from(3u64), Fq::from(4u64)]);
+    let matrix_2x2 = SquareMatrix::<2, 4>::new(&[
+        Fq::from(1u64),
+        Fq::from(2u64),
+        Fq::from(3u64),
+        Fq::from(4u64),
+    ]);
 
     let res = matrix_2x2.inverse().unwrap();
     assert_eq!(
@@ -184,28 +205,32 @@ fn inverse() {
         Fq::from(2u64),
         -Fq::from(3u64),
         Fq::from(0u64),
-    ]) * (Fq::one() / Fq::from(10u64));
+    ]) * (Fq::from(1u64) / Fq::from(10u64));
     assert_eq!(res, expected_res);
 }
 
 #[test]
 fn create_matrix_from_array() {
-    let matrix_2x2 =
-        SquareMatrix::<2, 4>::new(&[Fq::one(), Fq::from(2u64), Fq::from(3u64), Fq::from(4u64)]);
-    assert_eq!(matrix_2x2.get_element(0, 0), Fq::one());
+    let matrix_2x2 = SquareMatrix::<2, 4>::new(&[
+        Fq::from(1u64),
+        Fq::from(2u64),
+        Fq::from(3u64),
+        Fq::from(4u64),
+    ]);
+    assert_eq!(matrix_2x2.get_element(0, 0), Fq::from(1u64));
     assert_eq!(matrix_2x2.get_element(0, 1), Fq::from(2u64));
     assert_eq!(matrix_2x2.get_element(1, 0), Fq::from(3u64));
     assert_eq!(matrix_2x2.get_element(1, 1), Fq::from(4u64));
 
     let matrix_2x3 = Matrix::<2, 3, 6>::new(&[
-        Fq::one(),
+        Fq::from(1u64),
         Fq::from(2u64),
         Fq::from(3u64),
         Fq::from(4u64),
         Fq::from(5u64),
         Fq::from(6u64),
     ]);
-    assert_eq!(matrix_2x3.get_element(0, 0), Fq::one());
+    assert_eq!(matrix_2x3.get_element(0, 0), Fq::from(1u64));
     assert_eq!(matrix_2x3.get_element(0, 1), Fq::from(2u64));
     assert_eq!(matrix_2x3.get_element(0, 2), Fq::from(3u64));
     assert_eq!(matrix_2x3.get_element(1, 0), Fq::from(4u64));
@@ -215,11 +240,11 @@ fn create_matrix_from_array() {
 
 #[test]
 fn determinant() {
-    let matrix_1x1 = SquareMatrix::<1, 1>::new(&[Fq::one()]);
-    assert_eq!(matrix_1x1.determinant(), Fq::one());
+    let matrix_1x1 = SquareMatrix::<1, 1>::new(&[Fq::from(1u64)]);
+    assert_eq!(matrix_1x1.determinant(), Fq::from(1u64));
 
-    let a = Fq::one();
-    let b = Fq::one() + Fq::one();
+    let a = Fq::from(1u64);
+    let b = Fq::from(1u64) + Fq::from(1u64);
     let c = Fq::from(3u64);
     let d = Fq::from(4u64);
     let matrix_2x2 = SquareMatrix::<2, 4>::new(&[a, b, c, d]);

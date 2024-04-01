@@ -1,8 +1,6 @@
 //! An instantiation of Poseidon for the BLS12-377 scalar field.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use once_cell::sync::Lazy;
-
 mod hash;
 mod params;
 
@@ -10,8 +8,8 @@ mod params;
 pub use hash::hash_1;
 
 /// Parameters for the rate-1 instance of Poseidon.
-pub static RATE_1_PARAMS: Lazy<PoseidonParameters<2, 1, 4, 1, 39, 2, 78, 31>> =
-    Lazy::new(params::rate_1);
+// pub static RATE_1_PARAMS: Lazy<PoseidonParameters<2, 1, 4, 1, 39, 2, 78, 31>> =
+//     Lazy::new(params::rate_1);
 
 // TODO:
 // Load parameters using const fn
