@@ -9,6 +9,9 @@ use poseidon_parameters::v1::{
 
 use crate::transcript::TranscriptProtocol;
 
+// TODO:
+// Problem: We don't know NUM_ROUNDS off the bat, so can't be a compile-time constant.
+
 /// Generate round constants.
 pub fn v1_generate<F: PrimeField>(
     input: &InputParameters<F::BigInt>,

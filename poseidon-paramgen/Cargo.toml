@@ -21,6 +21,9 @@ poseidon-parameters = { path = "../poseidon-parameters", default-features = fals
 
 [dev-dependencies]
 decaf377 = "0.8"
+ark-bn254 = "0.4"
+ark-ed-on-bls12-377 = "0.4"
+ark-ed-on-bls12-381 = "0.4"
 
 [features]
 default = ["std"]

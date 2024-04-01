@@ -14,12 +14,29 @@ pub mod poseidon_build {
 /// * t, the width of the desired hash function, e.g. $t=3$ corresponds to 2-to-1 hash.
 /// * p, the prime modulus,
 /// * `allow_inverse`, whether or not to allow an inverse alpha.
-pub fn generate<F: PrimeField>(
+pub fn generate<
+    F: PrimeField,
+    const STATE_SIZE: usize,
+    const STATE_SIZE_MINUS_1: usize,
+    const NUM_MDS_ELEMENTS: usize,
+    const NUM_STATE_SIZE_MINUS_1_ELEMENTS: usize,
+    const NUM_ROUND_ROWS: usize,
+    const NUM_ROUND_COLS: usize,
+    const NUM_ROUND_ELEMENTS: usize,
+>(
     M: usize,
     t: usize,
     p: F::BigInt,
     allow_inverse: bool,
-) -> PoseidonParameters<F> {
+) -> PoseidonParameters<
+    STATE_SIZE,
+    STATE_SIZE_MINUS_1,
+    NUM_MDS_ELEMENTS,
+    NUM_STATE_SIZE_MINUS_1_ELEMENTS,
+    NUM_ROUND_ROWS,
+    NUM_ROUND_COLS,
+    NUM_ROUND_ELEMENTS,
+> {
     let input = InputParameters::generate(M, t, p, allow_inverse);
     let alpha = alpha::generate::<F>(p, allow_inverse);
     let rounds = rounds::v1_generate(&input, &alpha);

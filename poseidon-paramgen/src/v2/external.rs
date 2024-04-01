@@ -5,7 +5,9 @@ use poseidon_parameters::{
 };
 
 /// Generate external matrix
-pub fn generate<F: PrimeField>(t: usize) -> SquareMatrix<F> {
+pub fn generate<F: PrimeField, const STATE_SIZE: usize, const NUM_MDS_ELEMENTS: usize>(
+    t: usize,
+) -> SquareMatrix<STATE_SIZE, NUM_MDS_ELEMENTS> {
     if t < 4 {
         // For t=[2, 3], we don't need to generate an external matrix
         // because we also use the internal matrix in the full rounds.
@@ -38,7 +40,7 @@ pub fn generate<F: PrimeField>(t: usize) -> SquareMatrix<F> {
     if t == 4 {
         M4
     } else {
-        let mut matrix = SquareMatrix::identity(t);
+        let mut matrix = SquareMatrix::<STATE_SIZE, NUM_MDS_ELEMENTS>::identity();
         let d = t / 4;
         for i in 0..d {
             for j in 0..d {

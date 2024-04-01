@@ -7,9 +7,17 @@ use poseidon_parameters::v1::{
 };
 
 /// Generate the MDS matrix.
-pub fn v1_generate<F: PrimeField>(input: &InputParameters<F::BigInt>) -> MdsMatrix<F> {
+pub fn v1_generate<
+    F: PrimeField,
+    const STATE_SIZE: usize,
+    const STATE_SIZE_MINUS_1: usize,
+    const NUM_MDS_ELEMENTS: usize,
+    const NUM_STATE_SIZE_MINUS_1_ELEMENTS: usize,
+>(
+    input: &InputParameters<F::BigInt>,
+) -> MdsMatrix<STATE_SIZE, STATE_SIZE_MINUS_1, NUM_MDS_ELEMENTS, NUM_STATE_SIZE_MINUS_1_ELEMENTS> {
     // A t x t MDS matrix only exists if: 2t + 1 <= p
-    let two_times_t_bigint: F::BigInt = (2 * input.t as u64).into();
+    let two_times_t_bigint: F::BigInt = (2 * STATE_SIZE as u64).into();
     if two_times_t_bigint > input.p {
         panic!("no MDS matrix exists");
     }
@@ -30,7 +38,15 @@ pub fn v1_generate<F: PrimeField>(input: &InputParameters<F::BigInt>) -> MdsMatr
 ///
 /// However, here we use a deterministic method for creating Cauchy matrices that has
 /// been empirically checked to be safe using the three algorithms above over `decaf377` for t=1-100.
-pub fn fixed_cauchy_matrix<F: PrimeField>(input: &InputParameters<F::BigInt>) -> MdsMatrix<F> {
+pub fn fixed_cauchy_matrix<
+    F: PrimeField,
+    const STATE_SIZE: usize,
+    const STATE_SIZE_MINUS_1: usize,
+    const NUM_MDS_ELEMENTS: usize,
+    const NUM_STATE_SIZE_MINUS_1_ELEMENTS: usize,
+>(
+    input: &InputParameters<F::BigInt>,
+) -> MdsMatrix<STATE_SIZE, STATE_SIZE_MINUS_1, NUM_MDS_ELEMENTS, NUM_STATE_SIZE_MINUS_1_ELEMENTS> {
     // We explicitly check for small fields where the deterministic procedure can fail.
     // In these cases, the full algorithms 1-3 should be implemented.
     if input.p.num_bits() < 128 {
@@ -57,11 +73,29 @@ pub fn fixed_cauchy_matrix<F: PrimeField>(input: &InputParameters<F::BigInt>) ->
 }
 
 /// Generate the optimized MDS matrices.
-pub fn generate_optimized<F: PrimeField>(
-    mds: &MdsMatrix<F>,
+pub fn generate_optimized<
+    F: PrimeField,
+    const STATE_SIZE: usize,
+    const STATE_SIZE_MINUS_1: usize,
+    const NUM_MDS_ELEMENTS: usize,
+    const NUM_STATE_SIZE_MINUS_1_ELEMENTS: usize,
+    const N_ROUNDS: usize,
+>(
+    mds: &MdsMatrix<
+        STATE_SIZE,
+        STATE_SIZE_MINUS_1,
+        NUM_MDS_ELEMENTS,
+        NUM_STATE_SIZE_MINUS_1_ELEMENTS,
+    >,
     t: usize,
     rounds: &RoundNumbers,
-) -> OptimizedMdsMatrices<F> {
+) -> OptimizedMdsMatrices<
+    N_ROUNDS,
+    STATE_SIZE,
+    STATE_SIZE_MINUS_1,
+    NUM_MDS_ELEMENTS,
+    NUM_STATE_SIZE_MINUS_1_ELEMENTS,
+> {
     let M_hat = mds.hat();
     let M_hat_inverse = M_hat
         .inverse()
@@ -121,10 +155,26 @@ pub fn generate_optimized<F: PrimeField>(
     }
 }
 
-pub fn calc_equivalent_matrices<F: PrimeField>(
-    mds: &MdsMatrix<F>,
+pub fn calc_equivalent_matrices<
+    F: PrimeField,
+    const STATE_SIZE: usize,
+    const STATE_SIZE_MINUS_1: usize,
+    const NUM_MDS_ELEMENTS: usize,
+    const NUM_STATE_SIZE_MINUS_1_ELEMENTS: usize,
+    const N_ROUNDS: usize,
+>(
+    mds: &MdsMatrix<
+        STATE_SIZE,
+        STATE_SIZE_MINUS_1,
+        NUM_MDS_ELEMENTS,
+        NUM_STATE_SIZE_MINUS_1_ELEMENTS,
+    >,
     rounds: &RoundNumbers,
-) -> (Matrix<F>, Vec<Matrix<F>>, Vec<Matrix<F>>) {
+) -> (
+    Matrix<STATE_SIZE, STATE_SIZE, NUM_MDS_ELEMENTS>,
+    [Matrix<1, STATE_SIZE_MINUS_1, STATE_SIZE_MINUS_1>; N_ROUNDS],
+    [Matrix<STATE_SIZE_MINUS_1, 1, STATE_SIZE_MINUS_1>; N_ROUNDS],
+) {
     let r_P = rounds.partial();
     let mut w_hat_collection = Vec::with_capacity(rounds.partial());
     let mut v_collection = Vec::with_capacity(rounds.partial());
@@ -139,8 +189,7 @@ pub fn calc_equivalent_matrices<F: PrimeField>(
 
         let v = M_mul.v();
         v_collection.push(v);
-        let w_hat = mat_mul(&M_hat.clone().inverse().expect("can invert Mhat").0, &w)
-            .expect("can compute w_hat");
+        let w_hat = mat_mul(&M_hat.clone().inverse().expect("can invert Mhat").0, &w);
         w_hat_collection.push(w_hat);
 
         // Now we compute M' and M * M' for the previous round

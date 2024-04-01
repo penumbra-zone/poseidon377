@@ -131,27 +131,27 @@ pub struct OptimizedMdsMatrices<
     const N_ROUNDS: usize,
     const STATE_SIZE: usize,
     const STATE_SIZE_MINUS_1: usize,
-    const NUM_ELEMENTS_STATE_SIZE_2: usize,
-    const NUM_ELEMENTS_STATE_SIZE_MINUS_1_2: usize,
+    const NUM_MDS_ELEMENTS: usize,
+    const NUM_STATE_SIZE_MINUS_1_ELEMENTS: usize,
 > {
     /// A (t - 1) x (t - 1) MDS submatrix derived from the MDS matrix.
-    pub M_hat: SquareMatrix<STATE_SIZE_MINUS_1, NUM_ELEMENTS_STATE_SIZE_MINUS_1_2>,
+    pub M_hat: SquareMatrix<STATE_SIZE_MINUS_1, NUM_STATE_SIZE_MINUS_1_ELEMENTS>,
     /// A 1 x (t - 1) (row) vector derived from the MDS matrix.
     pub v: Matrix<1, STATE_SIZE_MINUS_1, STATE_SIZE_MINUS_1>,
     /// A (t - 1) x 1 (column) vector derived from the MDS matrix.
     pub w: Matrix<STATE_SIZE_MINUS_1, 1, STATE_SIZE_MINUS_1>,
     /// A matrix formed from Mhat (an MDS submatrix of the MDS matrix).
-    pub M_prime: SquareMatrix<STATE_SIZE, NUM_ELEMENTS_STATE_SIZE_2>,
+    pub M_prime: SquareMatrix<STATE_SIZE, NUM_MDS_ELEMENTS>,
     /// A sparse matrix formed from M,
-    pub M_doubleprime: SquareMatrix<STATE_SIZE, NUM_ELEMENTS_STATE_SIZE_2>,
+    pub M_doubleprime: SquareMatrix<STATE_SIZE, NUM_MDS_ELEMENTS>,
     /// The inverse of the t x t MDS matrix (needed to compute round constants).
-    pub M_inverse: SquareMatrix<STATE_SIZE, NUM_ELEMENTS_STATE_SIZE_2>,
+    pub M_inverse: SquareMatrix<STATE_SIZE, NUM_MDS_ELEMENTS>,
     /// The inverse of the (t - 1) x (t - 1) Mhat matrix.
-    pub M_hat_inverse: SquareMatrix<STATE_SIZE_MINUS_1, NUM_ELEMENTS_STATE_SIZE_MINUS_1_2>,
+    pub M_hat_inverse: SquareMatrix<STATE_SIZE_MINUS_1, NUM_STATE_SIZE_MINUS_1_ELEMENTS>,
     /// Element at M00
     pub M_00: Fq,
     /// M_i
-    pub M_i: Matrix<STATE_SIZE, STATE_SIZE, NUM_ELEMENTS_STATE_SIZE_2>,
+    pub M_i: Matrix<STATE_SIZE, STATE_SIZE, NUM_MDS_ELEMENTS>,
     /// v_collection: one per round.
     pub v_collection: [Matrix<1, STATE_SIZE_MINUS_1, STATE_SIZE_MINUS_1>; N_ROUNDS],
     /// w_hat_collection: one per round
