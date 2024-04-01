@@ -5,7 +5,9 @@ use poseidon_parameters::v2::{SquareMatrix, SquareMatrixOperations};
 ///
 /// This matrix needs to be invertible, and no arbitrarily long
 /// subspace trails should exist.
-pub fn generate<F: PrimeField>(t: usize) -> SquareMatrix<F> {
+pub fn generate<F: PrimeField, const STATE_SIZE: usize, const NUM_MDS_ELEMENTS: usize>(
+    t: usize,
+) -> SquareMatrix<STATE_SIZE, NUM_MDS_ELEMENTS> {
     let M_i: SquareMatrix<F>;
 
     if t == 2 {
