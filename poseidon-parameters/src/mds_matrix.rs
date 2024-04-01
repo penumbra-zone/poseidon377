@@ -129,6 +129,7 @@ impl<
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OptimizedMdsMatrices<
     const N_ROUNDS: usize,
+    const N_PARTIAL_ROUNDS: usize,
     const STATE_SIZE: usize,
     const STATE_SIZE_MINUS_1: usize,
     const NUM_MDS_ELEMENTS: usize,
@@ -152,8 +153,8 @@ pub struct OptimizedMdsMatrices<
     pub M_00: Fq,
     /// M_i
     pub M_i: Matrix<STATE_SIZE, STATE_SIZE, NUM_MDS_ELEMENTS>,
-    /// v_collection: one per round.
-    pub v_collection: [Matrix<1, STATE_SIZE_MINUS_1, STATE_SIZE_MINUS_1>; N_ROUNDS],
+    /// v_collection: one per partial round.
+    pub v_collection: [Matrix<1, STATE_SIZE_MINUS_1, STATE_SIZE_MINUS_1>; N_PARTIAL_ROUNDS],
     /// w_hat_collection: one per round
-    pub w_hat_collection: [Matrix<STATE_SIZE_MINUS_1, 1, STATE_SIZE_MINUS_1>; N_ROUNDS],
+    pub w_hat_collection: [Matrix<STATE_SIZE_MINUS_1, 1, STATE_SIZE_MINUS_1>; N_PARTIAL_ROUNDS],
 }
