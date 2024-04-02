@@ -20,6 +20,11 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>
     pub fn inner_elements(&self) -> [Fq; N_ELEMENTS] {
         self.0.elements
     }
+
+    /// Create a new matrix from a slice of elements.
+    pub const fn new_from_known(elements: [Fq; N_ELEMENTS]) -> Self {
+        Self(Matrix::new_from_known(elements))
+    }
 }
 
 impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOperations
@@ -75,6 +80,11 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>
 {
     pub fn transpose(&self) -> OptimizedArcMatrix<N_COLS, N_ROWS, N_ELEMENTS> {
         OptimizedArcMatrix(self.0.transpose())
+    }
+
+    /// Create a new matrix from a slice of elements.
+    pub const fn new_from_known(elements: [Fq; N_ELEMENTS]) -> Self {
+        Self(ArcMatrix::new_from_known(elements))
     }
 }
 

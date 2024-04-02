@@ -5,8 +5,6 @@
 //! The API here is split into [`v1`] and [`v2`] to avoid confusion
 //! between the two versions.
 
-use decaf377::Fq;
-
 mod alpha;
 mod arc_matrix;
 mod error;

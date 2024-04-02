@@ -31,6 +31,15 @@ impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize>
         }
         Matrix::<N_COLS, N_ROWS, N_ELEMENTS>::new(&transposed_elements)
     }
+
+    /// Create a new matrix from a slice of elements.
+    pub const fn new_from_known(elements: [Fq; N_ELEMENTS]) -> Self {
+        if N_ELEMENTS != N_ROWS * N_COLS {
+            panic!("Matrix has an insufficient number of elements")
+        }
+
+        Self { elements }
+    }
 }
 
 impl<const N_ROWS: usize, const N_COLS: usize, const N_ELEMENTS: usize> MatrixOperations
@@ -320,6 +329,11 @@ impl<const N_ROWS: usize, const N_ELEMENTS: usize> SquareMatrix<N_ROWS, N_ELEMEN
     /// Create a 2x2 `SquareMatrix` from four elements.
     pub fn new_2x2(a: Fq, b: Fq, c: Fq, d: Fq) -> SquareMatrix<2, 4> {
         SquareMatrix::<2, 4>::new(&[a, b, c, d])
+    }
+
+    /// Create a new matrix from a slice of elements.
+    pub const fn new_from_known(elements: [Fq; N_ELEMENTS]) -> Self {
+        Self(Matrix::new_from_known(elements))
     }
 }
 

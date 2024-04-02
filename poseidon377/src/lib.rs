@@ -8,11 +8,7 @@ mod params;
 pub use hash::hash_1;
 
 /// Parameters for the rate-1 instance of Poseidon.
-// pub static RATE_1_PARAMS: Lazy<PoseidonParameters<2, 1, 4, 1, 39, 2, 78, 31>> =
-//     Lazy::new(params::rate_1);
-
-// TODO:
-// Load parameters using const fn
+pub const RATE_1_PARAMS: PoseidonParameters<2, 1, 4, 1, 39, 2, 78, 31> = params::rate_1::rate_1();
 
 /// Parameters for the rate-2 instance of Poseidon.
 // pub static RATE_2_PARAMS: Lazy<PoseidonParameters<Fq>> = Lazy::new(params::rate_2);
