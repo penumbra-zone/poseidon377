@@ -3,9 +3,6 @@
 use decaf377::Fq;
 use poseidon_parameters::v1::{Alpha, MatrixOperations, PoseidonParameters};
 
-//temp
-use poseidon_parameters::StuffThatNeedsToGoInDecaf377;
-
 /// Represents a generic instance of `Poseidon`.
 ///
 /// Intended for generic fixed-width hashing.
@@ -221,7 +218,7 @@ impl<
     /// Applies the partial `SubWords` layer.
     fn partial_sub_words(&mut self) {
         match self.parameters.alpha {
-            Alpha::Exponent(exp) => self.state_words[0] = (self.state_words[0]).pow([exp as u64]),
+            Alpha::Exponent(exp) => self.state_words[0] = (self.state_words[0]).power([exp as u64]),
             Alpha::Inverse => self.state_words[0] = Fq::from(1u64) / self.state_words[0],
         }
     }
@@ -231,7 +228,7 @@ impl<
         match self.parameters.alpha {
             Alpha::Exponent(exp) => {
                 for i in 0..STATE_SIZE {
-                    self.state_words[i] = self.state_words[i].pow([exp as u64]);
+                    self.state_words[i] = self.state_words[i].power([exp as u64]);
                 }
             }
             Alpha::Inverse => {
