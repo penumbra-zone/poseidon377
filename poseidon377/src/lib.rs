@@ -35,5 +35,5 @@ pub use decaf377::Fq;
 pub use poseidon_parameters::v1::PoseidonParameters;
 pub use poseidon_permutation::Instance;
 
-// #[cfg(feature = "r1cs")]
-// pub mod r1cs;
+#[cfg(feature = "r1cs")]
+pub mod r1cs;

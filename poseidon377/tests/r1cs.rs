@@ -1,4 +1,3 @@
-use ark_ff::PrimeField;
 use ark_groth16::{r1cs_to_qap::LibsnarkReduction, Groth16, ProvingKey, VerifyingKey};
 use ark_r1cs_std::prelude::{AllocVar, EqGadget};
 use ark_relations::r1cs::{ConstraintSynthesizer, ToConstraintField};
@@ -7,12 +6,11 @@ use decaf377::{
     r1cs::{CountConstraints, FqVar},
     Bls12_377, Fq,
 };
-use once_cell::sync::Lazy;
 use proptest::prelude::*;
 use rand_core::OsRng;
 
 // This is a domain separator we'll use as a constant in our circuits below.
-static DOMAIN_SEP: Lazy<Fq> = Lazy::new(|| Fq::from(666u64));
+const DOMAIN_SEP: Fq = Fq::from_montgomery_limbs([15545862963729521748, 8301038308012579564, 6940338389606830037, 431207966161902270]);
 
 /// The maximum fixed-width Poseidon hash exposed to downstream users of this crate.
 const MAX_WIDTH_POSEIDON_HASH: usize = 7;
@@ -49,7 +47,7 @@ impl ConstraintSynthesizer<Fq> for PreimageCircuit {
             preimage_vars.push(preimage_var);
         }
 
-        let domain_separator_var = FqVar::new_constant(cs.clone(), *DOMAIN_SEP)?;
+        let domain_separator_var = FqVar::new_constant(cs.clone(), DOMAIN_SEP)?;
         // Add all public inputs
         let mut hash_output_vars = Vec::new();
         for hash_output in self.hash_outputs {
@@ -165,7 +163,7 @@ fn groth16_hash_proof_happy_path(v1 in fq_strategy(), v2 in fq_strategy(), v3 in
         let mut rng = OsRng;
 
         let preimages = [v1, v2, v3, v4, v5, v6, v7];
-        let mut hash_outputs = [Fq::zero(); MAX_WIDTH_POSEIDON_HASH];
+        let mut hash_outputs = [Fq::from(0u64); MAX_WIDTH_POSEIDON_HASH];
         hash_outputs[0] = poseidon377::hash_1(&DOMAIN_SEP, preimages[0]);
         hash_outputs[1] = poseidon377::hash_2(&DOMAIN_SEP, (preimages[0], preimages[1]));
         hash_outputs[2] = poseidon377::hash_3(&DOMAIN_SEP, (preimages[0], preimages[1], preimages[2]));
@@ -198,7 +196,7 @@ fn groth16_hash_proof_unhappy_path(v1 in fq_strategy(), v2 in fq_strategy(), v3 
         let mut rng = OsRng;
 
         let preimages = [v1, v2, v3, v4, v5, v6, v7];
-        let mut hash_outputs = [Fq::zero(); MAX_WIDTH_POSEIDON_HASH];
+        let mut hash_outputs = [Fq::from(0u64); MAX_WIDTH_POSEIDON_HASH];
         hash_outputs[0] = poseidon377::hash_1(&DOMAIN_SEP, preimages[0]);
         hash_outputs[1] = poseidon377::hash_2(&DOMAIN_SEP, (preimages[0], preimages[1]));
         hash_outputs[2] = poseidon377::hash_3(&DOMAIN_SEP, (preimages[0], preimages[1], preimages[2]));
@@ -215,7 +213,7 @@ fn groth16_hash_proof_unhappy_path(v1 in fq_strategy(), v2 in fq_strategy(), v3 
 
         // Verifier POV
         let processed_pvk = Groth16::<Bls12_377, LibsnarkReduction>::process_vk(&vk).expect("can process verifying key");
-        let public_inputs = [(hash_outputs[0] + Fq::one()); MAX_WIDTH_POSEIDON_HASH].to_field_elements().unwrap();
+        let public_inputs = [(hash_outputs[0] + Fq::from(1u64)); MAX_WIDTH_POSEIDON_HASH].to_field_elements().unwrap();
         let proof_result =
             Groth16::<Bls12_377, LibsnarkReduction>::verify_with_processed_vk(&processed_pvk, &public_inputs, &proof).unwrap();
 
