@@ -268,12 +268,10 @@ impl<const N_ROWS: usize, const N_ELEMENTS: usize> SquareMatrixOperations
         let dim = self.n_rows();
         let mut elements = [Fq::from(0u64); N_ELEMENTS];
 
-        // TODO: non arkworks Fq::pow
-        use crate::StuffThatNeedsToGoInDecaf377;
         let mut index = 0;
         for i in 0..dim {
             for j in 0..dim {
-                elements[index] = (-Fq::from(1u64)).pow([(i + j) as u64]);
+                elements[index] = (-Fq::from(1u64)).power([(i + j) as u64]);
                 index += 1;
             }
         }

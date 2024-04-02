@@ -23,19 +23,3 @@ pub mod v1;
 
 /// Structures related to Poseidon version 2 parameters.
 pub mod v2;
-
-pub trait StuffThatNeedsToGoInDecaf377 {
-    fn pow<S: AsRef<[u64]>>(&self, exp: S) -> Self;
-}
-
-// TEMP
-impl StuffThatNeedsToGoInDecaf377 for Fq {
-    fn pow<S: AsRef<[u64]>>(&self, exp: S) -> Self {
-        let mut res = Fq::from(1u64);
-        let exp_u64 = exp.as_ref();
-        for _ in 0..exp_u64[0] {
-            res *= self;
-        }
-        res
-    }
-}
