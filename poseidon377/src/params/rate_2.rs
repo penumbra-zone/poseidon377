@@ -1,5 +1,3 @@
-
-
 use decaf377::Fq;
 use poseidon_parameters::v1::{
     Alpha, ArcMatrix, Matrix, MdsMatrix, OptimizedArcMatrix, OptimizedMdsMatrices,
