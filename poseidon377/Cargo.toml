@@ -8,19 +8,17 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/penumbra-zone/poseidon377"
 
 [dependencies]
+decaf377 = { git = "https://github.com/penumbra-zone/decaf377.git", branch="for-poseidon377", default-features = false }
+poseidon-parameters = { version="1.0", path = "../poseidon-parameters", default-features = false }
+poseidon-permutation = { version="1.0", path = "../poseidon-permutation", default-features = false }
+
 ark-ff = { version = "0.4", default-features = false, optional=true }
 ark-groth16 = { version = "0.4", default-features = false, optional=true }
 ark-r1cs-std = {version = "0.4", default-features = false, optional=true }
 ark-relations = { version="0.4", default-features = false, optional=true }
 ark-snark = { version = "0.4", default-features = false, optional=true }
-decaf377 = { git = "https://github.com/penumbra-zone/decaf377.git", branch="for-poseidon377", default-features = false }
-poseidon-parameters = { version="1.0", path = "../poseidon-parameters", default-features = false }
-poseidon-permutation = { version="1.0", path = "../poseidon-permutation", default-features = false }
-
-# Dependencies added for ark-sponge vendoring
 ark-ec = { version = "0.4", default_features = false, optional=true }
 ark-std = { version = "0.4", default-features = false, optional=true }
-tracing = { version = "0.1", default-features = false, features = [ "attributes" ], optional = true }
 ark-serialize = { version = "0.4", default_features = false, optional=true }
 
 [dev-dependencies]
@@ -58,7 +56,6 @@ r1cs = [
     "poseidon-permutation/r1cs",
     "ark-std",
     "ark-ec",
-    "tracing",
     "ark-serialize",
 ]
 parallel  = [
@@ -69,11 +66,6 @@ parallel  = [
     "ark-std/parallel",
     "ark-ec/parallel",
 ]
-
-[build-dependencies]
-poseidon-paramgen = { version="0.4", path = "../poseidon-paramgen" }
-ark-ed-on-bls12-377 = "0.4"
-ark-ff = "0.4"
 
 [[test]]
 name = "r1cs"
