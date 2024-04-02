@@ -123,6 +123,18 @@ impl<
         }
         SquareMatrix::new(&mhat_elements)
     }
+
+    /// Create a new matrix from a slice of elements.
+    ///
+    /// # Security
+    ///
+    /// You must ensure this matrix was generated securely,
+    /// using the Cauchy method in `fixed_cauchy_matrix` or
+    /// using the random subsampling method described in the original
+    /// paper.
+    pub const fn new_from_known(elements: [Fq; NUM_ELEMENTS]) -> Self {
+        Self(SquareMatrix::new_from_known(elements))
+    }
 }
 
 /// Represents an optimized MDS (maximum distance separable) matrix.
