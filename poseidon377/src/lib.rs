@@ -5,7 +5,7 @@ mod hash;
 mod params;
 
 // pub use hash::{hash_1, hash_2, hash_3, hash_4, hash_5, hash_6, hash_7};
-pub use hash::{hash_1, hash_2, hash_3};
+pub use hash::{hash_1, hash_2, hash_3, hash_4};
 
 /// Parameters for the rate-1 instance of Poseidon.
 pub const RATE_1_PARAMS: PoseidonParameters<2, 1, 4, 1, 39, 2, 78, 31> = params::rate_1::rate_1();
@@ -16,8 +16,10 @@ pub const RATE_2_PARAMS: PoseidonParameters<3, 2, 9, 4, 39, 3, 117, 31> = params
 /// Parameters for the rate-3 instance of Poseidon.
 pub const RATE_3_PARAMS: PoseidonParameters<4, 3, 16, 9, 39, 4, 156, 31> = params::rate_3::rate_3();
 
-// /// Parameters for the rate-4 instance of Poseidon.
-// pub static RATE_4_PARAMS: Lazy<PoseidonParameters<Fq>> = Lazy::new(params::rate_4);
+/// Parameters for the rate-4 instance of Poseidon.
+pub const RATE_4_PARAMS: PoseidonParameters<5, 4, 25, 16, 39, 5, 195, 31> =
+    params::rate_4::rate_4();
+
 // /// Parameters for the rate-5 instance of Poseidon.
 // pub static RATE_5_PARAMS: Lazy<PoseidonParameters<Fq>> = Lazy::new(params::rate_5);
 // /// Parameters for the rate-6 instance of Poseidon.
