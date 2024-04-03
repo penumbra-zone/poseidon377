@@ -8,10 +8,10 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/penumbra-zone/poseidon377"
 
 [dependencies]
-poseidon-parameters = { path = "../poseidon-parameters" }
-poseidon-paramgen = { path = "../poseidon-paramgen", default-features = false }
+poseidon-parameters = { path = "../poseidon-parameters", default-features = false  }
+#poseidon-paramgen = { path = "../poseidon-paramgen", default-features = false }
 poseidon-permutation = { path="../poseidon-permutation", default-features = false }
-decaf377 = { git = "https://github.com/penumbra-zone/decaf377.git", branch="for-poseidon377", default-features = false }
+decaf377 = { version="0.9", default-features = false }
 
 [dev-dependencies]
 criterion = { version = "0.4", features=["html_reports"] }
@@ -19,7 +19,7 @@ ark-ff = "0.4"
 ark-ed-on-bls12-377 = "0.4"
 num-bigint = "0.4"
 proptest = "1"
-rand_core = { version = "0.6.3", features = ["getrandom"] }
+rand_core = { version = "0.6.3", default-features=false }
 rand_chacha = "0.3"
 once_cell = "1.8"
 

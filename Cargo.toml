@@ -2,9 +2,9 @@
 
 members = [
     "poseidon377",
-#    "poseidon-paramgen",
+    # "poseidon-paramgen" # Temporarily excluded until refactored
     "poseidon-permutation",
-    "poseidon-consistency",
+    # "poseidon-consistency", # Temporarily excluded until paramgen is refactored
     "poseidon-parameters",
 ]
 
