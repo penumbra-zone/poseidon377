@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/penumbra-zone/poseidon377"
 
 [dependencies]
-decaf377 = { git = "https://github.com/penumbra-zone/decaf377.git", branch="for-poseidon377", default-features = false }
+decaf377 = { version="0.9", default-features = false }
 poseidon-parameters = { version="1.0", path = "../poseidon-parameters", default-features = false }
 poseidon-permutation = { version="1.0", path = "../poseidon-permutation", default-features = false }
 
@@ -24,7 +24,7 @@ ark-serialize = { version = "0.4", default_features = false, optional=true }
 [dev-dependencies]
 ark-ed-on-bls12-381 = "0.4"
 proptest = "1"
-rand_core = { version = "0.6.3", features = ["getrandom"] }
+rand_core = { version = "0.6.3", default-features=false }
 rand_chacha = "0.3"
 ark-ff = "0.4"
 
