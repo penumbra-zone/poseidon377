@@ -29,7 +29,7 @@ pub const RATE_6_PARAMS: PoseidonParameters<7, 6, 49, 36, 39, 7, 273, 31> =
 
 /// Parameters for the rate-7 instance of Poseidon.
 pub const RATE_7_PARAMS: PoseidonParameters<8, 7, 64, 49, 39, 8, 312, 31> =
-params::rate_7::rate_7();
+    params::rate_7::rate_7();
 
 pub use decaf377::Fq;
 pub use poseidon_parameters::v1::PoseidonParameters;
