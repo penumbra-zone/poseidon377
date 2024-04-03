@@ -10,7 +10,12 @@ use proptest::prelude::*;
 use rand_core::OsRng;
 
 // This is a domain separator we'll use as a constant in our circuits below.
-const DOMAIN_SEP: Fq = Fq::from_montgomery_limbs([15545862963729521748, 8301038308012579564, 6940338389606830037, 431207966161902270]);
+const DOMAIN_SEP: Fq = Fq::from_montgomery_limbs([
+    15545862963729521748,
+    8301038308012579564,
+    6940338389606830037,
+    431207966161902270,
+]);
 
 /// The maximum fixed-width Poseidon hash exposed to downstream users of this crate.
 const MAX_WIDTH_POSEIDON_HASH: usize = 7;
