@@ -13,9 +13,6 @@ mod matrix_ops;
 mod mds_matrix;
 mod round_numbers;
 
-#[cfg(test)]
-mod tests;
-
 /// Structures related to Poseidon version 1 parameters.
 pub mod v1;
 
