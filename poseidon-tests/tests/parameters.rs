@@ -1,11 +1,9 @@
 use decaf377::Fq;
 use proptest::prelude::*;
 
-use super::*;
-
-use crate::matrix::{mat_mul, square_mat_mul};
-use crate::{matrix::Matrix, matrix_ops::MatrixOperations};
-use crate::{matrix::SquareMatrix, matrix_ops::SquareMatrixOperations};
+use poseidon_parameters::v1::{mat_mul, square_mat_mul};
+use poseidon_parameters::v1::{Matrix, MatrixOperations};
+use poseidon_parameters::v1::{SquareMatrix, SquareMatrixOperations};
 
 #[test]
 fn identity_matrix() {
@@ -48,7 +46,7 @@ fn nonsquare_matmul_happy() {
     let matrix_2x3 = Matrix::<3, 2, 6>::new(test_elements);
 
     let matrix_3x2 = matrix_2x3.transpose();
-    let res: matrix::Matrix<3, 3, 9> = mat_mul(&matrix_2x3, &matrix_3x2);
+    let res: Matrix<3, 3, 9> = mat_mul(&matrix_2x3, &matrix_3x2);
     assert_eq!(res.get_element(0, 0), Fq::from(5u64));
     assert_eq!(res.get_element(0, 1), Fq::from(11u64));
     assert_eq!(res.get_element(0, 2), Fq::from(17u64));

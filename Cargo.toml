@@ -6,6 +6,7 @@ members = [
     "poseidon-permutation",
     # "poseidon-consistency", # Temporarily excluded until paramgen is refactored
     "poseidon-parameters",
+    "poseidon-tests",
 ]
 
 [profile.release]

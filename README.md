@@ -8,6 +8,7 @@ This repository contains:
 parameters
 * [`poseidon-permutation`](../main/poseidon-permutation): an independent implementation of the Poseidon permutation
 * [`poseidon-consistency`](../main/poseidon-consistency): property-based tests for consistency between Poseidon implementations
+* [`poseidon-tests`](../main/poseidon-tests): test vectors for `poseidon-parameters` and `poseidon377`
 
 ## Audits
 

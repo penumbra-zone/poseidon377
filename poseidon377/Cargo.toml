@@ -21,16 +21,6 @@ ark-ec = { version = "0.4", default_features = false, optional=true }
 ark-std = { version = "0.4", default-features = false, optional=true }
 ark-serialize = { version = "0.4", default_features = false, optional=true }
 
-[dev-dependencies]
-ark-ed-on-bls12-381 = "0.4"
-proptest = "1"
-rand_core = { version = "0.6.3", default-features=false }
-rand_chacha = "0.3"
-ark-ff = "0.4"
-
-# Dependencies added for ark-sponge tests
-ark-test-curves = { version = "0.4", features = ["bls12_381_curve", "mnt4_753_curve"]}
-
 [features]
 default = ["arkworks"]
 alloc = ["decaf377/alloc"]
@@ -66,7 +56,3 @@ parallel  = [
     "ark-std/parallel",
     "ark-ec/parallel",
 ]
-
-[[test]]
-name = "r1cs"
-required-features = ["r1cs"]
