@@ -2,29 +2,33 @@
 name = "poseidon377"
 version = "1.0.0"
 edition = "2018"
-authors = ["Penumbra <team@penumbralabs.xyz>", "redshiftzero <jen@penumbralabs.xyz>"]
+authors = [
+    "Penumbra <team@penumbralabs.xyz>",
+    "redshiftzero <jen@penumbralabs.xyz>",
+]
 description = "An instantiation of the Poseidon hash for use with decaf377."
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/penumbra-zone/poseidon377"
 
 [dependencies]
-decaf377 = { version="0.9", default-features = false }
-poseidon-parameters = { version="1.0", path = "../poseidon-parameters", default-features = false }
-poseidon-permutation = { version="1.0", path = "../poseidon-permutation", default-features = false }
+decaf377 = { version = "0.9", default-features = false }
+poseidon-parameters = { version = "1.0", path = "../poseidon-parameters", default-features = false }
+poseidon-permutation = { version = "1.0", path = "../poseidon-permutation", default-features = false }
 
-ark-ff = { version = "0.4", default-features = false, optional=true }
-ark-groth16 = { version = "0.4", default-features = false, optional=true }
-ark-r1cs-std = {version = "0.4", default-features = false, optional=true }
-ark-relations = { version="0.4", default-features = false, optional=true }
-ark-snark = { version = "0.4", default-features = false, optional=true }
-ark-ec = { version = "0.4", default_features = false, optional=true }
-ark-std = { version = "0.4", default-features = false, optional=true }
-ark-serialize = { version = "0.4", default_features = false, optional=true }
+ark-ff = { version = "0.4", default-features = false, optional = true }
+ark-groth16 = { version = "0.4", default-features = false, optional = true }
+ark-r1cs-std = { version = "0.4", default-features = false, optional = true }
+ark-relations = { version = "0.4", default-features = false, optional = true }
+ark-snark = { version = "0.4", default-features = false, optional = true }
+ark-ec = { version = "0.4", default_features = false, optional = true }
+ark-std = { version = "0.4", default-features = false, optional = true }
+ark-serialize = { version = "0.4", default_features = false, optional = true }
 
 [features]
 default = ["arkworks"]
 alloc = ["decaf377/alloc"]
-arkworks = ["std",
+arkworks = [
+    "std",
     "decaf377/arkworks",
     "ark-ff/std",
     "ark-groth16/std",
@@ -32,10 +36,9 @@ arkworks = ["std",
     "ark-relations/std",
     "ark-std/std",
     "ark-ec/std",
-    "ark-serialize/std"]
-std = [
-    "alloc",
+    "ark-serialize/std",
 ]
+std = ["alloc"]
 r1cs = [
     "arkworks",
     "ark-groth16",
@@ -48,7 +51,7 @@ r1cs = [
     "ark-ec",
     "ark-serialize",
 ]
-parallel  = [
+parallel = [
     "ark-ff/parallel",
     "ark-groth16/parallel",
     "ark-r1cs-std/parallel",
@@ -56,3 +59,4 @@ parallel  = [
     "ark-std/parallel",
     "ark-ec/parallel",
 ]
+u32_backend = ["decaf377/u32_backend"]
