@@ -26,3 +26,7 @@
 # 1.0.0
 
 * Remove Arkworks requirement
+
+# 1.1.0
+
+* Add `u32_backend` feature.
