@@ -9,7 +9,7 @@ keywords = ["no_std"]
 repository = "https://github.com/penumbra-zone/poseidon377"
 
 [dependencies]
-decaf377 = { version="0.9", default-features = false }
+decaf377 = { version="0.10.0", default-features = false }
 
 [features]
 default = ["std"]
