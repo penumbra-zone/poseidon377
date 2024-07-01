@@ -20,7 +20,7 @@ num-bigint = { version = "0.4", default-features = false }
 poseidon-parameters = { path = "../poseidon-parameters", default-features = false, version = "1.0" }
 
 [dev-dependencies]
-decaf377 = { version="0.10.0", default-features = false }
+decaf377 = { version="0.10.1", default-features = false }
 ark-bn254 = "0.4"
 ark-ed-on-bls12-377 = "0.4"
 ark-ed-on-bls12-381 = "0.4"
