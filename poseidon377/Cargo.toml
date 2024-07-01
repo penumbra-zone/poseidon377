@@ -11,7 +11,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/penumbra-zone/poseidon377"
 
 [dependencies]
-decaf377 = { version = "0.10.0", default-features = false }
+decaf377 = { version = "0.10.1", default-features = false }
 poseidon-parameters = { version = "1.0", path = "../poseidon-parameters", default-features = false }
 poseidon-permutation = { version = "1.0", path = "../poseidon-permutation", default-features = false }
 
