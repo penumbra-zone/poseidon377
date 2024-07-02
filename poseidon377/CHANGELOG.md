@@ -30,3 +30,7 @@
 # 1.1.0
 
 * Add `u32_backend` feature.
+
+# 1.2.0
+
+* Update version of `decaf377`.

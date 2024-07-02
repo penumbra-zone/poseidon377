@@ -23,3 +23,7 @@
 # 1.0.0
 
 * Remove Arkworks requirement
+
+# 1.1.0
+
+* Update version of `decaf377`.
