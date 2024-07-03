@@ -25,3 +25,7 @@ cargo bench
 ```
 
 This will generate a report at `target/criterion/report/index.html`.
+
+Performance benchmarked on commit 9750f5ff01d11f158f111a1a75401901049e5575 on
+a 2023 Macbook Pro M2 (12 core CPU) with 32 GB memory using our 4-to-1 optimized
+poseidon hash takes 47.3µs, or ~21,141 hashes/second.

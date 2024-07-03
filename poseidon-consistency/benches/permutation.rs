@@ -18,7 +18,7 @@ fn hash_4_1_our_impl_unoptimized(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
 
 pub fn bench_unoptimized_vs_optimized(c: &mut Criterion) {
     let mut group = c.benchmark_group("unoptimized_vs_optimized");
-    let n = 10;
+    let n = 100;
     let mut rng = ChaChaRng::seed_from_u64(666);
     let mut test_field_elements = Vec::with_capacity(n);
 
