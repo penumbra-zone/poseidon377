@@ -1,23 +1,19 @@
-use ark_ed_on_bls12_377::{Fq, FqConfig};
-use ark_ff::{MontConfig, PrimeField};
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use once_cell::sync::Lazy;
+use decaf377::Fq;
 use rand_chacha::ChaChaRng;
 use rand_core::{RngCore, SeedableRng};
 
+use poseidon377::RATE_4_PARAMS;
 use poseidon_permutation::Instance;
 
-static PARAMS_4_TO_1: Lazy<poseidon_parameters::v1::PoseidonParameters<Fq>> =
-    Lazy::new(|| poseidon_paramgen::v1::generate(128, 5, FqConfig::MODULUS, true));
-
 fn hash_4_1_our_impl(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
-    let mut our_instance = Instance::new(&PARAMS_4_TO_1);
-    our_instance.n_to_1_fixed_hash(vec![*i, *j, *k, *l, *m])
+    let mut our_instance = Instance::new(&RATE_4_PARAMS);
+    our_instance.n_to_1_fixed_hash(&[*i, *j, *k, *l, *m])
 }
 
 fn hash_4_1_our_impl_unoptimized(i: &Fq, j: &Fq, k: &Fq, l: &Fq, m: &Fq) -> Fq {
-    let mut our_instance = Instance::new(&PARAMS_4_TO_1);
-    our_instance.unoptimized_n_to_1_fixed_hash(vec![*i, *j, *k, *l, *m])
+    let mut our_instance = Instance::new(&RATE_4_PARAMS);
+    our_instance.unoptimized_n_to_1_fixed_hash([*i, *j, *k, *l, *m])
 }
 
 pub fn bench_unoptimized_vs_optimized(c: &mut Criterion) {
