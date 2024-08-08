@@ -12,7 +12,7 @@ poseidon-parameters = { path = "../poseidon-parameters", default-features = fals
 #poseidon-paramgen = { path = "../poseidon-paramgen", default-features = false }
 poseidon377 = { path = "../poseidon377", default-features = false }
 poseidon-permutation = { path="../poseidon-permutation", default-features = false }
-decaf377 = { version="0.10.1", default-features = false }
+decaf377 = { git = "https://github.com/penumbra-zone/decaf377", branch = "enable-lto", default-features = false }
 
 [dev-dependencies]
 criterion = { version = "0.4", features=["html_reports"] }
