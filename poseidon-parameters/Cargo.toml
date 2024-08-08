@@ -9,7 +9,7 @@ keywords = ["no_std"]
 repository = "https://github.com/penumbra-zone/poseidon377"
 
 [dependencies]
-decaf377 = { git = "https://github.com/penumbra-zone/decaf377", branch = "enable-lto", default-features = false }
+decaf377 = { version="0.10.1", default-features = false }
 
 [features]
 default = ["std"]
