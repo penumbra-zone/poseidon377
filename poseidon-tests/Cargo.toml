@@ -11,7 +11,7 @@ repository = "https://github.com/penumbra-zone/poseidon377"
 poseidon-parameters = { path = "../poseidon-parameters", default-features = false  }
 #poseidon-paramgen = { path = "../poseidon-paramgen", default-features = false }
 poseidon-permutation = { path="../poseidon-permutation", default-features = false }
-decaf377 = { version="0.10.1", default-features = false }
+decaf377 = { default-features = false, git = "https://github.com/penumbra-zone/decaf377", branch = "arkworks-0.5" }
 poseidon377 = { path="../poseidon377", features = ["r1cs"] }
 
 [dev-dependencies]

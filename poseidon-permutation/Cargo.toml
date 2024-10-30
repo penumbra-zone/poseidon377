@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/penumbra-zone/poseidon377"
 
 [dependencies]
-decaf377 = { version="0.10.1", default-features = false }
+decaf377 = { default-features = false, git = "https://github.com/penumbra-zone/decaf377", branch = "arkworks-0.5" }
 ark-ff = { version = "0.4", default-features = false, optional=true }
 ark-std = { version = "^0.4.0", default-features = false, optional=true }
 ark-r1cs-std = {version = "0.4", default-features = false, optional=true }
