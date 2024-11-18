@@ -16,8 +16,8 @@ decaf377 = { default-features = false, git = "https://github.com/penumbra-zone/d
 
 [dev-dependencies]
 criterion = { version = "0.4", features=["html_reports"] }
-ark-ff = "0.4"
-ark-ed-on-bls12-377 = "0.4"
+ark-ff = "0.5"
+ark-ed-on-bls12-377 = "0.5"
 num-bigint = "0.4"
 proptest = "1"
 rand_core = { version = "0.6.3", default-features=false }

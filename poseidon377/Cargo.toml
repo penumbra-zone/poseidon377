@@ -15,14 +15,14 @@ decaf377 = { default-features = false, git = "https://github.com/penumbra-zone/d
 poseidon-parameters = { version = "1.1", path = "../poseidon-parameters", default-features = false }
 poseidon-permutation = { version = "1.1", path = "../poseidon-permutation", default-features = false }
 
-ark-ff = { version = "0.4", default-features = false, optional = true }
-ark-groth16 = { version = "0.4", default-features = false, optional = true }
-ark-r1cs-std = { version = "0.4", default-features = false, optional = true }
-ark-relations = { version = "0.4", default-features = false, optional = true }
-ark-snark = { version = "0.4", default-features = false, optional = true }
-ark-ec = { version = "0.4", default_features = false, optional = true }
-ark-std = { version = "0.4", default-features = false, optional = true }
-ark-serialize = { version = "0.4", default_features = false, optional = true }
+ark-ff = { version = "0.5", default-features = false, optional = true }
+ark-groth16 = { version = "0.5", default-features = false, optional = true }
+ark-r1cs-std = { version = "0.5", default-features = false, optional = true }
+ark-relations = { version = "0.5", default-features = false, optional = true }
+ark-snark = { version = "0.5", default-features = false, optional = true }
+ark-ec = { version = "0.5", default_features = false, optional = true }
+ark-std = { version = "0.5", default-features = false, optional = true }
+ark-serialize = { version = "0.5", default_features = false, optional = true }
 
 [features]
 default = ["arkworks"]
