@@ -1,11 +1,15 @@
+use std::{fs, io::BufWriter, path::PathBuf};
+
 use ark_groth16::{r1cs_to_qap::LibsnarkReduction, Groth16, ProvingKey, VerifyingKey};
 use ark_r1cs_std::prelude::{AllocVar, EqGadget};
 use ark_relations::r1cs::{ConstraintSynthesizer, ToConstraintField};
+use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_snark::SNARK;
 use decaf377::{
     r1cs::{CountConstraints, FqVar},
     Bls12_377, Fq,
 };
+use once_cell::sync::Lazy;
 use proptest::prelude::*;
 use rand_core::OsRng;
 
@@ -19,6 +23,18 @@ const DOMAIN_SEP: Fq = Fq::from_montgomery_limbs([
 
 /// The maximum fixed-width Poseidon hash exposed to downstream users of this crate.
 const MAX_WIDTH_POSEIDON_HASH: usize = 7;
+
+static PREIMAGE_PK: Lazy<ProvingKey<Bls12_377>> = Lazy::new(|| {
+    let pk_bytes = include_bytes!("../../poseidon-tests/test_vectors/preimage_pk.bin");
+    ProvingKey::deserialize_uncompressed(&pk_bytes[..])
+        .expect("can parse public element input proving key")
+});
+
+static PREIMAGE_VK: Lazy<VerifyingKey<Bls12_377>> = Lazy::new(|| {
+    let vk_bytes = include_bytes!("../../poseidon-tests/test_vectors/preimage_vk.param");
+    VerifyingKey::deserialize_uncompressed(&vk_bytes[..])
+        .expect("can parse public element input verifying key")
+});
 
 #[derive(Clone)]
 struct PreimageCircuit {
@@ -164,7 +180,8 @@ proptest! {
 #![proptest_config(ProptestConfig::with_cases(1))]
 #[test]
 fn groth16_hash_proof_happy_path(v1 in fq_strategy(), v2 in fq_strategy(), v3 in fq_strategy(), v4 in fq_strategy(), v5 in fq_strategy(), v6 in fq_strategy(), v7 in fq_strategy()) {
-        let (pk, vk) = PreimageCircuit::generate_test_parameters();
+        let pk = PREIMAGE_PK.clone();
+        let vk = PREIMAGE_VK.clone();
         let mut rng = OsRng;
 
         let preimages = [v1, v2, v3, v4, v5, v6, v7];
@@ -197,7 +214,8 @@ proptest! {
 #![proptest_config(ProptestConfig::with_cases(5))]
 #[test]
 fn groth16_hash_proof_unhappy_path(v1 in fq_strategy(), v2 in fq_strategy(), v3 in fq_strategy(), v4 in fq_strategy(), v5 in fq_strategy(), v6 in fq_strategy(), v7 in fq_strategy()) {
-        let (pk, vk) = PreimageCircuit::generate_test_parameters();
+        let pk = PREIMAGE_PK.clone();
+        let vk = PREIMAGE_VK.clone();
         let mut rng = OsRng;
 
         let preimages = [v1, v2, v3, v4, v5, v6, v7];
@@ -224,4 +242,33 @@ fn groth16_hash_proof_unhappy_path(v1 in fq_strategy(), v2 in fq_strategy(), v3 
 
         assert!(!proof_result);
     }
+}
+
+fn write_params(
+    target_dir: &PathBuf,
+    name: &str,
+    pk: &ProvingKey<Bls12_377>,
+    vk: &VerifyingKey<Bls12_377>,
+) -> anyhow::Result<()> {
+    let pk_location = target_dir.join(format!("{}_pk.bin", name));
+    let vk_location = target_dir.join(format!("{}_vk.param", name));
+
+    let pk_file = fs::File::create(&pk_location)?;
+    let vk_file = fs::File::create(&vk_location)?;
+
+    let pk_writer = BufWriter::new(pk_file);
+    let vk_writer = BufWriter::new(vk_file);
+
+    ProvingKey::serialize_uncompressed(pk, pk_writer).expect("can serialize ProvingKey");
+    VerifyingKey::serialize_uncompressed(vk, vk_writer).expect("can serialize VerifyingKey");
+
+    Ok(())
+}
+
+#[ignore]
+#[test]
+fn generate_test_vectors() {
+    let (pk, vk) = PreimageCircuit::generate_test_parameters();
+    write_params(&PathBuf::from("test_vectors"), "preimage", &pk, &vk)
+        .expect("can write test vectors");
 }

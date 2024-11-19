@@ -29,3 +29,13 @@ This will generate a report at `target/criterion/report/index.html`.
 Performance benchmarked on commit 9750f5ff01d11f158f111a1a75401901049e5575 on
 a 2023 Macbook Pro M2 (12 core CPU) with 32 GB memory using our 4-to-1 optimized
 poseidon hash takes 47.3µs, or ~21,141 hashes/second.
+
+## Generate Test Vectors
+
+There is a test utility that will generate the proving and verifying keys for
+the R1CS tests. These keys are pre-generated to guard against breaking changes
+to the circuits (e.g. when upgrading Arkworks dependencies).
+
+```
+cargo test generate_test_vectors -- --ignored
+```
