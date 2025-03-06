@@ -9,7 +9,7 @@ keywords = ["no_std"]
 repository = "https://github.com/penumbra-zone/poseidon377"
 
 [dependencies]
-decaf377 = { git = "https://github.com/penumbra-zone/decaf377.git", branch = "remove-32-backend", features = ["arkworks"] }
+decaf377 = { git = "https://github.com/penumbra-zone/decaf377.git", branch = "remove-32-backend", features = ["arkworks", "parallel"] }
 
 [features]
 default = ["std"]
